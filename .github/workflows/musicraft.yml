@@ -42,7 +42,7 @@ jobs:
         if: runner.os == 'Linux'
         env:
           LIBGL_ALWAYS_SOFTWARE: 'true'
-        run: bash ./gradlew runProductionClientGameTest --no-daemon --stacktrace
+        run: timeout 6m bash ./gradlew runProductionClientGameTest --no-daemon --stacktrace
       - name: Upload client screenshots and logs
         if: always() && runner.os == 'Linux'
         uses: actions/upload-artifact@v4

@@ -1,7 +1,8 @@
 # Mods
 
-Musicraft — исходники клиентского музыкального мода для Minecraft Java 26.3 + Fabric / Windows.
+Musicraft — клиентский музыкальный мод для Minecraft Java 26.3 + Fabric / Windows.
 
-Проект: `Musicraft/`. Инструкция: `Musicraft/README.md`. Статус проверки: `Musicraft/VALIDATION.md`.
+Проект: `Musicraft/`. Инструкция: `Musicraft/README.md`. Проверка: `Musicraft/VALIDATION.md`.
 
-Готового проверенного JAR пока нет: полная сборка блокируется сетевым доступом к Maven Fabric.
+Сборки JAR: https://github.com/Oskarrrrrsssss/Mods/actions/workflows/musicraft.yml
+Изменения: https://github.com/Oskarrrrrsssss/Mods/pull/1

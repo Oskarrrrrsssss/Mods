@@ -43,11 +43,12 @@ public final class HudEditor extends Screen {
         s.hudY = bottom ? (int) (height / s.hudScale) - 62 : 8; clamp();
     }
     @Override public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+        if (super.mouseClicked(event, doubleClick)) return true;
         double x = event.x() / s.hudScale, y = event.y() / s.hudScale;
         if (x >= s.hudX && x <= s.hudX + panelWidth() && y >= s.hudY && y <= s.hudY + 54) {
             dragging = true; offsetX = x - s.hudX; offsetY = y - s.hudY; return true;
         }
-        return super.mouseClicked(event, doubleClick);
+        return false;
     }
     @Override public boolean mouseDragged(MouseButtonEvent event, double dx, double dy) {
         if (dragging) {

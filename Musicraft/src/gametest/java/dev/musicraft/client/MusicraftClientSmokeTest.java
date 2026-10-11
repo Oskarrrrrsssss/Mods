@@ -45,6 +45,7 @@ public final class MusicraftClientSmokeTest implements FabricClientGameTest {
             check(fixture.lyrics().textAt(500).equals("Musicraft local lyric"), "Local LRC timeline did not load");
 
             context.getInput().resizeWindow(1280, 720);
+            context.runOnClient(client -> { client.options.guiScale().set(3); client.resizeGui(); });
             try (TestSingleplayerContext world = context.worldBuilder().create()) {
                 world.getConnection().waitForChunksRender();
                 context.waitTicks(4);
