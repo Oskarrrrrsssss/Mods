@@ -32,3 +32,13 @@ java { toolchain { languageVersion = JavaLanguageVersion.of(25) }; withSourcesJa
 tasks.withType(JavaCompile).configureEach { options.release = 25; options.encoding = 'UTF-8' }
 test { useJUnitPlatform() }
 jar { from('LICENSE') }
+
+// A small inspection task makes Minecraft API changes diagnosable in CI without stubs.
+tasks.register('inspectClientApi', Exec) {
+    doFirst {
+        commandLine 'javap', '-public', '-classpath', sourceSets.client.compileClasspath.asPath,
+            'net.minecraft.client.Minecraft', 'net.minecraft.client.Options',
+            'net.minecraft.client.gui.Gui', 'net.minecraft.client.gui.components.EditBox',
+            'net.minecraft.util.Util$OS'
+    }
+}

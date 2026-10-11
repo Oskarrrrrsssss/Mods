@@ -22,7 +22,10 @@ import org.w3c.dom.Document;
 import org.xml.sax.SAXParseException;
 import org.xml.sax.helpers.DefaultHandler;
 
-/** Unofficial adapter. Authorization is restricted to the fixed API origin. */
+/** Unofficial adapter. Authorization is restricted to the fixed API origin.
+ * Protocol reference: MarshalX/yandex-music-api, _client/tracks.py, _client/rotor_sessions.py,
+ * and utils/sign_request.py (upstream main, consulted 2026-10-12).
+ */
 public final class YandexMusic {
     private static final String API = "https://api.music.yandex.net";
     private static final String ANDROID_CLIENT = "YandexMusicAndroid/24023621";
@@ -72,6 +75,7 @@ public final class YandexMusic {
         WaveSession session;
         synchronized (waveLock) {
             generation = previousId == null ? waveGeneration.incrementAndGet() : waveGeneration.get();
+            if (previousId == null) activeWave = null;
             session = previousId == null ? null : activeWave;
         }
         if (session == null) return newWave(generation, previousId == null ? List.of() : List.of(previousId));
@@ -100,10 +104,6 @@ public final class YandexMusic {
         List<Track> found = sequence(result, null);
         String batch = str(result, "batchId", "");
         commitWave(generation, id, batch, queueIds, found);
-        // Feedback is useful but its temporary failure must not discard a playable batch.
-        try { sendFeedback(id, batch, "radioStarted", null, 0); }
-        catch (InterruptedException e) { Thread.currentThread().interrupt(); throw e; }
-        catch (IOException ignored) { }
         ensureWaveCurrent(generation);
         return found;
     }
@@ -330,7 +330,7 @@ public final class YandexMusic {
         return List.copyOf(tracks);
     }
     private static Track track(JsonObject data, String batch) {
-        if (!bool(data, "available", true)) return null;
+        if (!bool(data, "available", true) && !bool(data, "availableForPremiumUsers", false)) return null;
         String id = str(data, "id", ""); if (id.isBlank()) return null;
         List<String> artists = new ArrayList<>();
         for (JsonElement a : array(data, "artists")) if (a.isJsonObject()) artists.add(str(a.getAsJsonObject(), "name", ""));

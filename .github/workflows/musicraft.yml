@@ -1,9 +1,6 @@
 name: Musicraft build
 
 on:
-  push:
-    branches: ['codex/musicraft-*']
-    paths: ['Musicraft/**', '.github/workflows/musicraft.yml']
   pull_request:
     paths: ['Musicraft/**', '.github/workflows/musicraft.yml']
   workflow_dispatch:
@@ -37,7 +34,7 @@ jobs:
           distribution: temurin
           java-version: '25'
       - name: Compile client, run tests and build mod
-        run: bash ./gradlew build --no-daemon --stacktrace
+        run: bash ./gradlew inspectClientApi build --no-daemon --stacktrace
       - name: Upload test reports
         if: always()
         uses: actions/upload-artifact@v4

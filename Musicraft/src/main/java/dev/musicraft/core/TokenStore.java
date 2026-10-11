@@ -16,13 +16,15 @@ public final class TokenStore {
     }
     public synchronized String load() throws IOException {
         if (!Files.exists(path)) return "";
-        if (Files.size(path) == 0 || Files.size(path) > 65536) throw new IOException("Повреждён файл авторизации.");
         byte[] plain = null;
         try {
-            plain = protection.unprotect(Files.readAllBytes(path));
+            byte[] encrypted;
+            try (var input = Files.newInputStream(path)) { encrypted = input.readNBytes(65537); }
+            if (encrypted.length == 0 || encrypted.length > 65536) throw new IOException();
+            plain = protection.unprotect(encrypted);
             if (plain == null || plain.length > TokenInput.MAX_LENGTH) throw new IOException();
             return TokenInput.normalize(new String(plain, StandardCharsets.UTF_8));
-        } catch (IOException | RuntimeException e) {
+        } catch (IOException | RuntimeException | LinkageError e) {
             throw new IOException("Не удалось открыть авторизацию. Подключи аккаунт заново.");
         } finally { if (plain != null) Arrays.fill(plain, (byte) 0); }
     }
@@ -34,7 +36,7 @@ public final class TokenStore {
         try {
             protectedBytes = protection.protect(plain);
             if (protectedBytes == null || protectedBytes.length == 0 || protectedBytes.length > 65536) throw new IOException();
-        } catch (IOException | RuntimeException e) {
+        } catch (IOException | RuntimeException | LinkageError e) {
             throw new IOException("Windows не смогла сохранить авторизацию. Проверь доступ к папке config.");
         } finally { Arrays.fill(plain, (byte) 0); }
         Path tmp = Files.createTempFile(path.getParent(), "musicraft-auth-", ".tmp");

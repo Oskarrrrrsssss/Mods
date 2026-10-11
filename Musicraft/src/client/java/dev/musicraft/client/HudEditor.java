@@ -66,6 +66,6 @@ public final class HudEditor extends Screen {
         g.text(font, "Масштаб: " + Math.round(s.hudScale * 100) + "%", width / 2 - 140, height - 86, PlayerHud.MUTED, false);
         super.extractRenderState(g, mx, my, delta);
     }
-    @Override public void onClose() { dragging = false; MusicraftClient.player.saveSettings(); minecraft.setScreen(parent); }
+    @Override public void onClose() { dragging = false; MusicraftClient.player.saveSettings(); minecraft.gui.setScreen(parent); }
     @Override public boolean isPauseScreen() { return false; }
 }

@@ -44,9 +44,9 @@ public final class PlayerScreen extends Screen {
         button("Стоп", right + (rightWidth - 8) / 3 + 4, bottom, (rightWidth - 8) / 3, player::stop);
         button("+10 с", right + 2 * ((rightWidth - 8) / 3 + 4), bottom, (rightWidth - 8) / 3, () -> player.seek(player.positionMillis() + 10000));
         int footer = top + panelHeight - 26;
-        button("Аккаунт", left + 10, footer, 74, () -> minecraft.setScreen(new AccountScreen(this)));
-        button("Настройки", left + 88, footer, 84, () -> minecraft.setScreen(new SettingsScreen(this)));
-        button("HUD", left + 176, footer, 44, () -> minecraft.setScreen(new HudEditor(this)));
+        button("Аккаунт", left + 10, footer, 74, () -> minecraft.gui.setScreen(new AccountScreen(this)));
+        button("Настройки", left + 88, footer, 84, () -> minecraft.gui.setScreen(new SettingsScreen(this)));
+        button("HUD", left + 176, footer, 44, () -> minecraft.gui.setScreen(new HudEditor(this)));
         button("Готово", left + panelWidth - 74, footer, 64, this::onClose);
     }
     private Button button(String text, int x, int y, int w, Runnable action) {

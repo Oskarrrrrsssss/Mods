@@ -130,6 +130,9 @@ public final class AudioEngine implements Player.Playback {
         }
     }
     @Override public long durationMillis() { synchronized (lock) { return active == null ? 0 : active.duration; } }
+    @Override public long playedMillis() {
+        synchronized (lock) { return active == null ? 0 : Math.max(0, positionMillis() - active.offset); }
+    }
     @Override public boolean playing() { synchronized (lock) { return active != null && active.ready && !active.paused && !active.ended; } }
     @Override public boolean loaded() { synchronized (lock) { return active != null && active.ready && !active.ended; } }
     @Override public void volume(float value) { volume = Float.isFinite(value) ? Math.max(0, Math.min(1, value)) : .7f; }

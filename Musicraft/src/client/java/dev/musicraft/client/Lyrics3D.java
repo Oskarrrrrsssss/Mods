@@ -11,6 +11,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Quaternionf;
+import org.joml.Matrix4f;
 
 /** Capture game state during extraction, submit immutable text data during rendering. */
 public final class Lyrics3D {
@@ -27,7 +28,7 @@ public final class Lyrics3D {
             long position = player.positionMillis() + s.lyricOffsetMillis;
             Lyrics timeline = player.lyrics();
             int index = timeline.indexAt(position);
-            if (mc.player != null && mc.screen == null && !mc.options.hideGui && s.lyrics3d
+            if (mc.player != null && mc.gui.screen() == null && !mc.options.hideGui && s.lyrics3d
                 && player.playing() && (!s.sprintOnly || mc.player.isSprinting()) && index >= 0) {
                 var lines = timeline.lines(); String text = lines.get(index).text();
                 if (!text.isBlank()) {
@@ -58,7 +59,7 @@ public final class Lyrics3D {
             Vec3 camera = context.levelState().cameraRenderState.pos;
             PoseStack pose = context.poseStack(); pose.pushPose();
             Vec3 relative = state.anchor.subtract(camera); pose.translate(relative.x, relative.y, relative.z);
-            pose.mulPose(state.rotation); pose.scale(state.scale, -state.scale, state.scale);
+            pose.mulPose(new Matrix4f().rotation(state.rotation)); pose.scale(state.scale, -state.scale, state.scale);
             context.submitNodeCollector().submitText(pose, -state.width / 2, 0, state.text,
                 true, Font.DisplayMode.NORMAL, 0x00f000f0, state.color, 0x600e1711, 0);
             context.submitNodeCollector().submitText(pose, -state.nextWidth / 2, 13, state.next,

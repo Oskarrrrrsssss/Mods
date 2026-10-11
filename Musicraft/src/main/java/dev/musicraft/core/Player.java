@@ -24,6 +24,7 @@ public final class Player implements AutoCloseable {
         boolean playing();
         boolean loaded();
         long positionMillis();
+        default long playedMillis() { return positionMillis(); }
         long durationMillis();
         void togglePause();
         void volume(float value);
@@ -54,16 +55,20 @@ public final class Player implements AutoCloseable {
     private final Deque<Track> history = new ArrayDeque<>();
     private byte[] currentAudio;
     private boolean currentStarted;
-    private long serial, listSerial, authSerial, waveSerial;
+    private long listenedMillis;
+    private long serial, listSerial, authSerial, waveSerial, waveListSerial;
     private Future<?> playbackJob, metadataJob, listJob, authJob;
 
     public Player(Path gameDir) throws IOException { this(gameDir, null, new AudioEngine()); }
     Player(Path gameDir, RemoteProvider provider, Playback audio) throws IOException {
+        this(gameDir, provider, audio, new TokenStore(gameDir.resolve("config/musicraft-auth.dat")));
+    }
+    Player(Path gameDir, RemoteProvider provider, Playback audio, TokenStore credentials) throws IOException {
         this.audio = audio;
         configPath = gameDir.resolve("config/musicraft.json");
         settings = Settings.load(configPath); audio.volume(settings.volume);
         local = new LocalLibrary(gameDir.resolve("music"));
-        credentials = new TokenStore(gameDir.resolve("config/musicraft-auth.dat"));
+        this.credentials = credentials;
         YandexMusic yandex = provider == null ? new YandexMusic(() -> token) : null;
         remote = provider != null ? provider : new RemoteProvider() {
             public void checkAccount(String value) throws Exception { new YandexMusic(() -> value).checkAccount(); }
@@ -78,8 +83,9 @@ public final class Player implements AutoCloseable {
         synchronized (authLock) {
             long request = ++authSerial;
             authJob = workers.submit(() -> {
+                String saved = "";
                 try {
-                    String saved = credentials.load();
+                    saved = credentials.load();
                     if (saved.isBlank()) return;
                     synchronized (authLock) {
                         if (!validAuth(request)) return;
@@ -92,7 +98,7 @@ public final class Player implements AutoCloseable {
                     }
                 } catch (Exception e) {
                     synchronized (authLock) {
-                        if (validAuth(request)) { accountError = safeError(e, ""); accountStatus = "Подключи аккаунт заново"; }
+                        if (validAuth(request)) { accountError = safeError(e, saved); accountStatus = "Подключи аккаунт заново"; }
                     }
                 } finally {
                     synchronized (authLock) { if (validAuth(request)) connecting = false; }
@@ -152,10 +158,9 @@ public final class Player implements AutoCloseable {
         });
     }
     public void connect(String candidate) {
-        String clean = candidate == null ? "" : candidate.strip().replaceFirst("(?i)^OAuth\\s+", "");
-        if (clean.isBlank() || clean.length() > 4096 || clean.chars().anyMatch(c -> c < 33 || c > 126)) {
-            accountError = error = "Некорректный токен авторизации."; return;
-        }
+        final String clean;
+        try { clean = TokenInput.normalize(candidate); }
+        catch (IOException e) { accountError = error = TokenInput.INVALID; return; }
         synchronized (authLock) {
             if (closed) return;
             long request = ++authSerial; cancel(authJob);
@@ -168,8 +173,14 @@ public final class Player implements AutoCloseable {
                         credentials.save(clean); token = clean; remote.resetWave();
                         accountError = ""; accountStatus = "Яндекс Музыка подключена";
                     }
+                    synchronized (this) { if (wave || current != null && current.remote()) stop(); }
                 } catch (Exception e) {
-                    synchronized (authLock) { if (validAuth(request)) accountError = safeError(e, clean); }
+                    synchronized (authLock) {
+                        if (validAuth(request)) {
+                            accountError = safeError(e, clean);
+                            accountStatus = connected() ? "Яндекс Музыка подключена" : "Не удалось подключить аккаунт";
+                        }
+                    }
                 } finally {
                     synchronized (authLock) { if (validAuth(request)) connecting = false; }
                 }
@@ -202,6 +213,7 @@ public final class Player implements AutoCloseable {
         }
         long request = invalidateLocked();
         current = track; lyrics = Lyrics.EMPTY; cover = new byte[0]; currentAudio = null; currentStarted = false;
+        listenedMillis = 0;
         error = ""; status = "Загрузка: " + track.title();
         long waveRequest = waveSerial;
         playbackJob = workers.submit(() -> {
@@ -253,18 +265,20 @@ public final class Player implements AutoCloseable {
         if (closed) return;
         long request = invalidateLocked(); wave = true; ++waveSerial;
         long listRequest = ++listSerial; cancel(listJob);
+        waveListSerial = listRequest;
         current = null; currentStarted = false; currentAudio = null;
         lyrics = Lyrics.EMPTY; cover = new byte[0]; queue = List.of(); queueIndex = -1;
         status = "Запуск Моей волны…"; error = "";
         playbackJob = workers.submit(() -> {
             try {
-                // The provider creates the radio session and sends radioStarted after receiving its id.
+                // Only successful session creation can emit radioStarted; feedback does not delay audio.
                 List<Track> found = remote.wave(null);
                 synchronized (this) {
                     if (!valid(request)) return;
                     if (found.isEmpty()) throw new IOException("Моя волна не вернула доступных треков.");
                     queue = List.copyOf(found); queueIndex = 0;
                     if (listRequest == listSerial) items = queue;
+                    submitFeedback("radioStarted", null, 0, waveSerial);
                     requestStartLocked(queue.getFirst(), true);
                 }
             } catch (Exception e) { synchronized (this) { if (valid(request)) { loading = false; fail(e); } } }
@@ -273,7 +287,7 @@ public final class Player implements AutoCloseable {
     public synchronized void next() { if (!closed && (current != null || !queue.isEmpty())) advance(false, serial); }
     private synchronized void advance(boolean finished, long expectedRequest) {
         if (!valid(expectedRequest)) return;
-        Track previous = current; long played = audio.positionMillis();
+        Track previous = current; long played = listenedMillis + audio.playedMillis();
         if (wave && previous != null && currentStarted) submitFeedback(finished ? "trackFinished" : "skip", previous, played, waveSerial);
         if (!wave) {
             if (queue.isEmpty()) { invalidateLocked(); loading = false; return; }
@@ -282,6 +296,9 @@ public final class Player implements AutoCloseable {
         } else if (queueIndex + 1 < queue.size()) {
             ++queueIndex; requestStartLocked(queue.get(queueIndex), true);
         } else {
+            if (currentStarted && previous != null) {
+                history.push(previous); while (history.size() > 100) history.removeLast();
+            }
             long request = invalidateLocked(); currentStarted = false;
             status = "Следующий трек Моей волны…";
             playbackJob = workers.submit(() -> {
@@ -290,7 +307,8 @@ public final class Player implements AutoCloseable {
                     synchronized (this) {
                         if (!valid(request)) return;
                         if (found.isEmpty()) throw new IOException("Моя волна не вернула следующий трек.");
-                        queue = List.copyOf(found); queueIndex = 0; items = queue;
+                        queue = List.copyOf(found); queueIndex = 0;
+                        if (waveListSerial == listSerial) items = queue;
                         requestStartLocked(queue.getFirst(), true);
                     }
                 } catch (Exception e) { synchronized (this) { if (valid(request)) { loading = false; fail(e); } } }
@@ -320,6 +338,7 @@ public final class Player implements AutoCloseable {
         long limit = durationMillis();
         long target = Math.max(0, limit > 0 ? Math.min(millis, Math.max(0, limit - 100)) : millis);
         boolean paused = !audio.playing();
+        listenedMillis += audio.playedMillis();
         long request = invalidateLocked();
         startAudioLocked(track, data, request, target, paused, waveSerial, false);
         loadMetadata(track, request);

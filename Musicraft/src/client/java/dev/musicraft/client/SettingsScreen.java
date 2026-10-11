@@ -27,7 +27,7 @@ public final class SettingsScreen extends Screen {
         option("Сдвиг текста −100 мс", x, y + 156, () -> s.lyricOffsetMillis -= 100);
         option("Сдвиг текста +100 мс", x + 160, y + 156, () -> s.lyricOffsetMillis += 100);
         option("Цвет: сменить", x, y + 182, () -> s.accent = s.accent == 0x82e39b ? 0xffc870 : s.accent == 0xffc870 ? 0x8bc8ef : 0x82e39b);
-        option("Переместить панель", x + 160, y + 182, () -> minecraft.setScreen(new HudEditor(this)), false);
+        option("Переместить панель", x + 160, y + 182, () -> minecraft.gui.setScreen(new HudEditor(this)), false);
         option("Назад", x + 80, y + 212, this::onClose, false);
     }
     private static String yes(boolean value) { return value ? "вкл" : "выкл"; }
@@ -45,6 +45,6 @@ public final class SettingsScreen extends Screen {
         g.text(font, values, width / 2 - 155, height - 12, PlayerHud.MUTED, false);
         super.extractRenderState(g, mx, my, delta);
     }
-    @Override public void onClose() { MusicraftClient.player.saveSettings(); minecraft.setScreen(parent); }
+    @Override public void onClose() { MusicraftClient.player.saveSettings(); minecraft.gui.setScreen(parent); }
     @Override public boolean isPauseScreen() { return false; }
 }

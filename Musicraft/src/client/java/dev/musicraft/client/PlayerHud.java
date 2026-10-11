@@ -10,7 +10,7 @@ public final class PlayerHud {
     public static void preview(GuiGraphicsExtractor g) { draw(g, true); }
     private static void draw(GuiGraphicsExtractor g, boolean preview) {
         Player player = MusicraftClient.player; Settings s = player.settings; Track track = player.current();
-        if (!preview && (!s.hud || track == null || Minecraft.getInstance().screen != null)) return;
+        if (!preview && (!s.hud || track == null || Minecraft.getInstance().gui.screen() != null)) return;
         if (track == null) track = new Track("preview", "Название трека", "Исполнитель", 180000, null, null, "", "");
         int width = s.covers ? 244 : 196, height = 54;
         int x = Math.max(0, Math.min(s.hudX, (int) (g.guiWidth() / s.hudScale) - width));
