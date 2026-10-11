@@ -28,7 +28,7 @@ public final class Lyrics3D {
             long position = player.positionMillis() + s.lyricOffsetMillis;
             Lyrics timeline = player.lyrics();
             int index = timeline.indexAt(position);
-            if (mc.player != null && mc.gui.screen() == null && !mc.options.hideGui && s.lyrics3d
+            if (mc.player != null && mc.gui.screen() == null && !mc.gui.hud.isHidden() && s.lyrics3d
                 && player.playing() && (!s.sprintOnly || mc.player.isSprinting()) && index >= 0) {
                 var lines = timeline.lines(); String text = lines.get(index).text();
                 if (!text.isBlank()) {

@@ -35,6 +35,25 @@ jobs:
           java-version: '25'
       - name: Compile client, run tests and build mod
         run: bash ./gradlew inspectClientApi build --no-daemon --stacktrace
+      - name: Install client smoke-test display
+        if: runner.os == 'Linux'
+        run: sudo apt-get update -qq && sudo apt-get install -y xvfb libgl1-mesa-dri libglx-mesa0 libpulse0
+      - name: Launch Minecraft and test player UI, hotkeys and lyrics
+        if: runner.os == 'Linux'
+        env:
+          LIBGL_ALWAYS_SOFTWARE: 'true'
+        run: bash ./gradlew runProductionClientGameTest --no-daemon --stacktrace
+      - name: Upload client screenshots and logs
+        if: always() && runner.os == 'Linux'
+        uses: actions/upload-artifact@v4
+        with:
+          name: minecraft-client-smoke
+          path: |
+            Musicraft/build/run/clientGameTest/screenshots/
+            Musicraft/build/run/clientGameTest/logs/
+            Musicraft/build/run/clientGameTest/crash-reports/
+          if-no-files-found: ignore
+          retention-days: 7
       - name: Upload test reports
         if: always()
         uses: actions/upload-artifact@v4
@@ -50,5 +69,6 @@ jobs:
           path: |
             Musicraft/build/libs/musicraft-*.jar
             !Musicraft/build/libs/*-sources.jar
+            !Musicraft/build/libs/*-gametest.jar
           if-no-files-found: error
           retention-days: 14

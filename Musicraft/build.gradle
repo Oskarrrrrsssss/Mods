@@ -39,6 +39,34 @@ tasks.register('inspectClientApi', Exec) {
         commandLine 'javap', '-public', '-classpath', sourceSets.client.compileClasspath.asPath,
             'net.minecraft.client.Minecraft', 'net.minecraft.client.Options',
             'net.minecraft.client.gui.Gui', 'net.minecraft.client.gui.components.EditBox',
-            'net.minecraft.util.Util$OS'
+            'net.minecraft.util.Util$OS', 'net.minecraft.client.gui.Hud',
+            'net.minecraft.client.gui.components.EditBox$TextFormatter',
+            'com.mojang.blaze3d.Blaze3D'
     }
+}
+
+fabricApi {
+    configureTests {
+        createSourceSet = true
+        modId = 'musicraft-gametest'
+        enableGameTests = false
+        enableClientGameTests = true
+        eula = false
+    }
+}
+
+tasks.register('gametestJar', Jar) {
+    from sourceSets.gametest.output
+    archiveClassifier = 'gametest'
+}
+
+dependencies {
+    productionRuntimeMods "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+}
+
+tasks.register('runProductionClientGameTest', net.fabricmc.loom.task.prod.ClientProductionRunTask) {
+    mods.from(tasks.named('gametestJar'))
+    jvmArgs.add('-Dfabric.client.gametest')
+    runDir = file('build/run/clientGameTest')
+    useXVFB = true
 }

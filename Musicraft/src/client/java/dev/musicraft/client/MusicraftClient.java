@@ -32,7 +32,7 @@ public final class MusicraftClient implements ClientModInitializer {
             while (open.consumeClick()) client.gui.setScreen(new PlayerScreen());
             while (lyrics.consumeClick()) {
                 player.settings.lyrics3d = !player.settings.lyrics3d; player.saveSettings();
-                if (client.player != null) client.gui.setOverlayMessage(Component.literal("3D-субтитры: " + (player.settings.lyrics3d ? "включены" : "выключены")), false);
+                if (client.player != null) client.gui.hud.setOverlayMessage(Component.literal("3D-субтитры: " + (player.settings.lyrics3d ? "включены" : "выключены")), false);
             }
             while (pause.consumeClick()) player.togglePause();
             while (next.consumeClick()) player.next();

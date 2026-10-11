@@ -21,10 +21,10 @@ public final class PlayerScreen extends Screen {
         left = (width - panelWidth) / 2; top = (height - panelHeight) / 2;
         listWidth = (panelWidth - 32) / 2; rows = Math.max(1, (panelHeight - 152) / 24);
         button("Локальные", left + 10, top + 32, (listWidth - 4) / 2, () -> { page = 0; player.refreshLocal(); });
-        button("Моя волна", left + 14 + (listWidth - 4) / 2, top + 32, (listWidth - 4) / 2, player::startWave);
+        button("Моя волна", left + 14 + (listWidth - 4) / 2, top + 32, (listWidth - 4) / 2, () -> { if (player.connected()) player.startWave(); else minecraft.gui.setScreen(new AccountScreen(this)); });
         search = new EditBox(font, left + 10, top + 58, listWidth - 44, 20, Component.literal("Поиск трека"));
         search.setMaxLength(256); search.setValue(query); search.setResponder(value -> query = value); addRenderableWidget(search);
-        button("Найти", left + listWidth - 30, top + 58, 40, () -> { page = 0; player.search(query); });
+        button("Найти", left + listWidth - 30, top + 58, 40, () -> { page = 0; if (player.connected()) player.search(query); else minecraft.gui.setScreen(new AccountScreen(this)); });
         seen = player.items(); int pages = Math.max(1, (seen.size() + rows - 1) / rows); page = Math.max(0, Math.min(page, pages - 1));
         for (int row = 0; row < rows; row++) {
             int index = page * rows + row; if (index >= seen.size()) break;

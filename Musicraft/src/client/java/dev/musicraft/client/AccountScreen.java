@@ -2,7 +2,8 @@ package dev.musicraft.client;
 
 import dev.musicraft.core.TokenInput;
 import java.io.IOException;
-import net.minecraft.util.Util;
+import com.mojang.blaze3d.Blaze3D;
+import java.net.URI;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.*;
 import net.minecraft.client.gui.screens.Screen;
@@ -20,9 +21,13 @@ public final class AccountScreen extends Screen {
 
     @Override protected void init() {
         int x = width / 2 - 155, y = Math.max(24, height / 2 - 106);
-        token = new EditBox(font, x, y + 72, 310, 20, Component.literal("Токен Яндекс Музыки"));
+        token = new EditBox(font, x, y + 72, 310, 20, Component.literal("Токен Яндекс Музыки")) {
+            @Override protected net.minecraft.network.chat.MutableComponent createNarrationMessage() {
+                return Component.literal("Токен Яндекс Музыки. Скрытое поле ввода.");
+            }
+        };
         token.setMaxLength(TokenInput.MAX_LENGTH + 2048);
-        token.setFormatter((value, cursor) -> Component.literal("*".repeat(value.length())).getVisualOrderText());
+        token.addFormatter((value, cursor) -> Component.literal("*".repeat(value.length())).getVisualOrderText());
         token.setResponder(value -> inputError = "");
         addRenderableWidget(token);
         connect = addRenderableWidget(Button.builder(Component.literal("Подключить"), b -> connect())
@@ -31,7 +36,7 @@ public final class AccountScreen extends Screen {
             token.setValue(""); inputError = ""; MusicraftClient.player.disconnect();
         }).bounds(x + 159, y + 100, 151, 20).build());
         addRenderableWidget(Button.builder(Component.literal("Открыть инструкцию получения токена"),
-            b -> Util.getPlatform().openUri(HELP)).bounds(x, y + 128, 310, 20).build());
+            b -> Blaze3D.openUri(URI.create(HELP))).bounds(x, y + 128, 310, 20).build());
         addRenderableWidget(Button.builder(Component.literal("Назад"), b -> onClose())
             .bounds(x, y + 196, 310, 20).build());
         setInitialFocus(token);
