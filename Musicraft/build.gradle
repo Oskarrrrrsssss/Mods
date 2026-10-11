@@ -1,0 +1,34 @@
+plugins {
+    id 'net.fabricmc.fabric-loom' version "${loom_version}"
+}
+version = project.mod_version
+group = 'dev.musicraft'
+base { archivesName = 'musicraft' }
+repositories { mavenCentral() }
+loom {
+    splitEnvironmentSourceSets()
+    mods { musicraft { sourceSet sourceSets.main; sourceSet sourceSets.client } }
+}
+dependencies {
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    implementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+    // PCM output uses JavaSound. Bundle the MP3 and Vorbis SPI providers and their dependencies.
+    for (artifact in [
+        'com.tianscar.javasound:javasound-mp3:1.9.8',
+        'com.tianscar.javasound:javasound-vorbis:2.1.0',
+        'com.googlecode.soundlibs:tritonus-share:0.3.7.4',
+        'net.java.dev.jna:jna:5.18.1',
+        'net.java.dev.jna:jna-platform:5.18.1'
+    ]) { implementation artifact; include artifact }
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.13.4'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+processResources {
+    inputs.property 'version', project.version
+    filesMatching('fabric.mod.json') { expand version: project.version }
+}
+java { toolchain { languageVersion = JavaLanguageVersion.of(25) }; withSourcesJar() }
+tasks.withType(JavaCompile).configureEach { options.release = 25; options.encoding = 'UTF-8' }
+test { useJUnitPlatform() }
+jar { from('LICENSE') }

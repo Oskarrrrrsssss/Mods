@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "id": "musicraft",
+  "version": "${version}",
+  "name": "Musicraft",
+  "description": "Client music player: local tracks, Yandex Music and optional 3D lyrics.",
+  "license": "MIT",
+  "environment": "client",
+  "entrypoints": { "client": ["dev.musicraft.client.MusicraftClient"] },
+  "depends": {
+    "fabricloader": ">=0.19.5",
+    "minecraft": "26.3",
+    "java": ">=25",
+    "fabric-api": ">=0.162.0"
+  }
+}

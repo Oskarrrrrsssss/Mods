@@ -1,0 +1,6 @@
+.gradle/
+build/
+run/
+*.dat
+*.token
+.core-check/

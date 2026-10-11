@@ -1,0 +1,57 @@
+name: Musicraft build
+
+on:
+  push:
+    branches: ['codex/musicraft-*']
+    paths: ['Musicraft/**', '.github/workflows/musicraft.yml']
+  pull_request:
+    paths: ['Musicraft/**', '.github/workflows/musicraft.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: musicraft-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Fabric 26.3 / ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+    defaults:
+      run:
+        working-directory: Musicraft
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+      - name: Compile client, run tests and build mod
+        run: bash ./gradlew build --no-daemon --stacktrace
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tests-${{ matrix.os }}
+          path: Musicraft/build/reports/tests/
+          if-no-files-found: ignore
+          retention-days: 7
+      - name: Upload mod
+        uses: actions/upload-artifact@v4
+        with:
+          name: musicraft-fabric-26.3-${{ matrix.os }}
+          path: |
+            Musicraft/build/libs/musicraft-*.jar
+            !Musicraft/build/libs/*-sources.jar
+          if-no-files-found: error
+          retention-days: 14
