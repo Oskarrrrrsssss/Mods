@@ -22,7 +22,7 @@ public final class PlayerScreen extends Screen {
     @Override protected void init() {
         panelWidth = Math.min(620, width - 20); panelHeight = Math.min(360, height - 20);
         left = (width - panelWidth) / 2; top = (height - panelHeight) / 2;
-        listWidth = (panelWidth - 32) / 2; rows = Math.max(1, (panelHeight - 138) / 24);
+        listWidth = (panelWidth - 32) / 2; rows = Math.max(1, (panelHeight - 146) / 24);
         button(Component.translatable("invumusicplayer.player.local"), left + 10, top + 32, (listWidth - 4) / 2, () -> { page = 0; player.refreshLocal(); });
         button(Component.translatable("invumusicplayer.player.wave"), left + 14 + (listWidth - 4) / 2, top + 32, (listWidth - 4) / 2-24, () -> { if (player.connected()) player.showWave(); else minecraft.gui.setScreen(new AccountScreen(this)); });
         icon("invumusicplayer.wave.settings",left+listWidth-10,top+32,20,PlayerMenuButton.Icon.WAVE,()->minecraft.gui.setScreen(new WaveSettingsScreen(this)));
@@ -39,8 +39,8 @@ public final class PlayerScreen extends Screen {
             button(Component.literal("+"),left+listWidth-10,top+84+row*24,20,()->player.enqueue(t));
         }
         int bottom = top + panelHeight - 86;
-        button(Component.literal("<"), left + 10, top+panelHeight-54, 24, () -> { page--; rebuildWidgets(); });
-        button(Component.literal(">"), left + listWidth - 14, top+panelHeight-54, 24, () -> { page++; rebuildWidgets(); });
+        button(Component.literal("<"), left + 10, top+panelHeight-26, 24, () -> { page--; rebuildWidgets(); });
+        button(Component.literal(">"), left + 38, top+panelHeight-26, 24, () -> { page++; rebuildWidgets(); });
         int right = left + listWidth + 22, rightWidth = panelWidth - listWidth - 32;
         icon("invumusicplayer.menu.previous",right,bottom-4,36,PlayerMenuButton.Icon.PREVIOUS,player::previous);
         pause=icon("invumusicplayer.player.pause",right+40,bottom-4,rightWidth-80,PlayerMenuButton.Icon.PAUSE,player::togglePause);
@@ -54,12 +54,12 @@ public final class PlayerScreen extends Screen {
         icon("invumusicplayer.player.shuffle",right+28,top+32,24,PlayerMenuButton.Icon.SHUFFLE,player::toggleShuffle);
         dislikeButton=icon("invumusicplayer.player.dislike",right+56,top+32,24,PlayerMenuButton.Icon.DISLIKE,()->player.rate(false));
         icon("invumusicplayer.player.library",right+84,top+32,Math.max(24,rightWidth-84),PlayerMenuButton.Icon.LIBRARY,()->minecraft.gui.setScreen(new LibraryScreen(this)));
-        addRenderableWidget(new ValueSlider(right,top+panelHeight-56,rightWidth,"invumusicplayer.slider.volume",player.settings.volume*100,0,100,v->player.volume((float)v/100)));
+        addRenderableWidget(new ValueSlider(left+10,top+panelHeight-56,panelWidth-20,"invumusicplayer.slider.volume",player.settings.volume*100,0,100,.8f,v->player.volume((float)v/100)));
         serviceStatus = button(Component.empty(), left + 110, top + 6, panelWidth - 120, () -> {});
         updateServiceStatus();
-        button(Component.translatable("invumusicplayer.player.account"), left + 10, footer, 74, () -> minecraft.gui.setScreen(new AccountScreen(this)));
-        button(Component.translatable("invumusicplayer.player.settings"), left + 88, footer, 84, () -> minecraft.gui.setScreen(new SettingsScreen(this)));
-        button(Component.translatable("invumusicplayer.player.hud"), left + 176, footer, 44, () -> minecraft.gui.setScreen(new HudEditor(this)));
+        icon("invumusicplayer.player.account", left + 70, footer, 24,PlayerMenuButton.Icon.ACCOUNT, () -> minecraft.gui.setScreen(new AccountScreen(this)));
+        icon("invumusicplayer.player.settings", left + 98, footer, 24,PlayerMenuButton.Icon.SETTINGS, () -> minecraft.gui.setScreen(new SettingsScreen(this)));
+        icon("invumusicplayer.player.hud", left + 126, footer, 24,PlayerMenuButton.Icon.MOVE, () -> minecraft.gui.setScreen(new HudEditor(this)));
         button(Component.translatable("invumusicplayer.player.done"), left + panelWidth - 74, footer, 64, this::onClose);
     }
     private Button icon(String key,int x,int y,int w,PlayerMenuButton.Icon icon,Runnable action){var b=new PlayerMenuButton(x,y,w,Component.translatable(key),icon,false,v->action.run());b.setTooltip(Tooltip.create(Component.translatable(key)));return addRenderableWidget(b);}
@@ -100,7 +100,7 @@ public final class PlayerScreen extends Screen {
         if (player.durationMillis() > 0) g.fill(right, barY, right + (int) (rightWidth * Math.min(1, (double) player.positionMillis() / player.durationMillis())), barY + 3, 0xff000000 | player.settings.accent);
         }
         if (seen.isEmpty()) g.text(font, font.plainSubstrByWidth(UiText.text("invumusicplayer.player.empty_library"), listWidth - 4), left + 12, top + 88, PlayerHud.MUTED, false);
-        g.text(font, (page + 1) + " / " + Math.max(1, (seen.size() + rows - 1) / rows), left + 44, top + panelHeight - 46, PlayerHud.MUTED, false);
+        g.text(font, (page + 1) + " / " + Math.max(1, (seen.size() + rows - 1) / rows), left + 156, top + panelHeight - 20, PlayerHud.MUTED, false);
         for(int row=0;row<rows;row++){int index=page*rows+row;if(index>=seen.size())break;Track t=seen.get(index);if(player.settings.covers&&!t.youtube()){
             if(!artwork.containsKey(t.id())&&artwork.size()>=64){String old=artwork.keySet().iterator().next();artwork.remove(old).close();}
             CoverTexture texture=artwork.computeIfAbsent(t.id(),id->new CoverTexture());texture.update(player.coverFor(t));texture.draw(g,left+12,top+86+row*24,16,player.settings.accent);

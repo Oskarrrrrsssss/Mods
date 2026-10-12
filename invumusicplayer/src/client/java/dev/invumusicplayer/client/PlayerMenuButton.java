@@ -7,7 +7,7 @@ import net.minecraft.network.chat.Component;
 
 /** Rounded entry and transport controls with native focus, input and narration. */
 final class PlayerMenuButton extends Button {
-    enum Icon { MUSIC, SETTINGS, PREVIOUS, PAUSE, NEXT, LIKE, DISLIKE, SHUFFLE, WAVE, LIBRARY, MOVE, TRASH }
+    enum Icon { MUSIC, SETTINGS, PREVIOUS, PAUSE, NEXT, LIKE, DISLIKE, SHUFFLE, WAVE, LIBRARY, MOVE, TRASH, ACCOUNT }
     private final Icon icon;
     private final boolean label;private final float scale;
     PlayerMenuButton(int x, int y, int width, Component message, Icon icon, boolean label, OnPress press) {
@@ -45,6 +45,7 @@ final class PlayerMenuButton extends Button {
             case LIBRARY -> {g.fill(ix,iy,ix+2,iy+10,c);g.fill(ix+4,iy,ix+6,iy+10,c);g.fill(ix+8,iy+2,ix+10,iy+10,c);}
             case MOVE -> {g.fill(ix+4,iy,ix+6,iy+10,c);g.fill(ix,iy+4,ix+10,iy+6,c);g.fill(ix+3,iy+1,ix+7,iy+2,c);g.fill(ix+3,iy+8,ix+7,iy+9,c);g.fill(ix+1,iy+3,ix+2,iy+7,c);g.fill(ix+8,iy+3,ix+9,iy+7,c);}
             case TRASH -> {g.fill(ix,iy+1,ix+10,iy+3,c);g.fill(ix+3,iy,ix+7,iy+1,c);g.fill(ix+2,iy+4,ix+8,iy+10,c);g.fill(ix+3,iy+5,ix+4,iy+9,background);g.fill(ix+6,iy+5,ix+7,iy+9,background);}
+            case ACCOUNT -> {g.fill(ix+3,iy,ix+7,iy+4,c);g.fill(ix+1,iy+6,ix+9,iy+10,c);g.fill(ix+2,iy+5,ix+8,iy+6,c);}
             case MUSIC -> {g.fill(ix+2,iy,ix+4,iy+8,c);g.fill(ix+4,iy,ix+9,iy+2,c);g.fill(ix,iy+7,ix+4,iy+10,c);}
             case SETTINGS -> {g.fill(ix+3,iy,ix+7,iy+10,c);g.fill(ix,iy+3,ix+10,iy+7,c);g.fill(ix+1,iy+1,ix+9,iy+9,c);g.fill(ix+3,iy+3,ix+7,iy+7,background);}
             case PAUSE -> {if(player.playing()){g.fill(ix+1,iy,ix+4,iy+10,c);g.fill(ix+6,iy,ix+9,iy+10,c);}else triangle(g,ix+2,iy,c,false);}

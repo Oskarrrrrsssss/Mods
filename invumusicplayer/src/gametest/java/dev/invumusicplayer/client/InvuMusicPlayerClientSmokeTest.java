@@ -76,6 +76,9 @@ public final class InvuMusicPlayerClientSmokeTest implements FabricClientGameTes
                 checkPauseAndHiddenHud(context,fixture);
                 openPlayerWithHotkey(context);
                 context.waitFor(client -> InvuMusicPlayerClient.cover.ready() && ((PlayerScreen)client.gui.screen()).readyArtworkCount() == 3);
+                context.runOnClient(client->{var widgets=client.gui.screen().children();var volume=widgets.stream().filter(ValueSlider.class::isInstance).map(ValueSlider.class::cast).findFirst().orElseThrow();
+                    for(var w:widgets)if(w instanceof net.minecraft.client.gui.components.Button button){int distance=button.getY()>=volume.getY()?button.getY()-(volume.getY()+volume.getHeight()):volume.getY()-(button.getY()+button.getHeight());check(distance>=10,"Full-player volume is adjacent to clickable buttons");}
+                });
                 context.takeScreenshot("invumusicplayer-en-player-with-cover");
                 context.clickScreenButton("invumusicplayer.player.library");context.waitForScreen(LibraryScreen.class);
                 context.waitFor(client->((LibraryScreen)client.gui.screen()).readyArtworkCount()==2);
