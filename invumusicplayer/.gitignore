@@ -4,3 +4,6 @@ run/
 *.dat
 *.token
 .core-check/
+
+__pycache__/
+*.pyc

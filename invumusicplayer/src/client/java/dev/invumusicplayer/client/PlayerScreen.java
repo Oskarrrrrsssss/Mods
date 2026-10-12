@@ -14,7 +14,7 @@ public final class PlayerScreen extends Screen {
     private String query = "";
     private EditBox search;
     private int left, top, panelWidth, panelHeight, listWidth, rows;
-    private Button pause, serviceStatus;
+    private Button pause, serviceStatus,likeButton,dislikeButton;
     private final Map<String,CoverTexture> artwork = new HashMap<>();
     public PlayerScreen() { super(Component.translatable("invumusicplayer.player.title")); }
     @Override protected void init() {
@@ -47,8 +47,8 @@ public final class PlayerScreen extends Screen {
         button(Component.translatable("invumusicplayer.player.stop"),right+third+4,seekY,third,player::suspend);
         button(Component.translatable("invumusicplayer.player.seek_forward"),right+2*(third+4),seekY,third,()->player.seek(player.positionMillis()+10000));
         int footer = top + panelHeight - 26;
-        button(Component.translatable("invumusicplayer.player.like"), right, top+32, 44, ()->player.rate(true));
-        button(Component.translatable("invumusicplayer.player.dislike"), right+48, top+32, 44, ()->player.rate(false));
+        likeButton=button(Component.translatable("invumusicplayer.player.like"), right, top+32, 44, ()->player.rate(true));
+        dislikeButton=button(Component.translatable("invumusicplayer.player.dislike"), right+48, top+32, 44, ()->player.rate(false));
         button(Component.translatable("invumusicplayer.player.library"), right+96, top+32, Math.max(50,rightWidth-96), ()->minecraft.gui.setScreen(new LibraryScreen(this)));
         addRenderableWidget(new ValueSlider(right,top+panelHeight-78,rightWidth,"invumusicplayer.slider.volume",player.settings.volume*100,0,100,v->player.volume((float)v/100)));
         serviceStatus = button(Component.empty(), left + 110, top + 6, panelWidth - 120, () -> {});
@@ -64,6 +64,8 @@ public final class PlayerScreen extends Screen {
     @Override public void tick() {
         if (seen != player.items()) rebuildWidgets();
         updateServiceStatus();
+        if(likeButton!=null){boolean enabled=player.current()!=null&&!player.current().youtube();likeButton.active=dislikeButton.active=enabled;
+            ((ModernButton)likeButton).selected(()->player.rating()==1);((ModernButton)dislikeButton).selected(()->player.rating()==-1);}
         if (pause != null) pause.setMessage(Component.translatable(player.loading() ? "invumusicplayer.player.loading" : player.playing() ? "invumusicplayer.player.pause" : "invumusicplayer.player.play"));
     }
     private void updateServiceStatus() {

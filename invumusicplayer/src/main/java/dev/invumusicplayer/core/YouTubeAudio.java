@@ -24,7 +24,7 @@ public final class YouTubeAudio {
     public static Track describe(String url,Path gameDir) throws Exception {
         url=validate(url); Path dir=Files.createTempDirectory("invu-youtube-");
         try {
-            Path json=run(gameDir,dir,List.of("--no-playlist","--skip-download","--dump-single-json","--",url));
+            Path json=run(gameDir,dir,List.of("--ignore-config","--no-playlist","--skip-download","--dump-single-json","--",url));
             JsonObject info=JsonParser.parseString(Files.readString(json)).getAsJsonObject();
             String title=info.has("title")?info.get("title").getAsString():"YouTube";
             long duration=info.has("duration")&&!info.get("duration").isJsonNull()?info.get("duration").getAsLong()*1000:0;
@@ -34,7 +34,7 @@ public final class YouTubeAudio {
     public static byte[] audio(Track track,Path gameDir) throws Exception {
         String url=validate(track.id().substring("youtube:".length())); Path dir=Files.createTempDirectory("invu-youtube-");
         try {
-            List<String> args=new ArrayList<>(List.of("--no-playlist","--no-progress","--max-filesize","128M","-f","bestaudio","-x","--audio-format","wav","-o",dir.resolve("audio.%(ext)s").toString()));
+            List<String> args=new ArrayList<>(List.of("--ignore-config","--no-playlist","--no-progress","--max-filesize","128M","-f","bestaudio","-x","--audio-format","wav","-o",dir.resolve("audio.%(ext)s").toString()));
             Path ffmpeg=gameDir.resolve("tools/ffmpeg.exe"); if(Files.isRegularFile(ffmpeg)){args.add("--ffmpeg-location");args.add(ffmpeg.getParent().toAbsolutePath().toString());}
             args.add("--");args.add(url);run(gameDir,dir,args);
             try(InputStream in=Files.newInputStream(dir.resolve("audio.wav"))) { return YandexMusic.bounded(in,128*1024*1024); }

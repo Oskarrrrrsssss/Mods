@@ -54,7 +54,8 @@ public final class InvuMusicPlayerClientSmokeTest implements FabricClientGameTes
 
             context.getInput().resizeWindow(1280, 720);
             context.runOnClient(client -> { client.options.guiScale().set(3); client.resizeGui(); });
-            context.runOnClient(client -> client.gui.setScreen(new PlayerScreen()));
+            context.waitForScreen(net.minecraft.client.gui.screens.TitleScreen.class);
+            context.takeScreenshot("invu-en-title-screen-entry");context.clickScreenButton("invumusicplayer");context.waitForScreen(PlayerScreen.class);
             context.clickScreenButton("invumusicplayer.player.settings");context.waitForScreen(SettingsScreen.class);
             context.takeScreenshot("invu-en-settings-without-world");context.clickScreenButton("invumusicplayer.settings.back");
             context.clickScreenButton("invumusicplayer.player.done");
@@ -148,6 +149,11 @@ public final class InvuMusicPlayerClientSmokeTest implements FabricClientGameTes
                 context.clickScreenButton("invumusicplayer.player.done");
                 context.waitForScreen(null);
             }
+            context.waitForScreen(net.minecraft.client.gui.screens.TitleScreen.class);
+            context.waitFor(client -> !fixture.playing());
+            check(!fixture.queue().isEmpty(),"Leaving the world erased its queue");
+            context.clickScreenButton("invumusicplayer");context.waitForScreen(PlayerScreen.class);
+            context.takeScreenshot("invu-ru-player-after-world-exit");context.clickScreenButton("invumusicplayer.player.done");
         } finally {
             context.runOnClient(client -> {
                 InvuMusicPlayerClient.player = original;

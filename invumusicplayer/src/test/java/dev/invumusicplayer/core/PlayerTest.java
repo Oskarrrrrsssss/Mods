@@ -264,6 +264,8 @@ final class PlayerTest {
             player.choose(player.items(),2);await(()->player.playing()&&player.current().id().equals("c"));
             assertTrue(player.isWave());audio.ended.run();await(()->player.playing()&&player.current().id().equals("d"));
             assertEquals(List.of("new","c"),remote.waveRequests);assertEquals("d",player.items().getFirst().id());
+            player.previous();await(()->player.playing()&&player.current().id().equals("c"));assertTrue(player.isWave());
+            player.next();await(()->player.playing()&&player.current().id().equals("d"));assertEquals(2,remote.waveCalls.get());
         }
     }
     @Test void leavingWorldStopsAudioButRetainsQueueAndSavedPlaylistsAcrossRestart() throws Exception {

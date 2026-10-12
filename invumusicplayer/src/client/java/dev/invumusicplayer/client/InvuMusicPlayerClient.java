@@ -40,7 +40,7 @@ public final class InvuMusicPlayerClient implements ClientModInitializer {
         KeyMapping dislike=key("dislike",SDLScancode.SDL_SCANCODE_UNKNOWN,category);
         net.fabricmc.fabric.api.client.screen.v1.ScreenEvents.AFTER_INIT.register((client,screen,w,h)->{
             if(screen instanceof net.minecraft.client.gui.screens.TitleScreen) net.fabricmc.fabric.api.client.screen.v1.Screens.getWidgets(screen).add(
-                new ModernButton(w-124,h-28,116,20,Component.literal("invumusicplayer"),b->client.gui.setScreen(new PlayerScreen())));
+                new ModernButton(w-124,8,116,20,Component.literal("invumusicplayer"),b->client.gui.setScreen(new PlayerScreen())));
         });
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             boolean inWorld=client.level!=null;

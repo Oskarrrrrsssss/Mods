@@ -1,6 +1,7 @@
 """Package bilingual docs with CI evidence; no account data is read."""
 from pathlib import Path
-import hashlib,os,shutil,xml.etree.ElementTree as ET
+import hashlib,os,shutil,sys,xml.etree.ElementTree as ET
+if hasattr(sys.stdout,"reconfigure"):sys.stdout.reconfigure(encoding="utf-8")
 root=Path(__file__).resolve().parents[1];dest=root/'build/distribution';dest.mkdir(parents=True,exist_ok=True)
 jars=[p for p in (root/'build/libs').glob('invumusicplayer-*.jar') if not p.name.endswith(('-sources.jar','-gametest.jar'))]
 if len(jars)!=1:raise RuntimeError('Expected exactly one production JAR / Нужен один основной JAR')

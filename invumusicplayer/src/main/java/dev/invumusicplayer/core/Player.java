@@ -373,7 +373,7 @@ public final class Player implements AutoCloseable {
             queueIndex = (queueIndex - 1 + queue.size()) % queue.size(); track = queue.get(queueIndex);
         } else {
             track = history.poll();
-            if (track != null) { wave = false; ++waveSerial; queue = List.of(track); queueIndex = 0; }
+            if (track != null) { if(wave)queueIndex=queue.indexOf(track);else { ++waveSerial;queue=List.of(track);queueIndex=0; } }
         }
         if (track != null) requestStartLocked(track, false); else seek(0);
     }
