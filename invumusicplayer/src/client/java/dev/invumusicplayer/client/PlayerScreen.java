@@ -16,6 +16,7 @@ public final class PlayerScreen extends Screen {
     private EditBox search;
     private int left, top, panelWidth, panelHeight, listWidth, rows;
     private Button pause, serviceStatus,likeButton,dislikeButton;
+    private final AudioVisualizer visualizer = new AudioVisualizer();
     private final Map<String,CoverTexture> artwork = new HashMap<>();
     public PlayerScreen() { super(Component.translatable("invumusicplayer.player.title")); }
     @Override protected void init() {
@@ -73,7 +74,7 @@ public final class PlayerScreen extends Screen {
         if (serviceStatus == null) return;
         String status = player.error().isBlank() ? player.status() : player.error();
         serviceStatus.setMessage(Component.literal(font.plainSubstrByWidth(status, serviceStatus.getWidth() - 12)));
-        serviceStatus.setTooltip(Tooltip.create(Component.literal(status+"\n"+player.lyricStatus())));
+        serviceStatus.setTooltip(Tooltip.create(Component.literal(status+"\n"+player.coverStatus()+"\n"+InvuMusicPlayerClient.cover.errorMessage())));
     }
     @Override public void extractRenderState(GuiGraphicsExtractor g, int mouseX, int mouseY, float delta) {
         g.fill(0, 0, width, height, 0x9a080d0a);
@@ -82,16 +83,19 @@ public final class PlayerScreen extends Screen {
         g.text(font, UiText.text("invumusicplayer.player.brand"), left + 10, top + 12, 0xff000000 | player.settings.accent, false);
         int right = left + listWidth + 22, rightWidth = panelWidth - listWidth - 32;
         int y = top + 62;
-        if (player.settings.covers && panelHeight >= 300) {
+        if (player.settings.covers && panelHeight >= 300 && player.current() != null && !player.current().youtube()) {
             int size = panelHeight < 270 ? 42 : 54;
             InvuMusicPlayerClient.cover.draw(g, right, y, size, player.settings.accent); y += size + 8;
         }
         Track track = player.current();
         g.text(font, font.plainSubstrByWidth(track == null ? UiText.text("invumusicplayer.player.choose_track") : track.title(), rightWidth), right, y, PlayerHud.TEXT, false);
         g.text(font, font.plainSubstrByWidth(track == null ? UiText.text("invumusicplayer.player.tagline") : track.artist(), rightWidth), right, y + 14, PlayerHud.MUTED, false);
+        if(player.settings.visualizer)visualizer.draw(g,player.spectrum(),right,y+31,rightWidth,20,player.settings.accent);
+        else {
         g.text(font, PlayerHud.time(player.positionMillis()) + " / " + PlayerHud.time(player.durationMillis()), right, y + 32, PlayerHud.MUTED, false);
         int barY = y + 47; g.fill(right, barY, right + rightWidth, barY + 3, 0xff35463b);
         if (player.durationMillis() > 0) g.fill(right, barY, right + (int) (rightWidth * Math.min(1, (double) player.positionMillis() / player.durationMillis())), barY + 3, 0xff000000 | player.settings.accent);
+        }
         if (seen.isEmpty()) g.text(font, font.plainSubstrByWidth(UiText.text("invumusicplayer.player.empty_library"), listWidth - 4), left + 12, top + 88, PlayerHud.MUTED, false);
         g.text(font, (page + 1) + " / " + Math.max(1, (seen.size() + rows - 1) / rows), left + 44, top + panelHeight - 46, PlayerHud.MUTED, false);
         for(int row=0;row<rows;row++){int index=page*rows+row;if(index>=seen.size())break;Track t=seen.get(index);if(player.settings.covers&&!t.youtube()){
@@ -100,6 +104,7 @@ public final class PlayerScreen extends Screen {
         }}
         super.extractRenderState(g, mouseX, mouseY, delta);
     }
+    public long readyArtworkCount() { return artwork.values().stream().filter(CoverTexture::ready).count(); }
     @Override public void onClose(){minecraft.gui.setScreen(parent);}
     @Override public void removed(){artwork.values().forEach(CoverTexture::close);artwork.clear();player.saveSettings();super.removed();}
     @Override public boolean isPauseScreen() { return false; }

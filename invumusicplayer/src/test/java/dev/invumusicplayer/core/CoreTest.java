@@ -11,30 +11,15 @@ import static org.junit.jupiter.api.Assertions.*;
 
 final class CoreTest {
     @TempDir Path temp;
-    @Test void timedLyricsSupportBomOffsetsAndRepeatedChorus() {
-        Lyrics lrc = Lyrics.parse("\ufeff[ar:Test]\n[00:01.2][00:03.045]one\n[00:05]two\n[offset:-200]");
-        assertEquals(List.of(new Lyrics.Line(1000, "one"), new Lyrics.Line(2845, "one"), new Lyrics.Line(4800, "two")), lrc.lines());
-        assertEquals("", lrc.textAt(999)); assertEquals("one", lrc.textAt(1000)); assertEquals("two", lrc.textAt(5000));
-    }
-    @Test void timelineSortsAndBlankLinesClearSubtitles() {
-        Lyrics lrc = Lyrics.parse("[00:08]later\n[00:02]first\n[00:04]\n[00:06]<00:06.000>word");
-        assertEquals("first", lrc.textAt(2500)); assertEquals("", lrc.textAt(4000));
-        assertEquals("word", lrc.textAt(6500)); assertEquals("later", lrc.textAt(8000));
-    }
-    @Test void metadataAndPlainTextAreNotMistakenForTimedLyrics() {
-        assertEquals(-1, Lyrics.parse("[ti:Test]\nplain words\n[99:99]invalid").indexAt(999999));
-    }
     @Test void localLibraryFindsNestedTracksAndSidecars() throws Exception {
         Path dir = temp.resolve("music"); Files.createDirectories(dir.resolve("album"));
         Files.write(dir.resolve("album/Artist - Song.MP3"), new byte[0]);
         Files.writeString(dir.resolve("album/Artist - Song.json"), "{\"title\":\"Custom title\",\"artist\":\"Custom artist\"}");
-        Files.writeString(dir.resolve("album/Artist - Song.lrc"), "[00:01]line");
         Files.write(dir.resolve("album/Artist - Song.png"), new byte[0]);
         Files.write(dir.resolve("ignore.exe"), new byte[0]);
         LocalLibrary library = new LocalLibrary(dir); List<Track> tracks = library.scan();
         assertEquals(1, tracks.size()); assertEquals("Custom title", tracks.getFirst().title());
         assertEquals("Custom artist", tracks.getFirst().artist()); assertNotNull(tracks.getFirst().coverFile());
-        assertEquals("line", library.lyrics(tracks.getFirst()).textAt(1000));
     }
     @Test void badSidecarDoesNotHideTrackAndFilenameFallbackWorks() throws Exception {
         Files.write(temp.resolve("Artist - Track.wav"), new byte[0]);
@@ -51,12 +36,12 @@ final class CoreTest {
     }
     @Test void settingsPersistAndNormalizeInvalidValues() throws Exception {
         Settings settings = new Settings(); settings.hudX = 23; settings.hudY = 47;
-        settings.lyrics3d = false; settings.covers = false; settings.volume = Float.NaN;
-        settings.hudScale = 99; settings.lyricDistance = -5;
+        settings.covers = false; settings.volume = Float.NaN;
+        settings.hudScale = 99;
         Path config = temp.resolve("config/invumusicplayer.json"); settings.save(config);
         Settings loaded = Settings.load(config);
-        assertEquals(23, loaded.hudX); assertEquals(47, loaded.hudY); assertFalse(loaded.lyrics3d);
-        assertFalse(loaded.covers); assertEquals(.7f, loaded.volume); assertEquals(2f, loaded.hudScale); assertEquals(1.5f, loaded.lyricDistance);
+        assertEquals(23, loaded.hudX); assertEquals(47, loaded.hudY);
+        assertFalse(loaded.covers); assertEquals(.7f, loaded.volume); assertEquals(2f, loaded.hudScale);
     }
     @Test void corruptedSettingsAreBackedUp() throws Exception {
         Path config = temp.resolve("invumusicplayer.json"); Files.writeString(config, "broken");

@@ -64,7 +64,6 @@ final class PlayerTest {
             fetched.add(track.id()); if (track.id().equals(blockedId)) waitIgnoringInterrupt(blockAudio);
             return track.id().getBytes(java.nio.charset.StandardCharsets.UTF_8);
         }
-        public Lyrics lyrics(Track track) { return Lyrics.parse("[00:01]" + track.id()); }
         public byte[] cover(Track track) { return new byte[0]; }
         private void waitIgnoringInterrupt(CountDownLatch latch) {
             if (latch == null) return;
@@ -83,7 +82,6 @@ final class PlayerTest {
             assertEquals(List.of("b"), audio.played); assertEquals("b", player.current().id());
             await(remote.interrupted::get);
             remote.blockAudio.countDown();
-            await(() -> player.lyrics().textAt(1000).equals("b"));
             assertEquals(List.of("b"), audio.played); assertEquals("", player.error());
         } finally { remote.blockAudio.countDown(); }
     }
@@ -289,12 +287,53 @@ final class PlayerTest {
             player.next();assertFalse(player.playing());assertEquals(List.of("a","x","b"),audio.played);
         }
     }
-    @Test void slowLyricsDoNotBlockArtwork() throws Exception {
-        CountDownLatch lyricsGate=new CountDownLatch(1);
-        Remote remote=new Remote(){public Lyrics lyrics(Track t){waitForGate(lyricsGate);return Lyrics.EMPTY;}public byte[] cover(Track t){return new byte[]{1,2,3};}};
-        try(Player player=new Player(temp,remote,new Audio())) {
-            player.choose(List.of(track("a")),0);await(()->player.coverBytes().length==3);assertTrue(player.playing());
-        }finally{lyricsGate.countDown();}
-    }
     private static void waitForGate(CountDownLatch gate){try{gate.await();}catch(InterruptedException e){Thread.currentThread().interrupt();}}
+    @Test void selectingExplicitQueuedTrackDoesNotDuplicateRemainderAndPersistsCurrent() throws Exception {
+        Audio audio = new Audio();
+        try(Player player = new Player(temp,new Remote(),audio)) {
+            player.choose(List.of(track("a"),track("b"),track("c")),0);await(player::playing);
+            player.enqueue(track("x"));player.enqueue(track("y"));player.playQueued(0);
+            await(()->player.playing()&&player.current().id().equals("x"));
+            assertEquals(List.of("y","b","c"),player.queue().stream().map(Track::id).toList());
+        }
+        try(Player player = new Player(temp,new Remote(),new Audio())) {
+            assertEquals("x",player.current().id());assertFalse(player.playing());player.togglePause();await(player::playing);
+            player.next();await(()->player.playing()&&player.current().id().equals("y"));
+            player.next();await(()->player.playing()&&player.current().id().equals("b"));
+            player.next();await(()->player.playing()&&player.current().id().equals("c"));
+            player.next();assertFalse(player.playing());
+        }
+    }
+    @Test void selectingUpcomingWaveTrackRetainsRadioAndRefillsAfterBatch() throws Exception {
+        Remote remote=new Remote();Audio audio=new Audio();
+        try(Player player=new Player(temp,remote,audio)) {
+            player.startWave();await(player::playing);player.enqueue(track("x"));player.enqueue(track("y"));
+            player.playQueued(3);await(()->player.playing()&&player.current().id().equals("c"));
+            assertTrue(player.isWave());assertEquals(List.of("x","y"),player.queue().stream().map(Track::id).toList());
+            player.next();await(()->player.playing()&&player.current().id().equals("x"));
+            player.next();await(()->player.playing()&&player.current().id().equals("y"));
+            player.next();await(()->player.playing()&&player.current().id().equals("d"));
+            assertEquals(List.of("new","c"),remote.waveRequests);
+        }
+    }
+    @Test void artworkStartsBeforeSlowAudioAndCanRetryAfterFailure() throws Exception {
+        AtomicInteger calls=new AtomicInteger();Remote remote=new Remote(){public byte[] cover(Track t){if(calls.incrementAndGet()==1)throw new IllegalStateException();return new byte[]{1,2,3};}};
+        remote.blockAudio=new CountDownLatch(1);remote.blockedId="a";
+        try(Player player=new Player(temp,remote,new Audio())) {
+            player.choose(List.of(track("a")),0);await(()->!player.coverStatus().isBlank()&&calls.get()==1);
+            await(()->player.coverStatus().contains(Messages.get("invumusicplayer.error.playback")));
+            assertTrue(player.loading());player.retryArtwork();await(()->player.coverBytes().length==3);
+            assertSame(player.coverBytes(),player.coverFor(track("a")));
+        } finally { remote.blockAudio.countDown(); }
+    }
+    @Test void naturalAdvancePersistsTheCurrentPlaylistIndex() throws Exception {
+        Audio audio=new Audio();
+        try(Player player=new Player(temp,new Remote(),audio)){
+            player.choose(List.of(track("a"),track("b"),track("c")),0);await(player::playing);audio.ended.run();
+            await(()->player.playing()&&player.current().id().equals("b"));
+        }
+        try(Player restored=new Player(temp,new Remote(),new Audio())){
+            assertEquals("b",restored.current().id());assertEquals(List.of("c"),restored.queue().stream().map(Track::id).toList());
+        }
+    }
 }

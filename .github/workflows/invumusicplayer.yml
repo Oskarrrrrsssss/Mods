@@ -35,6 +35,12 @@ jobs:
           java-version: '25'
       - name: Build and tests / Сборка и тесты
         run: bash ./gradlew inspectClientApi build --no-daemon --stacktrace
+      - name: YouTube Windows helpers / Инструменты YouTube Windows
+        if: runner.os == 'Windows'
+        run: bash ./gradlew verifyYouTubeTools --no-daemon --stacktrace
+      - name: Public Yandex artwork / Общедоступная обложка Яндекса
+        if: runner.os == 'Linux'
+        run: python scripts/check-artwork.py
       - name: Test display / Дисплей для проверки
         if: runner.os == 'Linux'
         run: sudo apt-get update -qq && sudo apt-get install -y xvfb xauth mesa-utils libgl1-mesa-dri libglx-mesa0 libegl1 mesa-vulkan-drivers libpulse0

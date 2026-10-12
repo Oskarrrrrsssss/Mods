@@ -34,6 +34,12 @@ processResources {
 java { toolchain { languageVersion = JavaLanguageVersion.of(25) }; withSourcesJar() }
 tasks.withType(JavaCompile).configureEach { options.release = 25; options.encoding = 'UTF-8' }
 test { useJUnitPlatform() }
+tasks.register('verifyYouTubeTools', JavaExec) {
+    dependsOn classes
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'dev.invumusicplayer.core.YouTubeTools'
+    args file('build/youtube-tools-smoke').absolutePath
+}
 jar { from('LICENSE') }
 
 // A small inspection task makes Minecraft API changes diagnosable in CI without stubs.

@@ -15,6 +15,7 @@ public final class AudioEngine implements Player.Playback {
 
     private static final class Session {
         final long requestedPosition;
+        final SpectrumAnalyzer analyzer = new SpectrumAnalyzer();
         volatile InputStream source;
         volatile SourceDataLine line;
         Thread worker;
@@ -44,20 +45,6 @@ public final class AudioEngine implements Player.Playback {
 
     private volatile float[] levels = new float[24];
     public float[] spectrum() { return levels.clone(); }
-    private void analyze(byte[] pcm, int count, int channels, float rate) {
-        int n = Math.min(1024, count / (channels * 2)); if (n < 32) return;
-        float[] result = new float[24];
-        for (int band = 0; band < result.length; band++) {
-            double frequency = 60 * Math.pow(100, band / 23.0), re = 0, im = 0;
-            for (int j = 0; j < n; j++) {
-                int i = j * channels * 2; double v = (short)((pcm[i] & 255) | (pcm[i + 1] << 8)) / 32768.0;
-                v *= .5 - .5 * Math.cos(2 * Math.PI * j / (n - 1));
-                double phase = 2 * Math.PI * frequency * j / rate; re += v * Math.cos(phase); im += v * Math.sin(phase);
-            }
-            result[band] = (float)Math.min(1, Math.log1p(Math.hypot(re, im) * 8 / n) * 4);
-        }
-        levels = result;
-    }
     private void decode(Session session, Input input, Runnable ready, Runnable ended, Consumer<Exception> failed) {
         SourceDataLine line = null;
         try (InputStream source = new BufferedInputStream(input.open())) {
@@ -95,7 +82,8 @@ public final class AudioEngine implements Player.Playback {
                             if (active != session) return;
                         }
                         applyVolume(buffer, read, volume);
-                        analyze(buffer, read, format.getChannels(), format.getSampleRate());
+                        float[] spectrum = session.analyzer.accept(buffer, read, format.getChannels(), format.getSampleRate());
+                        synchronized(lock) { if(active==session)levels=spectrum; }
                         int written = 0;
                         while (written < read && isActive(session)) {
                             int count = line.write(buffer, written, read - written);
@@ -166,7 +154,7 @@ public final class AudioEngine implements Player.Playback {
         }
     }
     private void stopLocked() {
-        Session previous = active; active = null;
+        Session previous = active; active = null; levels = new float[24];
         if (previous != null) {
             if (previous.worker != Thread.currentThread()) previous.worker.interrupt();
             if (previous.line != null) { previous.line.stop(); previous.line.flush(); previous.line.close(); }

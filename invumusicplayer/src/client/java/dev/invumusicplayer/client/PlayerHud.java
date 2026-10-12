@@ -5,6 +5,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 
 public final class PlayerHud {
+    private static final AudioVisualizer visualizer = new AudioVisualizer();
     static final int TEXT = 0xffe6eee5, MUTED = 0xff9bad9f;
     public static void draw(GuiGraphicsExtractor g) { draw(g, false); }
     public static void preview(GuiGraphicsExtractor g) { draw(g, true); }
@@ -25,8 +26,8 @@ public final class PlayerHud {
         var font = Minecraft.getInstance().font;
         g.text(font, font.plainSubstrByWidth(track.title(), width - (tx - x) - 8), tx, y + 8, 0xff000000|s.textColor, false);
         g.text(font, font.plainSubstrByWidth(track.artist().isBlank() ? UiText.text("invumusicplayer.hud.local_music") : track.artist(), width - (tx - x) - 8), tx, y + 20, 0xb0000000|s.textColor, false);
-        if(s.visualizer){float[] values=player.spectrum();int area=width-(tx-x)-8;
-            for(int i=0;i<values.length;i++){int bx=tx+i*area/values.length;int h=Math.max(1,(int)(values[i]*17));g.fill(bx,y+49-h,bx+Math.max(1,area/values.length-2),y+49,0xff000000|s.accent);}
+        if(s.visualizer){
+            visualizer.draw(g,player.spectrum(),tx,y+31,width-(tx-x)-8,18,s.accent);
         }else{
         String clock = (player.loading() ? UiText.text("invumusicplayer.hud.loading") : player.playing() ? "> " : "|| ") + time(player.positionMillis()) + " / " + time(player.durationMillis());
         g.text(font, clock, tx, y + 33, 0xb0000000|s.textColor, false);

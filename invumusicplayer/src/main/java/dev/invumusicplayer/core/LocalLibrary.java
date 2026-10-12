@@ -45,12 +45,6 @@ public final class LocalLibrary {
         result.sort(Comparator.comparing(Track::display, String.CASE_INSENSITIVE_ORDER));
         return List.copyOf(result);
     }
-    public Lyrics lyrics(Track track) throws IOException {
-        Path lrc = sibling(track.file(), ".lrc");
-        if (!Files.isRegularFile(lrc)) return Lyrics.EMPTY;
-        if (!lrc.toRealPath().startsWith(directory.toRealPath()) || Files.size(lrc) > 2_000_000) return Lyrics.EMPTY;
-        return Lyrics.parse(Files.readString(lrc));
-    }
     private static boolean supported(Path file) { return file.getFileName().toString().toLowerCase(Locale.ROOT).matches(".*\\.(mp3|wav|ogg)"); }
     private static String stem(Path file) { String s = file.getFileName().toString(); return s.substring(0, s.lastIndexOf('.')); }
     private static Path sibling(Path file, String suffix) { return file.resolveSibling(stem(file) + suffix); }

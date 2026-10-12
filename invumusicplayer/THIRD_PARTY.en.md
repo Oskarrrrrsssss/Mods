@@ -29,3 +29,8 @@ The Gradle Wrapper scripts and JAR came from the official Fabric example.
 Minecraft is proprietary software and is not bundled in the project or build.
 The MP3 and OGG test tones were generated specifically for the tests: a 440 Hz sine, 0.25 seconds.
 No third-party music, artwork, lyrics, reference mod files, or account data are included.
+
+
+## Separately downloaded YouTube helpers
+
+On Windows x64 the mod prepares official yt-dlp (Unlicense; executable components have separate licenses), Deno (MIT), and LGPL FFmpeg/ffprobe from BtbN/FFmpeg-Builds. Binaries are not bundled inside the JAR. Sources, license terms and build scripts are available at https://github.com/yt-dlp/yt-dlp, https://github.com/denoland/deno and https://github.com/BtbN/FFmpeg-Builds. Information is saved alongside helpers in NOTICE.txt.

@@ -3,10 +3,14 @@
   "id": "invumusicplayer",
   "version": "${version}",
   "name": "invumusicplayer",
-  "description": "Client music player: local tracks, Yandex Music and optional 3D lyrics. / Клиентский плеер: локальные треки, Яндекс Музыка и отключаемые 3D-субтитры.",
+  "description": "Client music player: Yandex Music, My Wave, local tracks, YouTube audio and equalizer. / Клиентский плеер: Яндекс Музыка, Моя волна, локальные треки, звук YouTube и эквалайзер.",
   "license": "MIT",
   "environment": "client",
-  "entrypoints": { "client": ["dev.invumusicplayer.client.InvuMusicPlayerClient"] },
+  "entrypoints": {
+    "client": [
+      "dev.invumusicplayer.client.InvuMusicPlayerClient"
+    ]
+  },
   "depends": {
     "fabricloader": ">=0.19.5",
     "minecraft": "26.3",

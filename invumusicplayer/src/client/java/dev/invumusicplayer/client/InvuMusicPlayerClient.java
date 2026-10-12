@@ -31,7 +31,6 @@ public final class InvuMusicPlayerClient implements ClientModInitializer {
         }
         KeyMapping.Category category = KeyMapping.Category.register(Identifier.fromNamespaceAndPath("invumusicplayer", "controls"));
         KeyMapping open = key("open", SDLScancode.SDL_SCANCODE_M, category);
-        KeyMapping lyrics = key("lyrics", SDLScancode.SDL_SCANCODE_K, category);
         KeyMapping pause = key("pause", SDLScancode.SDL_SCANCODE_F8, category);
         KeyMapping next = key("next", SDLScancode.SDL_SCANCODE_F9, category);
         KeyMapping previous = key("previous", SDLScancode.SDL_SCANCODE_F7, category);
@@ -47,11 +46,6 @@ public final class InvuMusicPlayerClient implements ClientModInitializer {
             if(wasInWorld&&!inWorld)player.suspend();wasInWorld=inWorld;
             cover.update(player.coverBytes());
             while (open.consumeClick()) client.gui.setScreen(new PlayerScreen());
-            while (lyrics.consumeClick()) {
-                player.settings.lyrics3d = !player.settings.lyrics3d; player.saveSettings();
-                if (client.player != null) client.gui.hud.setOverlayMessage(Component.translatable(
-                    player.settings.lyrics3d ? "invumusicplayer.overlay.lyrics_enabled" : "invumusicplayer.overlay.lyrics_disabled"), false);
-            }
             while (pause.consumeClick()) player.togglePause();
             while (next.consumeClick()) player.next();
             while (previous.consumeClick()) player.previous();
@@ -61,7 +55,6 @@ public final class InvuMusicPlayerClient implements ClientModInitializer {
         });
         HudElementRegistry.attachElementBefore(VanillaHudElements.CHAT,
             Identifier.fromNamespaceAndPath("invumusicplayer", "player"), (graphics, delta) -> PlayerHud.draw(graphics));
-        Lyrics3D.register();
         ClientLifecycleEvents.CLIENT_STOPPING.register(client -> { player.close(); cover.close(); });
     }
     private static KeyMapping key(String name, int code, KeyMapping.Category category) {

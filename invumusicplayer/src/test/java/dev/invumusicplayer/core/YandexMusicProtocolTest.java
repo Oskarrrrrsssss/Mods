@@ -177,12 +177,6 @@ final class YandexMusicProtocolTest {
         Script script = new Script(json(sequence("one", "b1", "1"))); YandexMusic client = script.client(); Track old = client.wave(null).getFirst();
         client.resetWave(); client.feedback("skip", old, 1); assertEquals(1, script.requests.size());
     }
-    @Test void timedLyricsSignNumericIdAndDownloadWithoutCredentials() throws Exception {
-        Script script = new Script(json("{\"downloadUrl\":\"https://lyrics.yandex.net/song.lrc\"}"), response(200, "[00:01.2]line"));
-        assertEquals("line", script.client().lyrics(remote("4784420:100500")).textAt(1200));
-        assertEquals(Map.of("format", "LRC", "timeStamp", "1668687184", "sign", "xFMznx4AQv6pjJr9z1NUQFADPasQt+USWFjBOowbpbU="), query(script.requests.getFirst()));
-        assertTrue(script.requests.get(1).headers().firstValue("Authorization").isEmpty()); assertEquals(2_000_000, script.limits.get(1));
-    }
     @Test void verifiedAccountNeedsPositiveUid() throws Exception {
         new Script(json("{\"account\":{\"uid\":123}}" )).client().checkAccount();
         for (String result : List.of("{}", "{\"account\":{\"uid\":0}}", "{\"account\":null}"))
@@ -192,7 +186,7 @@ final class YandexMusicProtocolTest {
         Script script = new Script(json("{\"tracks\":{\"results\":[{\"id\":\"1\",\"available\":false},"
             + "{\"id\":\"2\",\"available\":false,\"availableForPremiumUsers\":true,\"title\":\"Song\",\"artists\":[{\"name\":\"Artist\"}],\"coverUri\":\"avatars.yandex.net/a/%%\"},{\"title\":\"no id\"}]}}"));
         List<Track> result = script.client().search("test / text"); assertEquals(1, result.size());
-        assertEquals("Artist", result.getFirst().artist()); assertEquals("https://avatars.yandex.net/a/256x256", result.getFirst().coverUrl());
+        assertEquals("Artist", result.getFirst().artist()); assertEquals("https://avatars.yandex.net/a/200x200", result.getFirst().coverUrl());
         assertEquals("test / text", query(script.requests.getFirst()).get("text"));
     }
     @Test void assetRedirectKeepsAuthorizationAbsentAndRejectsOtherOrigins() throws Exception {
@@ -226,20 +220,29 @@ final class YandexMusicProtocolTest {
         Script script=new Script(json("[{\"id\":\"1\",\"albums\":[{\"coverUri\":\"avatars.yandex.net/get-music/%%\"}]}]"),response(200,"image"));
         assertEquals("image",new String(script.client().cover(remote("1")),StandardCharsets.UTF_8));
         assertEquals("/tracks",script.requests.getFirst().uri().getPath());
-        assertEquals("https://avatars.yandex.net/get-music/256x256",script.requests.getLast().uri().toString());
-        assertTrue(script.requests.getLast().headers().firstValue("Authorization").isEmpty());
-    }
-    @Test void lyricsCloudStorageIsAcceptedWithoutCredentials() throws Exception {
-        Script script=new Script(json("{\"downloadUrl\":\"https://storage.yandexcloud.net/song.lrc\"}"),response(200,"[00:01.00]Line"));
-        assertEquals("Line",script.client().lyrics(remote("1")).textAt(1000));
+        assertEquals("https://avatars.yandex.net/get-music/200x200",script.requests.getLast().uri().toString());
         assertTrue(script.requests.getLast().headers().firstValue("Authorization").isEmpty());
     }
     @Test void likesUseAccountUidAndFormBodyWhileWaveSettingsUseJson() throws Exception {
         Script script=new Script(json("{\"account\":{\"uid\":42}}"),json("{\"revision\":2}"),json("\"ok\""));
         YandexMusic client=script.client();client.rate(remote("1"),true,false);client.waveSettings("sad","discover","any");
         assertEquals("/users/42/likes/tracks/add-multiple",script.requests.get(1).uri().getPath());
-        assertEquals("track-ids=1",body(script.requests.get(1)));
+        assertTrue(Arrays.asList(body(script.requests.get(1)).split("&")).contains("track-ids=1"));
         assertEquals("sad",posted(script.requests.get(2)).get("moodEnergy").getAsString());
         assertEquals("discover",posted(script.requests.get(2)).get("diversity").getAsString());
+    }
+    @Test void legacy256ArtworkUsesSupported200PresetAndNoCredential() throws Exception {
+        Script script=new Script(response(200,"jpeg"));
+        Track old=new Track("1","t","a",100,null,null,"https://avatars.yandex.net/get-music/album/256x256","");
+        assertEquals(4,script.client().cover(old).length);
+        assertEquals("https://avatars.yandex.net/get-music/album/200x200",script.requests.getFirst().uri().toString());
+        assertTrue(script.requests.getFirst().headers().firstValue("Authorization").isEmpty());
+    }
+    @Test void staleCoverRefreshesMetadataAndNullApiErrorIsAccepted() throws Exception {
+        Script script=new Script(response(404,""),response(200,"{\"error\":null,\"result\":[{\"id\":\"1\",\"albums\":[{\"coverUri\":\"avatars.yandex.net/new/%%\"}]}]}"),response(200,"jpeg"));
+        Track old=new Track("1","t","a",100,null,null,"https://avatars.yandex.net/old/200x200","");
+        assertEquals(4,script.client().cover(old).length);
+        assertEquals("https://avatars.yandex.net/new/200x200",script.requests.getLast().uri().toString());
+        assertTrue(Arrays.asList(body(script.requests.get(1)).split("&")).contains("track-ids=1"));
     }
 }

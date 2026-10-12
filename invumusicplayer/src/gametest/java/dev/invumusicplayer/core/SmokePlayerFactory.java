@@ -47,11 +47,13 @@ public final class SmokePlayerFactory {
 
     public static Player create(Path directory) throws IOException {
         // A fresh subdirectory avoids stale settings/credentials when the client test is rerun locally.
+        Path referenceCover = directory.resolve("reference-cover.jpg");
         directory = Files.createTempDirectory(directory, "invumusicplayer-smoke-fixture-");
         Path music = directory.resolve("music");
         Files.createDirectories(music);
         writeTrack(music, "First", 0x82e39b);
         writeTrack(music, "Second", 0x8bc8ef);
+        if (Files.isRegularFile(referenceCover)) Files.copy(referenceCover, music.resolve("InvuMusicPlayer Smoke - First.png"), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
         return new Player(directory, null, new SilentPlayback());
     }
 
@@ -63,8 +65,6 @@ public final class SmokePlayerFactory {
         try (AudioInputStream audio = new AudioInputStream(new ByteArrayInputStream(pcm), format, 24000)) {
             AudioSystem.write(audio, AudioFileFormat.Type.WAVE, directory.resolve(name + ".wav").toFile());
         }
-        Files.writeString(directory.resolve(name + ".lrc"),
-            "[00:00.00]InvuMusicPlayer local lyric\n[00:01.00]Next local lyric\n[00:02.00]Final local lyric\n");
         BufferedImage cover = new BufferedImage(8, 8, BufferedImage.TYPE_INT_RGB);
         for (int y = 0; y < 8; y++) for (int x = 0; x < 8; x++) {
             cover.setRGB(x, y, (x + y) % 2 == 0 ? color : 0x101813);

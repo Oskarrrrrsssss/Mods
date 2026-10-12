@@ -7,23 +7,20 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 
 public final class Settings {
-    public boolean hud = true, covers = true, lyrics3d = true, sprintOnly = false;
+    public boolean hud = true, covers = true;
     public float volume = 0.7f, hudScale = 1f, opacity = 0.85f;
-    public float lyricDistance = 3f, lyricHeight = -0.25f, lyricScale = 0.025f;
-    public int hudX = 12, hudY = 12, lyricOffsetMillis = 0;
+    public int hudX = 12, hudY = 12;
     public int accent = 0x82e39b, background = 0x111827, textColor = 0xf1f5f9;
-    public boolean visualizer = false, repeat = false, waveCustom = false;
+    public boolean visualizer = true, repeat = false, waveCustom = false;
+    public int visualizerVersion = 0;
     public String waveMood = "all", waveDiversity = "default", waveLanguage = "any";
     private static final Gson JSON = new GsonBuilder().setPrettyPrinting().create();
     public void normalize() {
+        visualizerVersion = 1;
         volume = finiteClamp(volume, 0, 1, .7f);
         hudScale = finiteClamp(hudScale, .5f, 2f, 1f);
         opacity = finiteClamp(opacity, .2f, 1, .85f);
-        lyricDistance = finiteClamp(lyricDistance, 1.5f, 8f, 3f);
-        lyricHeight = finiteClamp(lyricHeight, -2, 2, -.25f);
-        lyricScale = finiteClamp(lyricScale, .01f, .06f, .025f);
         hudX = Math.max(0, Math.min(10000, hudX)); hudY = Math.max(0, Math.min(10000, hudY));
-        lyricOffsetMillis = Math.max(-10000, Math.min(10000, lyricOffsetMillis));
         accent &= 0xffffff; background &= 0xffffff; textColor &= 0xffffff;
         if (!java.util.Set.of("all", "fun", "sad", "active", "calm").contains(waveMood == null ? "" : waveMood)) waveMood = "all";
         if (!java.util.Set.of("default", "favorite", "popular", "discover").contains(waveDiversity == null ? "" : waveDiversity)) waveDiversity = "default";
@@ -41,6 +38,7 @@ public final class Settings {
         try {
             Settings settings = JSON.fromJson(Files.readString(path), Settings.class);
             if (settings == null) throw new IllegalArgumentException("Empty config");
+            if (settings.visualizerVersion < 1) { settings.visualizer = true; settings.visualizerVersion = 1; }
             settings.normalize(); return settings;
         } catch (RuntimeException e) {
             Path backup = path.resolveSibling(path.getFileName() + ".invalid-" + System.currentTimeMillis());

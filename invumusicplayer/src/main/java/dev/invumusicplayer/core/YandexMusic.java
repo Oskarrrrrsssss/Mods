@@ -31,7 +31,6 @@ public final class YandexMusic {
     private static final String ANDROID_CLIENT = "YandexMusicAndroid/24023621";
     private static final String DESKTOP_CLIENT = "YandexMusicDesktopAppWindows/5.95.0";
     private static final String DESKTOP_SIGN_KEY = "kzqU4XhfCaY6B6JTHODeq5";
-    private static final String LYRICS_SIGN_KEY = "p93jhgh689SBReK6ghtw62";
     private static final int API_LIMIT = 8_000_000, AUDIO_LIMIT = 64 * 1024 * 1024;
     private static final DateTimeFormatter ISO_MILLIS = new DateTimeFormatterBuilder().appendInstant(3).toFormatter();
     public static final String STATION = "user:onyourwave";
@@ -107,7 +106,7 @@ public final class YandexMusic {
         String id = str(result, "radioSessionId", "");
         if (id.isBlank() || bool(result, "terminated", false))
             throw Messages.error("invumusicplayer.error.wave_session");
-        List<Track> found = sequence(result, null);
+        List<Track> found = sequence(result, null).stream().filter(t -> !queueIds.contains(t.id())).toList();
         String batch = str(result, "batchId", "");
         commitWave(generation, id, batch, queueIds, found);
         ensureWaveCurrent(generation);
@@ -225,7 +224,7 @@ public final class YandexMusic {
             .header("Content-Type", "application/x-www-form-urlencoded").POST(HttpRequest.BodyPublishers.ofString(data)).build();
         Response response = exchange(request, API_LIMIT); if (response.status() < 200 || response.status() >= 300) throw apiError(response.status());
         JsonObject json = JsonParser.parseString(new String(response.body(), StandardCharsets.UTF_8)).getAsJsonObject();
-        if (json.has("error")) throw apiError(errorStatus(json.get("error")));
+        if (json.has("error") && !json.get("error").isJsonNull()) throw apiError(errorStatus(json.get("error")));
         return json.has("result") ? json.get("result") : json;
     }
 
@@ -295,23 +294,19 @@ public final class YandexMusic {
         return asset(direct, AUDIO_LIMIT);
     }
     private static IOException noFullTrack() { return Messages.error("invumusicplayer.error.audio_full_track"); }
-    public Lyrics lyrics(Track track) throws Exception {
-        String timestamp = Long.toString(clock.instant().getEpochSecond());
-        String id = track.id().split(":")[0];
-        String sign = hmac(LYRICS_SIGN_KEY, id + timestamp);
-        JsonObject result = object(api("/tracks/" + enc(track.id()) + "/lyrics?format=LRC&timeStamp=" + timestamp + "&sign=" + enc(sign), null), "invumusicplayer.context.lyrics");
-        String link = str(result, "downloadUrl", "");
-        if (link.isBlank()) {
-            String inline = str(result, "lyrics", str(result, "text", ""));
-            if (!inline.isBlank()) return Lyrics.parse(inline);
-            return Lyrics.EMPTY;
-        }
-        return Lyrics.parse(new String(asset(resourceUri(link), 2_000_000), StandardCharsets.UTF_8));
-    }
     public byte[] cover(Track track) throws Exception {
-        String url = track.coverUrl();
-        if (url.isBlank()) { List<Track> full = tracks(List.of(track.id())); if (!full.isEmpty()) url = full.getFirst().coverUrl(); }
-        return url.isBlank() ? new byte[0] : asset(resourceUri(url), 8_000_000);
+        String url = coverUrl(track.coverUrl()); Exception first = null;
+        if (!url.isBlank()) {
+            try { return asset(resourceUri(url), 8_000_000); }
+            catch (InterruptedException e) { throw e; }
+            catch (Exception e) { first = e; }
+        }
+        // Radio responses and restored queues can carry incomplete or obsolete artwork metadata.
+        List<Track> full = tracks(List.of(track.id()));
+        String refreshed = full.isEmpty() ? "" : coverUrl(full.getFirst().coverUrl());
+        if (!refreshed.isBlank() && (first == null || !refreshed.equals(url))) return asset(resourceUri(refreshed), 8_000_000);
+        if (first != null) throw first;
+        return new byte[0];
     }
     private JsonElement api(String path, JsonObject body) throws Exception { return api(path, body, ANDROID_CLIENT); }
     private JsonElement api(String path, JsonObject body, String clientName) throws Exception {
@@ -360,7 +355,8 @@ public final class YandexMusic {
     public byte[] asset(URI uri, int limit) throws Exception {
         for (int redirect = 0; redirect <= 4; redirect++) {
             validateAssetUri(uri);
-            HttpRequest request = HttpRequest.newBuilder(uri).timeout(Duration.ofSeconds(45)).GET().build();
+            HttpRequest request = HttpRequest.newBuilder(uri).timeout(Duration.ofSeconds(45))
+                .header("User-Agent", "InvuMusicPlayer/0.2.1").GET().build();
             Response response = exchange(request, limit);
             if (Set.of(301, 302, 303, 307, 308).contains(response.status())) {
                 String location = response.headers().firstValue("Location").orElseThrow(() -> Messages.error("invumusicplayer.error.redirect_missing"));
@@ -417,13 +413,27 @@ public final class YandexMusic {
         String id = str(data, "id", ""); if (id.isBlank()) return null;
         List<String> artists = new ArrayList<>();
         for (JsonElement a : array(data, "artists")) if (a.isJsonObject()) artists.add(str(a.getAsJsonObject(), "name", ""));
-        String cover = str(data, "coverUri", "");
-        if (cover.isBlank()) for (JsonElement album : array(data, "albums")) if (album.isJsonObject()) { cover = str(album.getAsJsonObject(), "coverUri", ""); if (!cover.isBlank()) break; }
-        cover = cover.replace("%%", "256x256");
-        if (cover.startsWith("//")) cover = "https:" + cover;
-        if (!cover.isBlank() && !cover.startsWith("https://") && !cover.startsWith("http://")) cover = "https://" + cover;
+        String cover = coverValue(data);
+        if (cover.isBlank()) for (JsonElement album : array(data, "albums")) if (album.isJsonObject()) { cover = coverValue(album.getAsJsonObject()); if (!cover.isBlank()) break; }
+        cover = coverUrl(cover);
         return new Track(id, str(data, "title", ""), String.join(", ", artists),
             Math.max(0, number(data, "durationMs", 0)), null, null, cover, batch);
+    }
+    private static String coverValue(JsonObject data) {
+        String value = str(data, "coverUri", str(data, "coverUrl", ""));
+        if (value.isBlank() && data.has("cover") && data.get("cover").isJsonObject()) {
+            JsonObject cover = data.getAsJsonObject("cover"); value = str(cover, "uri", str(cover, "url", ""));
+        }
+        return value;
+    }
+    private static String coverUrl(String value) {
+        // Yandex image presets use 200x200; arbitrary 256x256 is not available for many albums.
+        String url = value.replace("%25%25", "%%").replace("%%", "200x200");
+        if (url.startsWith("//")) url = "https:" + url;
+        if (!url.isBlank() && !url.startsWith("https://") && !url.startsWith("http://")) url = "https://" + url;
+        if (url.startsWith("http://")) url = "https://" + url.substring(7);
+        if (url.contains("avatars.") && url.contains("yandex.net/")) url = url.replaceAll("/256x256(?=([?.]|$))", "/200x200");
+        return url;
     }
     private static JsonArray array(JsonObject object, String key) { JsonElement value = object.get(key); return value != null && value.isJsonArray() ? value.getAsJsonArray() : new JsonArray(); }
     private static JsonObject object(JsonElement element, String context) throws IOException { if (element == null || !element.isJsonObject()) throw Messages.error("invumusicplayer.error.api_unexpected", Messages.text(context)); return element.getAsJsonObject(); }

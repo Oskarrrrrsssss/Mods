@@ -14,21 +14,25 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public final class CoverTexture implements AutoCloseable {
     private final Identifier ID = Identifier.fromNamespaceAndPath("invumusicplayer", "cover_" + java.util.UUID.randomUUID().toString().replace("-", ""));
-    private final ExecutorService decode = Executors.newSingleThreadExecutor(r -> {
+    private static final ExecutorService decode = Executors.newFixedThreadPool(2, r -> {
         Thread t = new Thread(r, "invumusicplayer-cover"); t.setDaemon(true); return t;
     });
     private final AtomicLong serial = new AtomicLong();
     private byte[] previous;
     private boolean ready, closed;
+    private volatile boolean decodeFailed;
+    public String errorMessage() { return decodeFailed ? UiText.text("invumusicplayer.cover.decode_failed") : ""; }
+    public boolean ready() { return ready; }
     public void update(byte[] bytes) {
-        if (closed || bytes == previous) return;
-        previous = bytes; long request = serial.incrementAndGet(); ready = false;
+        if (closed || java.util.Arrays.equals(bytes, previous)) return;
+        previous = bytes; long request = serial.incrementAndGet(); ready = false; decodeFailed = false;
         Minecraft.getInstance().getTextureManager().release(ID);
         if (bytes.length == 0) return;
         decode.execute(() -> {
+            Thread.currentThread().setContextClassLoader(CoverTexture.class.getClassLoader());
             ImageIO.scanForPlugins();
             try (var in = ImageIO.createImageInputStream(new ByteArrayInputStream(bytes))) {
-                var readers = ImageIO.getImageReaders(in); if (!readers.hasNext()) return;
+                var readers = ImageIO.getImageReaders(in); if (!readers.hasNext()) throw new IOException("Unsupported image format");
                 var reader = readers.next();
                 byte[] png;
                 try {
@@ -45,10 +49,15 @@ public final class CoverTexture implements AutoCloseable {
                     try {
                         DynamicTexture texture = new DynamicTexture(() -> "InvuMusicPlayer album art", NativeImage.read(new ByteArrayInputStream(png)));
                         Minecraft.getInstance().getTextureManager().register(ID, texture); ready = true;
-                    } catch (IOException ignored) {}
+                    } catch (IOException e) { failed(request); }
                 });
-            } catch (Exception ignored) {}
+            } catch (Exception e) { failed(request); }
         });
+    }
+    private void failed(long request) {
+        if (request != serial.get() || closed) return;
+        decodeFailed = true;
+        org.slf4j.LoggerFactory.getLogger("invumusicplayer").warn("Artwork decode failed / Не удалось прочитать изображение обложки");
     }
     public void draw(GuiGraphicsExtractor graphics, int x, int y, int size, int accent) {
         if (ready) graphics.blit(RenderPipelines.GUI_TEXTURED, ID, x, y, 0f, 0f, size, size, 256, 256, 256, 256);
@@ -59,7 +68,7 @@ public final class CoverTexture implements AutoCloseable {
         }
     }
     @Override public void close() {
-        closed = true; serial.incrementAndGet(); decode.shutdownNow();
+        closed = true; serial.incrementAndGet();
         Minecraft.getInstance().getTextureManager().release(ID);
     }
 }

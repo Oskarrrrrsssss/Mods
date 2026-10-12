@@ -24,7 +24,7 @@ public final class InvuMusicPlayerClientSmokeTest implements FabricClientGameTes
         Player original = context.computeOnClient(client -> {
             check(InvuMusicPlayerClient.player != null, "InvuMusicPlayer client entrypoint did not initialize the player");
             Set<String> names = Arrays.stream(client.options.keyMappings).map(KeyMapping::getName).collect(Collectors.toSet());
-            for (String action : new String[] {"open", "lyrics", "pause", "next", "previous"}) {
+            for (String action : new String[] {"open", "pause", "next", "previous", "wave", "like", "dislike"}) {
                 check(names.contains("key.invumusicplayer." + action), "Missing registered key mapping: " + action);
             }
             return InvuMusicPlayerClient.player;
@@ -42,15 +42,12 @@ public final class InvuMusicPlayerClientSmokeTest implements FabricClientGameTes
             checkTranslation(context, "invumusicplayer.player.settings", "Settings");
             context.waitFor(client -> fixture.items().size() == 2);
             context.runOnClient(client -> {
-                fixture.settings.sprintOnly = false;
-                fixture.settings.lyrics3d = true;
                 fixture.settings.covers = true;
                 fixture.choose(fixture.items(), 0);
             });
-            context.waitFor(client -> fixture.playing() && !fixture.loading() && fixture.lyrics().lines().size() == 3
+            context.waitFor(client -> fixture.playing() && !fixture.loading()
                 && fixture.coverBytes().length > 0);
             check(fixture.current().title().equals("First"), "The local library did not load its first track");
-            check(fixture.lyrics().textAt(500).equals("InvuMusicPlayer local lyric"), "Local LRC timeline did not load");
 
             context.getInput().resizeWindow(1280, 720);
             context.runOnClient(client -> { client.options.guiScale().set(3); client.resizeGui(); });
@@ -62,8 +59,9 @@ public final class InvuMusicPlayerClientSmokeTest implements FabricClientGameTes
             try (TestSingleplayerContext world = context.worldBuilder().create()) {
                 world.getConnection().waitForChunksRender();
                 context.waitTicks(4);
-                context.takeScreenshot("invumusicplayer-en-world-hud-and-lyrics");
+                context.takeScreenshot("invumusicplayer-en-world-hud-and-equalizer");
                 openPlayerWithHotkey(context);
+                context.waitFor(client -> InvuMusicPlayerClient.cover.ready() && ((PlayerScreen)client.gui.screen()).readyArtworkCount() == 2);
                 context.takeScreenshot("invumusicplayer-en-player-with-cover");
                 context.clickScreenButton("invumusicplayer.player.library");context.waitForScreen(LibraryScreen.class);
                 context.takeScreenshot("invu-en-queue-library");context.clickScreenButton("invumusicplayer.player.done");
@@ -111,13 +109,6 @@ public final class InvuMusicPlayerClientSmokeTest implements FabricClientGameTes
                 press(context, "previous");
                 context.waitFor(client -> fixture.current() != null && fixture.current().title().equals("First")
                     && fixture.playing() && !fixture.loading());
-                press(context, "lyrics");
-                check(!fixture.settings.lyrics3d, "Lyrics hotkey did not disable 3D subtitles");
-                context.takeScreenshot("invumusicplayer-en-world-lyrics-disabled");
-                press(context, "lyrics");
-                check(fixture.settings.lyrics3d, "Lyrics hotkey did not enable 3D subtitles");
-                context.takeScreenshot("invumusicplayer-en-world-lyrics-enabled");
-
                 // Reload real language resources and navigate the same client in Russian.
                 selectLanguage(context, "ru_ru");
                 checkTranslation(context, "invumusicplayer.player.account", "Аккаунт");

@@ -3,7 +3,7 @@
 [Русский](README.md) · **English**
 
 A client music mod for **Minecraft Java 26.3 + Fabric**, intended for Windows.
-Local tracks, Yandex Music and My Wave integration, a movable player, and optional 3D lyrics.
+Local tracks, Yandex Music and My Wave integration, a movable player, an equalizer, and YouTube audio.
 The interface uses Russian or English according to Minecraft's language setting.
 
 - [Installation, controls, and settings](invumusicplayer/README.en.md)
