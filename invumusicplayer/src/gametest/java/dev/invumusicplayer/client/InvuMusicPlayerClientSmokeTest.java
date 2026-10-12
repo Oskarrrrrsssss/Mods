@@ -238,6 +238,7 @@ public final class InvuMusicPlayerClientSmokeTest implements FabricClientGameTes
         context.clickScreenButton("invumusicplayer.menu.settings");context.waitForScreen(SettingsScreen.class);
         check(context.computeOnClient(client->client.gui.screen().isPauseScreen()),"Settings opened from Escape resumed the singleplayer world");
         checkSelected(context,"invumusicplayer.tabs.audio");
+        check(context.computeOnClient(client->client.gui.screen().children().stream().filter(net.minecraft.client.gui.components.Button.class::isInstance).map(net.minecraft.client.gui.components.Button.class::cast).noneMatch(b->b.getMessage().equals(Component.translatable("invumusicplayer.tabs.wave")))),"My Wave is still duplicated in general settings");
         check(context.computeOnClient(client->client.gui.screen().children().stream().noneMatch(ValueSlider.class::isInstance)),"Settings still contain volume");
         context.clickScreenButton("invumusicplayer.tabs.appearance");checkSelected(context,"invumusicplayer.tabs.appearance");
         context.clickScreenButton("invumusicplayer.tabs.audio");
@@ -247,6 +248,7 @@ public final class InvuMusicPlayerClientSmokeTest implements FabricClientGameTes
             var click=new net.minecraft.client.input.MouseButtonEvent(l.x()+l.width()/2.0,l.y()+l.height()/2.0,new net.minecraft.client.input.MouseButtonInfo(com.mojang.blaze3d.platform.InputConstants.MOUSE_BUTTON_LEFT,0));
             check(screen.mouseClicked(click,false),"Menu editor card did not accept dragging");var drag=new net.minecraft.client.input.MouseButtonEvent(click.x()+20,click.y()+15,new net.minecraft.client.input.MouseButtonInfo(com.mojang.blaze3d.platform.InputConstants.MOUSE_BUTTON_LEFT,0));screen.mouseDragged(drag,20,15);screen.mouseReleased(drag);
             check(fixture.settings.menuPositioned&&fixture.settings.menuX>0&&fixture.settings.menuY>0,"Menu card dragging did not change coordinates");});
+        context.clickScreenButton("invumusicplayer.hud_editor.bottom_left");check(fixture.settings.menuPositioned&&fixture.settings.menuX==0&&fixture.settings.menuY==1,"Bottom-left menu corner failed");
         context.clickScreenButton("invumusicplayer.hud_editor.bottom_right");check(fixture.settings.menuPositioned&&fixture.settings.menuX==1&&fixture.settings.menuY==1,"Menu position did not change");
         context.clickScreenButton("invumusicplayer.hud_editor.scale_up");check(fixture.settings.menuScale>.5f,"Menu scaling did not change");
         context.takeScreenshot("invu-en-menu-position-editor");context.clickScreenButton("invumusicplayer.hud_editor.done");context.waitForScreen(PauseScreen.class);
@@ -254,6 +256,9 @@ public final class InvuMusicPlayerClientSmokeTest implements FabricClientGameTes
         context.takeScreenshot("invu-en-escape-moved");
         context.clickScreenButton("invumusicplayer.menu.position");context.waitForScreen(MenuEditor.class);context.clickScreenButton("invumusicplayer.menu.reset");context.clickScreenButton("invumusicplayer.hud_editor.done");context.waitForScreen(PauseScreen.class);
         context.clickScreenButton("invumusicplayer.menu.open");context.waitForScreen(PlayerScreen.class);
+        context.clickScreenButton("invumusicplayer.player.account");context.waitForScreen(AccountScreen.class);
+        check(context.computeOnClient(client->client.gui.screen().isPauseScreen()),"Account navigation resumed the paused world");
+        context.clickScreenButton("invumusicplayer.account.back");context.waitForScreen(PlayerScreen.class);
         context.clickScreenButton("invumusicplayer.player.done");context.waitForScreen(PauseScreen.class);
         context.getInput().pressKey(SDLScancode.SDL_SCANCODE_ESCAPE);context.waitForScreen(null);
         context.getInput().pressKey(SDLScancode.SDL_SCANCODE_F1);context.waitFor(client->client.gui.hud.isHidden());

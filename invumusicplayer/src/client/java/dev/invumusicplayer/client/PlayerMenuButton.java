@@ -42,7 +42,7 @@ final class PlayerMenuButton extends Button {
             case DISLIKE -> {g.fill(ix,iy,ix+2,iy+6,c);g.fill(ix+3,iy,ix+9,iy+6,c);g.fill(ix+4,iy+6,ix+7,iy+10,c);if(!selected)g.fill(ix+4,iy+1,ix+8,iy+5,background);}
             case SHUFFLE -> {for(int i=0;i<7;i++){g.fill(ix+i,iy+i+1,ix+i+2,iy+i+2,c);g.fill(ix+i,iy+8-i,ix+i+2,iy+9-i,c);}g.fill(ix+7,iy,ix+10,iy+3,c);g.fill(ix+7,iy+7,ix+10,iy+10,c);}
             case WAVE -> {for(int i=0;i<5;i++){int h=new int[]{3,7,10,7,3}[i];g.fill(ix+i*2,iy+(10-h)/2,ix+i*2+1,iy+(10+h)/2,c);}}
-            case LIBRARY -> {g.fill(ix,iy,ix+2,iy+10,c);g.fill(ix+4,iy,ix+6,iy+10,c);g.fill(ix+8,iy+2,ix+10,iy+10,c);}
+            case LIBRARY -> {g.fill(ix,iy,ix+1,iy+10,c);g.fill(ix+4,iy+1,ix+5,iy+10,c);g.fill(ix+9,iy,ix+10,iy+10,c);g.fill(ix,iy,ix+4,iy+1,c);g.fill(ix+5,iy,ix+10,iy+1,c);g.fill(ix,iy+9,ix+10,iy+10,c);for(int row:new int[]{3,6}){g.fill(ix+2,iy+row,ix+3,iy+row+1,c);g.fill(ix+6,iy+row,ix+8,iy+row+1,c);}}
             case MOVE -> {g.fill(ix+4,iy,ix+6,iy+10,c);g.fill(ix,iy+4,ix+10,iy+6,c);g.fill(ix+3,iy+1,ix+7,iy+2,c);g.fill(ix+3,iy+8,ix+7,iy+9,c);g.fill(ix+1,iy+3,ix+2,iy+7,c);g.fill(ix+8,iy+3,ix+9,iy+7,c);}
             case TRASH -> {g.fill(ix,iy+1,ix+10,iy+3,c);g.fill(ix+3,iy,ix+7,iy+1,c);g.fill(ix+2,iy+4,ix+8,iy+10,c);g.fill(ix+3,iy+5,ix+4,iy+9,background);g.fill(ix+6,iy+5,ix+7,iy+9,background);}
             case ACCOUNT -> {g.fill(ix+3,iy,ix+7,iy+4,c);g.fill(ix+1,iy+6,ix+9,iy+10,c);g.fill(ix+2,iy+5,ix+8,iy+6,c);}

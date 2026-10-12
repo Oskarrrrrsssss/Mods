@@ -410,4 +410,9 @@ final class PlayerTest {
         try(Player p=new Player(temp,new Remote(),new Audio())){assertFalse(p.savedPlaylists().contains("Example"));assertEquals("b",p.queue().getFirst().id());}
     }
 
+    @Test void restoredWaveUsesCorrectSectionAndVisibleCurrentTrack() throws Exception {
+        try(Player p=new Player(temp,new Remote(),new Audio())){p.startWave();await(p::playing);p.next();await(()->p.playing()&&p.current().id().equals("b"));}
+        try(Player p=new Player(temp,new Remote(),new Audio())){assertEquals("wave",p.listingSection());assertEquals(List.of("b","c"),p.items().stream().map(Track::id).toList());assertFalse(p.playing());}
+    }
+
 }

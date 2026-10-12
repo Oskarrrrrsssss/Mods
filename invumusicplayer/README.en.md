@@ -6,7 +6,15 @@ A client music player: Yandex Music, My Wave, local music and YouTube audio.
 Move and scale the in-game panel and customize its colors and opacity.
 The interface follows Minecraft's language: Russian or English.
 
-## Compact menu player (0.2.4)
+## Equalizer and navigation (0.2.5)
+
+The FFT reads decoded audio **before output volume is applied**. Reducing the volume, including muting it with the slider, does not shrink the spectrum. Pause and silence in the source still stop/fade it. Volume controls continue to change the actual sound.
+
+General settings now contain only **Controls** and **Appearance**. My Wave preferences are available from their separate button in the main menu and full player. No duplicate wave tab or volume slider remains in general settings.
+
+The current track is also highlighted in the full player; inactive page arrows are disabled. Restoring a wave restores the correct section and current/upcoming list. The menu editor supports all four corners and free dragging, and the Library icon is an open book. Opening Account from a paused player keeps singleplayer paused.
+
+## Compact menu player (0.2.5)
 
 The title and Escape menus show a compact album card. The default scale is 50%; the large top button is removed. The music-note icon below the card opens the full player. The other icons open Settings, My Wave preferences, Library and Menu player position. Music continues when leaving a world.
 
@@ -25,14 +33,14 @@ Shuffle, repeat, like/dislike toggles and configurable hotkeys are retained. A s
 
 - Artwork uses Yandex's standard `200x200` preset; saved `256x256` addresses are normalized. Stale artwork addresses trigger a full track metadata refresh. Artwork starts loading immediately, independently of audio. Errors are visible and failed thumbnails no longer remain empty permanently. JPEG, PNG and WebP are supported.
 - Clicking a queued track plays it without copying and duplicating the remaining queue. The current track, upcoming order and My Wave continuation are retained. Entered links and playlist names survive list updates.
-- A smooth equalizer is enabled by default in the HUD and player. FFT measures 24 frequency bands from real audio. It responds to volume, fades on pause and does not invent movement in silence. Settings can restore time and the progress bar.
+- A smooth equalizer is enabled by default in the HUD and player. FFT measures 24 frequency bands from real audio. It is independent of the volume slider and fades on pause and does not invent movement in silence. Settings can restore time and the progress bar.
 - On Windows x64, YouTube helpers — yt-dlp, Deno, FFmpeg and ffprobe — are prepared automatically on the first link import. Downloads are verified with SHA-256. Audio converts to MP3 instead of a large WAV. Preparation progress and access errors are shown.
 - **3D lyrics are fully removed**: no settings tab, shortcut, renderer or Yandex lyrics requests. Reliable synchronized lyrics with a real account have not been established.
 
 ## Installation
 
 1. Download the Windows artifact from a successful [GitHub Actions](https://github.com/Oskarrrrrsssss/Mods/actions/workflows/invumusicplayer.yml) run. Sign in to GitHub to access the private repository.
-2. Extract the ZIP. Put **invumusicplayer-0.2.4-alpha.jar** in the selected Minecraft instance's `mods` folder.
+2. Extract the ZIP. Put **invumusicplayer-0.2.5-alpha.jar** in the selected Minecraft instance's `mods` folder.
 3. Install Fabric Loader and Fabric API for **26.3**, and use Java 25.
 4. Remove the previous Musicraft/invumusicplayer JAR from `mods` to avoid loading two copies. Settings, queue and authorization are retained.
 5. Open **Invu Player** on the title screen or press **M** in a world.
@@ -56,7 +64,7 @@ The mod's screens do not pause gameplay.
 
 **Settings → Appearance**: artwork, equalizer, opacity and RGB background/text/accent colors.
 **Move HUD**: drag the panel, choose a corner or change its scale. Volume uses a slider.
-**Settings → Audio → Retry artwork** retries the current artwork download.
+**Settings → Controls → Retry artwork** retries the current artwork download.
 Hover over the player's status to read the full error and artwork status. Import errors also appear in Library.
 
 ## Yandex Music and the queue
@@ -120,7 +128,7 @@ JDK 25 and internet access are required. In the `invumusicplayer` folder:
 build-windows.cmd
 ```
 
-Alternatively, `gradlew.bat build`; on Linux, `bash ./gradlew build`. Output: `build/libs/invumusicplayer-0.2.4-alpha.jar`.
+Alternatively, `gradlew.bat build`; on Linux, `bash ./gradlew build`. Output: `build/libs/invumusicplayer-0.2.5-alpha.jar`.
 Gradle Wrapper 9.7.1, Loom 1.18.4, Fabric Loader 0.19.5, Fabric API 0.162.0+26.3. Minecraft 26.3 uses unobfuscated names; Yarn is unnecessary.
 Tests: `gradlew.bat test`. Actual-client verification: `gradlew.bat runProductionClientGameTest`; the test mod is excluded from the installable JAR.
 Windows helper verification without downloading a video: `gradlew.bat verifyYouTubeTools`.

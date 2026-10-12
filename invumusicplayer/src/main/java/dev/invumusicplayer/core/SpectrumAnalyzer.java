@@ -1,6 +1,6 @@
 package dev.invumusicplayer.core;
 
-/** 2048-point FFT with logarithmic bands and time-based attack/release. PCM is already volume-adjusted. */
+/** 2048-point FFT with logarithmic bands and time-based attack/release. PCM is measured before output gain. */
 final class SpectrumAnalyzer {
     static final int BANDS = 24, SIZE = 2048, HOP = SIZE / 2;
     private final double[] window = new double[SIZE], samples = new double[SIZE], real = new double[SIZE], imaginary = new double[SIZE];

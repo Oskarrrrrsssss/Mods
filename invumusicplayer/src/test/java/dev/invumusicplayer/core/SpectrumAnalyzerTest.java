@@ -19,7 +19,7 @@ final class SpectrumAnalyzerTest {
         float[] high=new SpectrumAnalyzer().accept(tone(8000,1,1,44100,22050),22050*2,1,44100);
         assertTrue(maxIndex(low)<maxIndex(high)-8);assertTrue(low[maxIndex(low)]>.7);assertTrue(high[maxIndex(high)]>.7);
     }
-    @Test void envelopeDecaysOnSilenceAndVolumeChangesMeasuredAmplitude() {
+    @Test void envelopeDecaysOnSilenceAndSourceAmplitudeChangesMeasuredLevels() {
         SpectrumAnalyzer analyzer=new SpectrumAnalyzer();
         float[] loud=analyzer.accept(tone(1000,1,1,48000,24000),48000,1,48000);
         float[] quiet=new SpectrumAnalyzer().accept(tone(1000,.01f,1,48000,24000),48000,1,48000);

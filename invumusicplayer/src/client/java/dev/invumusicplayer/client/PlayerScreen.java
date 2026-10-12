@@ -35,12 +35,13 @@ public final class PlayerScreen extends Screen {
             Track t = seen.get(index); List<Track> selected = seen;
             Button entry = button(Component.literal(font.plainSubstrByWidth(t.title()+" · "+t.artist(), listWidth - 54)), left + 30, top + 84 + row * 24,
                 listWidth - 44, () -> player.choose(selected, index));
+            ((ModernButton)entry).selected(()->player.current()!=null&&player.current().id().equals(t.id()));
             entry.setTooltip(Tooltip.create(Component.literal(t.display())));
             button(Component.literal("+"),left+listWidth-10,top+84+row*24,20,()->player.enqueue(t));
         }
         int bottom = top + panelHeight - 86;
-        button(Component.literal("<"), left + 10, top+panelHeight-26, 24, () -> { page--; rebuildWidgets(); });
-        button(Component.literal(">"), left + 38, top+panelHeight-26, 24, () -> { page++; rebuildWidgets(); });
+        button(Component.literal("<"), left + 10, top+panelHeight-26, 24, () -> { page--; rebuildWidgets(); }).active=page>0;
+        button(Component.literal(">"), left + 38, top+panelHeight-26, 24, () -> { page++; rebuildWidgets(); }).active=page+1<pages;
         int right = left + listWidth + 22, rightWidth = panelWidth - listWidth - 32;
         icon("invumusicplayer.menu.previous",right,bottom-4,36,PlayerMenuButton.Icon.PREVIOUS,player::previous);
         pause=icon("invumusicplayer.player.pause",right+40,bottom-4,rightWidth-80,PlayerMenuButton.Icon.PAUSE,player::togglePause);
@@ -64,7 +65,7 @@ public final class PlayerScreen extends Screen {
     }
     private Button icon(String key,int x,int y,int w,PlayerMenuButton.Icon icon,Runnable action){var b=new PlayerMenuButton(x,y,w,Component.translatable(key),icon,false,v->action.run());b.setTooltip(Tooltip.create(Component.translatable(key)));return addRenderableWidget(b);}
     private Button button(Component text, int x, int y, int w, Runnable action) {
-        var b=new ModernButton(x,y,Math.max(20,w),20,text,v->action.run());if(text.equals(Component.translatable("invumusicplayer.player.local")))b.selected(()->player.listingSection().equals("local"));if(text.equals(Component.translatable("invumusicplayer.player.wave")))b.selected(()->player.listingSection().equals("wave"));return addRenderableWidget(b);
+        var b=new ModernButton(x,y,Math.max(20,w),20,text,v->action.run());if(text.equals(Component.translatable("invumusicplayer.player.local")))b.selected(()->player.listingSection().equals("local"));if(text.equals(Component.translatable("invumusicplayer.player.wave")))b.selected(()->player.listingSection().equals("wave"));if(text.equals(Component.translatable("invumusicplayer.player.search")))b.selected(()->player.listingSection().equals("search"));return addRenderableWidget(b);
     }
     @Override public void tick() {
         if (seen != player.items()){page=0;rebuildWidgets();}

@@ -92,5 +92,5 @@ public final class AccountScreen extends Screen {
 
     @Override public void removed() { if (token != null) token.setValue(""); super.removed(); }
     @Override public void onClose() { if (token != null) token.setValue(""); minecraft.gui.setScreen(parent); }
-    @Override public boolean isPauseScreen() { return false; }
+    @Override public boolean isPauseScreen() { return parent!=null&&parent.isPauseScreen(); }
 }

@@ -12,9 +12,10 @@ public final class MenuEditor extends Screen {
     @Override protected void init(){int x=width/2-155,y=height-56;
         button(x,y,100,"invumusicplayer.hud_editor.scale_down",()->resize(-.05f));button(x+105,y,100,"invumusicplayer.hud_editor.scale_up",()->resize(.05f));
         button(x+210,y,100,"invumusicplayer.menu.reset",()->{var s=InvuMusicPlayerClient.player.settings;s.menuPositioned=false;s.menuScale=.5f;save();});
-        button(x,height-30,74,"invumusicplayer.hud_editor.top_left",()->corner(false,false));button(x+78,height-30,74,"invumusicplayer.hud_editor.top_right",()->corner(true,false));button(x+156,height-30,74,"invumusicplayer.hud_editor.bottom_right",()->corner(true,true));button(x+234,height-30,76,"invumusicplayer.hud_editor.done",this::onClose);
+        String[] corners={"top_left","top_right","bottom_left","bottom_right","done"};
+        for(int i=0;i<corners.length;i++){int at=i;button(x+i*63,height-30,58,"invumusicplayer.hud_editor."+corners[i],()->{if(at==4)onClose();else corner(at%2==1,at>=2);});}
     }
-    private void button(int x,int y,int w,String key,Runnable action){addRenderableWidget(new ModernButton(x,y,w,20,Component.translatable(key),v->action.run()));}
+    private void button(int x,int y,int w,String key,Runnable action){var b=new ModernButton(x,y,w,20,Component.translatable(key),v->action.run());b.setTooltip(net.minecraft.client.gui.components.Tooltip.create(Component.translatable(key)));addRenderableWidget(b);}
     private void save(){InvuMusicPlayerClient.player.saveSettings();}
     private void resize(float amount){var s=InvuMusicPlayerClient.player.settings;s.menuScale+=amount;s.normalize();save();}
     private void corner(boolean right,boolean bottom){var s=InvuMusicPlayerClient.player.settings;s.menuPositioned=true;s.menuX=right?1:0;s.menuY=bottom?1:0;save();}

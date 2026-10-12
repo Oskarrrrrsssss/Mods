@@ -81,9 +81,9 @@ public final class AudioEngine implements Player.Playback {
                             while (active == session && session.paused) lock.wait();
                             if (active != session) return;
                         }
-                        applyVolume(buffer, read, volume);
                         float[] spectrum = session.analyzer.accept(buffer, read, format.getChannels(), format.getSampleRate());
                         synchronized(lock) { if(active==session)levels=spectrum; }
+                        applyVolume(buffer, read, volume);
                         int written = 0;
                         while (written < read && isActive(session)) {
                             int count = line.write(buffer, written, read - written);

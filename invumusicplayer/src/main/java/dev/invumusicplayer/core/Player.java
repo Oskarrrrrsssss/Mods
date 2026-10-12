@@ -96,6 +96,8 @@ public final class Player implements AutoCloseable {
         items = queue; upNext.addAll(savedState.pending()); ratings.putAll(savedState.ratings()); savedLists.putAll(savedState.playlists());
         current = savedState.current();
         if (current == null && queueIndex >= 0 && queueIndex < queue.size()) current = queue.get(queueIndex);
+        listingSection=wave?"wave":queue.stream().anyMatch(Track::remote)?"tracks":"local";
+        if(wave)publishWaveList();
         settings = Settings.load(configPath); audio.volume(settings.volume);
         local = new LocalLibrary(gameDir.resolve("music"));
         this.credentials = credentials;

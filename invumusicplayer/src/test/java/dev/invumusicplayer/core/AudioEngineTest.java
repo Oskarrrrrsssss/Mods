@@ -27,6 +27,7 @@ final class AudioEngineTest {
     private static final class Line implements InvocationHandler {
         volatile boolean open, running;
         volatile AudioFormat format;
+        volatile byte[] firstOutput;
         final AtomicLong micros = new AtomicLong();
         final CountDownLatch writes = new CountDownLatch(1), drain = new CountDownLatch(1);
         final AtomicInteger writeCount = new AtomicInteger();
@@ -40,6 +41,7 @@ final class AudioEngineTest {
                 case "start" -> { running = true; yield null; }
                 case "stop" -> { running = false; yield null; }
                 case "write" -> {
+                    if(firstOutput==null)firstOutput=java.util.Arrays.copyOfRange((byte[])args[0],(int)args[1],(int)args[1]+(int)args[2]);
                     writeCount.incrementAndGet(); writes.await();
                     yield open ? (int) args[2] : 0;
                 }
@@ -116,4 +118,20 @@ final class AudioEngineTest {
             await(audio::playing); assertEquals(3000, audio.durationMillis());
         }
     }
+    @Test void equalizerMeasuresSameSourceAtFullQuietAndMutedOutput() throws Exception {
+        AudioFormat format=new AudioFormat(44100,16,1,true,false);byte[] pcm=new byte[44100*2];
+        for(int n=0;n<44100;n++){short sample=(short)(Math.sin(2*Math.PI*1000*n/44100)*24000);pcm[n*2]=(byte)sample;pcm[n*2+1]=(byte)(sample>>8);}
+        ByteArrayOutputStream encoded=new ByteArrayOutputStream();try(AudioInputStream input=new AudioInputStream(new ByteArrayInputStream(pcm),format,44100)){AudioSystem.write(input,AudioFileFormat.Type.WAVE,encoded);}
+        float[] reference=null;
+        for(float gain:new float[]{1,.1f,0}){Line line=new Line();AtomicReference<Exception> failure=new AtomicReference<>();
+            try(AudioEngine audio=new AudioEngine(f->line.proxy())){audio.volume(gain);audio.play(()->new ByteArrayInputStream(encoded.toByteArray()),0,false,()->{},failure::set);await(()->line.firstOutput!=null&&line.writeCount.get()>0);
+                float[] levels=audio.spectrum();assertTrue(java.util.stream.IntStream.range(0,levels.length).anyMatch(n->levels[n]>.1));
+                if(reference==null)reference=levels;else assertArrayEquals(reference,levels,.0001f);
+                if(gain==0)assertArrayEquals(new byte[line.firstOutput.length],line.firstOutput);else {int peak=java.util.Arrays.stream(toSamples(line.firstOutput)).map(Math::abs).max().orElse(0);assertEquals(Math.round(24000*gain),peak,2);}
+                assertNull(failure.get());
+            }
+        }
+    }
+    private static int[] toSamples(byte[] bytes){int[] samples=new int[bytes.length/2];for(int i=0;i<samples.length;i++)samples[i]=(short)((bytes[i*2]&255)|(bytes[i*2+1]<<8));return samples;}
+
 }
