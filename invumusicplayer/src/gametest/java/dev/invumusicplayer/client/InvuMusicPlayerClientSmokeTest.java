@@ -48,6 +48,8 @@ public final class InvuMusicPlayerClientSmokeTest implements FabricClientGameTes
             context.waitFor(client -> fixture.playing() && !fixture.loading()
                 && fixture.coverBytes().length > 0);
             check(fixture.current().title().equals("First"), "The local library did not load its first track");
+            check(fixture.settings.visualizer,"The equalizer is not enabled by default");
+            check(hasSignal(fixture.spectrum()),"Synthetic PCM did not reach the equalizer");
 
             context.getInput().resizeWindow(1280, 720);
             context.runOnClient(client -> { client.options.guiScale().set(3); client.resizeGui(); });
@@ -101,6 +103,7 @@ public final class InvuMusicPlayerClientSmokeTest implements FabricClientGameTes
 
                 press(context, "pause");
                 context.waitFor(client -> !fixture.playing());
+                check(!hasSignal(fixture.spectrum()),"Paused player still reports audible signal");
                 press(context, "pause");
                 context.waitFor(client -> fixture.playing());
                 press(context, "next");
@@ -207,4 +210,5 @@ public final class InvuMusicPlayerClientSmokeTest implements FabricClientGameTes
     private static void check(boolean condition, String message) {
         if (!condition) throw new AssertionError(message);
     }
+    private static boolean hasSignal(float[] values) { for(float v:values)if(v>.1f)return true;return false; }
 }

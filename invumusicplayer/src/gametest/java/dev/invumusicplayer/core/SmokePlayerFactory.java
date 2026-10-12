@@ -60,8 +60,12 @@ public final class SmokePlayerFactory {
     private static void writeTrack(Path directory, String title, int color) throws IOException {
         String name = "InvuMusicPlayer Smoke - " + title;
         AudioFormat format = new AudioFormat(8000, 16, 1, true, false);
-        // Three seconds of synthetic silence: no song or account is downloaded by this test.
+        // Three seconds of original synthetic tones; no song or account is used.
         byte[] pcm = new byte[8000 * 2 * 3];
+        for(int i=0;i<24000;i++) {
+            short value=(short)((Math.sin(2*Math.PI*220*i/8000)+Math.sin(2*Math.PI*1300*i/8000)+Math.sin(2*Math.PI*3200*i/8000))*5000);
+            pcm[i*2]=(byte)value;pcm[i*2+1]=(byte)(value>>8);
+        }
         try (AudioInputStream audio = new AudioInputStream(new ByteArrayInputStream(pcm), format, 24000)) {
             AudioSystem.write(audio, AudioFileFormat.Type.WAVE, directory.resolve(name + ".wav").toFile());
         }
@@ -75,12 +79,14 @@ public final class SmokePlayerFactory {
     private static final class SilentPlayback implements Player.Playback {
         private volatile boolean loaded, playing;
         private volatile long position = 500;
+        private volatile float[] spectrum = new float[24];
         @Override public void play(AudioEngine.Input input, long seekMillis, boolean paused, Runnable ready,
                                    Runnable ended, Consumer<Exception> failed) {
             // Exercise the actual file-open and WAV decoder path without requesting an audio device.
             try (var stream = new java.io.BufferedInputStream(input.open());
                  AudioInputStream audio = AudioSystem.getAudioInputStream(stream)) {
                 if (audio.getFrameLength() != 24000) throw new IOException("Unexpected smoke WAV duration");
+                byte[] samples=audio.readAllBytes();spectrum=new SpectrumAnalyzer().accept(samples,samples.length,1,8000);
                 loaded = true; playing = !paused;
                 position = seekMillis == 0 ? 500 : seekMillis;
                 ready.run();
@@ -90,6 +96,7 @@ public final class SmokePlayerFactory {
         @Override public boolean loaded() { return loaded; }
         @Override public long positionMillis() { return position; }
         @Override public long durationMillis() { return 3000; }
+        @Override public float[] spectrum() { return spectrum.clone(); }
         @Override public void togglePause() { if (loaded) playing = !playing; }
         @Override public void volume(float value) {}
         @Override public void stop() { loaded = playing = false; }

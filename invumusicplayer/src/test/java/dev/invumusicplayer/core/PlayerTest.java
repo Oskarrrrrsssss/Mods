@@ -21,6 +21,8 @@ final class PlayerTest {
     private static final class Audio implements Player.Playback {
         final List<String> played = new CopyOnWriteArrayList<>();
         volatile boolean loaded, paused;
+        volatile float[] spectrum=new float[24];
+        public float[] spectrum(){return spectrum.clone();}
         volatile long position;
         volatile long seekOffset;
         volatile Runnable ended;
@@ -334,6 +336,22 @@ final class PlayerTest {
         }
         try(Player restored=new Player(temp,new Remote(),new Audio())){
             assertEquals("b",restored.current().id());assertEquals(List.of("c"),restored.queue().stream().map(Track::id).toList());
+        }
+    }
+    @Test void playerExposesMeasuredSpectrumOnlyWhilePlaying() throws Exception {
+        Audio audio=new Audio();audio.spectrum[5]=.8f;
+        try(Player player=new Player(temp,new Remote(),audio)) {
+            player.choose(List.of(track("a")),0);await(player::playing);
+            assertEquals(.8f,player.spectrum()[5]);player.togglePause();assertArrayEquals(new float[24],player.spectrum());
+            player.togglePause();assertEquals(.8f,player.spectrum()[5]);player.suspend();assertArrayEquals(new float[24],player.spectrum());
+        }
+    }
+    @Test void clearingWaveQueueStopsRefillsButKeepsCurrentAudio() throws Exception {
+        Remote remote=new Remote();Audio audio=new Audio();
+        try(Player player=new Player(temp,remote,audio)) {
+            player.startWave();await(player::playing);player.enqueue(track("x"));player.clearQueue();
+            assertTrue(player.playing());assertFalse(player.isWave());assertTrue(player.queue().isEmpty());
+            audio.ended.run();assertFalse(player.playing());assertEquals(1,remote.waveCalls.get());
         }
     }
 }

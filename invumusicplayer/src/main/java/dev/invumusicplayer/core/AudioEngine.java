@@ -44,7 +44,7 @@ public final class AudioEngine implements Player.Playback {
     }
 
     private volatile float[] levels = new float[24];
-    public float[] spectrum() { return levels.clone(); }
+    @Override public float[] spectrum() { return levels.clone(); }
     private void decode(Session session, Input input, Runnable ready, Runnable ended, Consumer<Exception> failed) {
         SourceDataLine line = null;
         try (InputStream source = new BufferedInputStream(input.open())) {

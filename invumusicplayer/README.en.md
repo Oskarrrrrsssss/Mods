@@ -57,6 +57,7 @@ The user confirmed playback and My Wave in the preceding release; changed networ
 After a recommendation batch ends, a new batch is requested. Recently issued tracks are filtered after session renewal too.
 
 **+** adds a track to the upcoming queue. **Library → Queue** shows upcoming tracks without the current one: click a title to play it or **×** to remove it. Manually added tracks play before the playlist/wave continues.
+**Clear** keeps the current audio and cancels upcoming tracks, including automatic wave refills.
 **Liked** loads your account's liked tracks. **Playlists** shows account playlists and saved local playlists.
 Import a Yandex URL with `/users/name/playlists/number` or `/playlists/uuid`.
 Enter a name and select **Save queue** to create a local playlist; it is not published to Yandex.

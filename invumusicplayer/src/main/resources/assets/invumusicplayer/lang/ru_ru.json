@@ -202,5 +202,6 @@
   "invumusicplayer.error.youtube_login": "YouTube требует вход или проверку доступа. Выбери общедоступное видео; вход в YouTube в моде не поддерживается.",
   "invumusicplayer.error.youtube_unavailable": "Видео недоступно, удалено или закрыто в твоём регионе.",
   "invumusicplayer.error.youtube_forbidden": "YouTube запретил загрузку (HTTP 403). Обнови yt-dlp; доступ зависит от ограничений YouTube и сети.",
-  "invumusicplayer.error.youtube_live": "Прямые трансляции YouTube пока не поддерживаются. Вставь ссылку на обычное видео."
+  "invumusicplayer.error.youtube_live": "Прямые трансляции YouTube пока не поддерживаются. Вставь ссылку на обычное видео.",
+  "invumusicplayer.status.youtube": "YouTube: воспроизведение"
 }

@@ -31,6 +31,7 @@ public final class Player implements AutoCloseable {
         long positionMillis();
         default long playedMillis() { return positionMillis(); }
         long durationMillis();
+        default float[] spectrum() { return new float[24]; }
         void togglePause();
         void volume(float value);
         void stop();
@@ -45,7 +46,9 @@ public final class Player implements AutoCloseable {
     private final Map<String, Integer> ratings = new ConcurrentHashMap<>();
     private final Map<String, List<Track>> savedLists = new ConcurrentHashMap<>();
     private volatile List<YandexMusic.Playlist> playlists = List.of();
-    private final Map<String, byte[]> covers = new ConcurrentHashMap<>();
+    private final Map<String, byte[]> covers = Collections.synchronizedMap(new LinkedHashMap<>(128, .75f, true) {
+        @Override protected boolean removeEldestEntry(Map.Entry<String, byte[]> entry) { return size() > 128; }
+    });
     private final Set<String> pendingCovers = ConcurrentHashMap.newKeySet();
     private final TokenStore credentials;
     private final Playback audio;
@@ -137,8 +140,7 @@ public final class Player implements AutoCloseable {
         Path config=gameDir.resolve("config");
         for(String suffix:new String[]{".json","-auth.dat","-session.json"}){
             Path old=config.resolve("musicraft"+suffix), current=config.resolve("invumusicplayer"+suffix);
-            if(!Files.exists(current)&&Files.exists(old)){Files.createDirectories(config);Files.copy(old,current);
-                if(suffix.equals(".json"))try{com.google.gson.JsonObject json=com.google.gson.JsonParser.parseString(Files.readString(current)).getAsJsonObject();json.addProperty("sprintOnly",false);Files.writeString(current,json.toString());}catch(RuntimeException ignored){}}
+            if(!Files.exists(current)&&Files.exists(old)){Files.createDirectories(config);Files.copy(old,current);}
         }
         return gameDir;
     }
@@ -273,7 +275,7 @@ public final class Player implements AutoCloseable {
                 synchronized (this) {
                     if (!valid(request)) return;
                     currentStarted = true; loading = false;
-                    status = wave ? Messages.text("invumusicplayer.status.wave") : track.remote() ? Messages.text("invumusicplayer.status.yandex") : Messages.text("invumusicplayer.status.local_playing");
+                    status = track.youtube() ? Messages.text("invumusicplayer.status.youtube") : wave ? Messages.text("invumusicplayer.status.wave") : track.remote() ? Messages.text("invumusicplayer.status.yandex") : Messages.text("invumusicplayer.status.local_playing");
                     if (wave && sendStarted && !track.batchId().isBlank()) submitFeedback("trackStarted", track, 0, waveRequest);
                 }
             }, () -> advance(true, request), e -> {
@@ -309,7 +311,7 @@ public final class Player implements AutoCloseable {
         if (closed || current == null || current.youtube()) return;
         covers.remove(current.id()); coverRetryAfter.remove(current.id()); cancel(coverJob); loadMetadata(current, serial);
     }
-    private void cacheCover(String id, byte[] bytes) { if (covers.size() >= 96) covers.clear(); covers.put(id, bytes); }
+    private void cacheCover(String id, byte[] bytes) { covers.put(id, bytes); coverRetryAfter.remove(id); }
     public byte[] coverFor(Track track) {
         if (closed || track.youtube()) return EMPTY_IMAGE;
         byte[] cached = covers.get(track.id()); if (cached != null) return cached;
@@ -409,7 +411,7 @@ public final class Player implements AutoCloseable {
         startAudioLocked(track, data, request, target, paused, waveSerial, false);
         loadMetadata(track, request);
     }
-    public float[] spectrum() { return audio instanceof AudioEngine engine && playing() ? engine.spectrum() : new float[24]; }
+    public float[] spectrum() { return playing() ? audio.spectrum() : new float[24]; }
     public synchronized boolean isWave() { return wave; }
     public synchronized List<Track> queue() { List<Track> list = new ArrayList<>(upNext); if (queueIndex + 1 < queue.size()) list.addAll(queue.subList(queueIndex + 1, queue.size())); return List.copyOf(list); }
     public synchronized void enqueue(Track track) { upNext.addLast(track); persist(); }
@@ -433,7 +435,10 @@ public final class Player implements AutoCloseable {
         else{int actual=queueIndex+1+index-upNext.size();if(actual>=queue.size())return;List<Track> copy=new ArrayList<>(queue);copy.remove(actual);queue=List.copyOf(copy);}
         persist();
     }
-    public synchronized void clearQueue() { upNext.clear(); queue = current == null ? List.of() : List.of(current); queueIndex = current == null ? -1 : 0; persist(); }
+    public synchronized void clearQueue() {
+        upNext.clear(); queue = current == null ? List.of() : List.of(current); queueIndex = current == null ? -1 : 0;
+        wave = false; ++waveSerial; persist();
+    }
     public void volume(float value) { settings.volume = Float.isFinite(value) ? Math.max(0, Math.min(1, value)) : settings.volume; audio.volume(settings.volume); }
     public synchronized void suspend() { invalidateLocked(); loading = false; currentStarted = false; persist(); }
     private synchronized void persist() {

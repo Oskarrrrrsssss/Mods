@@ -202,5 +202,6 @@
   "invumusicplayer.error.youtube_login": "YouTube requires sign-in or an access check. Choose a public video; YouTube sign-in is not supported.",
   "invumusicplayer.error.youtube_unavailable": "The video is unavailable, removed or blocked in your region.",
   "invumusicplayer.error.youtube_forbidden": "YouTube blocked the download (HTTP 403). Update yt-dlp; access depends on YouTube and network restrictions.",
-  "invumusicplayer.error.youtube_live": "YouTube live streams are not supported yet. Paste a regular video link."
+  "invumusicplayer.error.youtube_live": "YouTube live streams are not supported yet. Paste a regular video link.",
+  "invumusicplayer.status.youtube": "YouTube: playing"
 }
