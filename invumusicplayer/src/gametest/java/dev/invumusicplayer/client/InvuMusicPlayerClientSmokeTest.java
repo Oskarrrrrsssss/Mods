@@ -58,7 +58,7 @@ public final class InvuMusicPlayerClientSmokeTest implements FabricClientGameTes
             context.takeScreenshot("invu-en-title-screen-entry");context.clickScreenButton("invumusicplayer");context.waitForScreen(PlayerScreen.class);
             context.clickScreenButton("invumusicplayer.player.settings");context.waitForScreen(SettingsScreen.class);
             context.takeScreenshot("invu-en-settings-without-world");context.clickScreenButton("invumusicplayer.settings.back");
-            context.clickScreenButton("invumusicplayer.player.done");
+            context.clickScreenButton("invumusicplayer.player.done");context.waitForScreen(net.minecraft.client.gui.screens.TitleScreen.class);
             try (TestSingleplayerContext world = context.worldBuilder().create()) {
                 world.getConnection().waitForChunksRender();
                 context.waitTicks(4);

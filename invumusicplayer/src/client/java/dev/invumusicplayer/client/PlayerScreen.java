@@ -9,6 +9,7 @@ import java.util.*;
 
 public final class PlayerScreen extends Screen {
     private final Player player = InvuMusicPlayerClient.player;
+    private final Screen parent=net.minecraft.client.Minecraft.getInstance().gui.screen();
     private List<Track> seen = List.of();
     private int page;
     private String query = "";
@@ -30,7 +31,7 @@ public final class PlayerScreen extends Screen {
         for (int row = 0; row < rows; row++) {
             int index = page * rows + row; if (index >= seen.size()) break;
             Track t = seen.get(index); List<Track> selected = seen;
-            Button entry = button(Component.literal(font.plainSubstrByWidth(t.display(), listWidth - 54)), left + 30, top + 84 + row * 24,
+            Button entry = button(Component.literal(font.plainSubstrByWidth(t.title()+" · "+t.artist(), listWidth - 54)), left + 30, top + 84 + row * 24,
                 listWidth - 44, () -> player.choose(selected, index));
             entry.setTooltip(Tooltip.create(Component.literal(t.display())));
             button(Component.literal("+"),left+listWidth-10,top+84+row*24,20,()->player.enqueue(t));
@@ -99,6 +100,7 @@ public final class PlayerScreen extends Screen {
         }}
         super.extractRenderState(g, mouseX, mouseY, delta);
     }
+    @Override public void onClose(){minecraft.gui.setScreen(parent);}
     @Override public void removed(){artwork.values().forEach(CoverTexture::close);artwork.clear();player.saveSettings();super.removed();}
     @Override public boolean isPauseScreen() { return false; }
 }

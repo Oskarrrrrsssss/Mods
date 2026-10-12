@@ -16,7 +16,7 @@ public final class LibraryScreen extends Screen {
         List<Track> tracks=tab==0?player.queue():tab!=2?player.items():List.of();seen=tab==2?player.playlists():tracks;
         int rows=Math.max(1,(height-150)/24);int pages=Math.max(1,(seen.size()+rows-1)/rows);page=Math.max(0,Math.min(page,pages-1));
         if(tab!=2)for(int row=0;row<rows;row++){int index=page*rows+row;if(index>=tracks.size())break;Track track=tracks.get(index);
-            addRenderableWidget(new ModernButton(x,y+row*24,282,20,Component.literal(font.plainSubstrByWidth(track.display(),266)),b->player.choose(tracks,index)));
+            addRenderableWidget(new ModernButton(x,y+row*24,282,20,Component.literal(font.plainSubstrByWidth(track.title()+" · "+track.artist(),266)),b->player.choose(tracks,index)));
             if(tab==0){int item=index;button("invumusicplayer.library.remove",x+286,y+row*24,24,()->{player.removeQueued(item);rebuildWidgets();});}
             else button("invumusicplayer.library.add",x+286,y+row*24,24,()->player.enqueue(track));
         }
