@@ -17,7 +17,6 @@ import org.slf4j.LoggerFactory;
 
 public final class InvuMusicPlayerClient implements ClientModInitializer {
     public static Player player;
-    private static boolean wasInWorld;
     public static final CoverTexture cover = new CoverTexture();
     @Override public void onInitializeClient() {
         Messages.setTranslator((key, arguments) -> Component.translatable(key, arguments).getString());
@@ -34,22 +33,20 @@ public final class InvuMusicPlayerClient implements ClientModInitializer {
         KeyMapping next = key("next", SDLScancode.SDL_SCANCODE_F9, category);
         KeyMapping previous = key("previous", SDLScancode.SDL_SCANCODE_F7, category);
         KeyMapping wave=key("wave",SDLScancode.SDL_SCANCODE_F10,category);
+        KeyMapping shuffle=key("shuffle",SDLScancode.SDL_SCANCODE_UNKNOWN,category);
         KeyMapping like=key("like",SDLScancode.SDL_SCANCODE_UNKNOWN,category);
         KeyMapping dislike=key("dislike",SDLScancode.SDL_SCANCODE_UNKNOWN,category);
         net.fabricmc.fabric.api.client.screen.v1.ScreenEvents.AFTER_INIT.register((client,screen,w,h)->{
-            if(screen instanceof net.minecraft.client.gui.screens.TitleScreen) net.fabricmc.fabric.api.client.screen.v1.Screens.getWidgets(screen).add(
-                new ModernButton(w-124,8,116,20,Component.literal("invumusicplayer"),b->client.gui.setScreen(new PlayerScreen())));
-            if(screen instanceof net.minecraft.client.gui.screens.PauseScreen) PausePlayerPanel.install(screen,w);
+            if(screen instanceof net.minecraft.client.gui.screens.TitleScreen||screen instanceof net.minecraft.client.gui.screens.PauseScreen) MenuPlayerPanel.install(screen,w,h);
         });
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
-            boolean inWorld=client.level!=null;
-            if(wasInWorld&&!inWorld)player.suspend();wasInWorld=inWorld;
             cover.update(player.coverBytes());
             while (open.consumeClick()) client.gui.setScreen(new PlayerScreen());
             while (pause.consumeClick()) player.togglePause();
             while (next.consumeClick()) player.next();
             while (previous.consumeClick()) player.previous();
             while(wave.consumeClick())player.startWave();
+            while(shuffle.consumeClick())player.toggleShuffle();
             while(like.consumeClick())player.rate(true);
             while(dislike.consumeClick())player.rate(false);
         });

@@ -27,7 +27,7 @@ public final class InvuMusicPlayerClientSmokeTest implements FabricClientGameTes
         Player original = context.computeOnClient(client -> {
             check(InvuMusicPlayerClient.player != null, "InvuMusicPlayer client entrypoint did not initialize the player");
             Set<String> names = Arrays.stream(client.options.keyMappings).map(KeyMapping::getName).collect(Collectors.toSet());
-            for (String action : new String[] {"open", "pause", "next", "previous", "wave", "like", "dislike"}) {
+            for (String action : new String[] {"open", "pause", "next", "previous", "wave", "like", "dislike", "shuffle"}) {
                 check(names.contains("key.invumusicplayer." + action), "Missing registered key mapping: " + action);
             }
             return InvuMusicPlayerClient.player;
@@ -57,7 +57,12 @@ public final class InvuMusicPlayerClientSmokeTest implements FabricClientGameTes
             context.getInput().resizeWindow(1280, 720);
             context.runOnClient(client -> { client.options.guiScale().set(3); client.resizeGui(); });
             context.waitForScreen(net.minecraft.client.gui.screens.TitleScreen.class);
-            context.takeScreenshot("invu-en-title-screen-entry");context.clickScreenButton("invumusicplayer");context.waitForScreen(PlayerScreen.class);
+            context.waitFor(client->InvuMusicPlayerClient.cover.ready());
+            context.takeScreenshot("invu-en-title-screen-entry");
+            context.clickScreenButton("invumusicplayer.wave.settings");context.waitForScreen(WaveSettingsScreen.class);
+            context.clickScreenButton("invumusicplayer.mood.sad");check(fixture.settings.waveMood.equals("sad"),"Direct wave mood setting failed");
+            context.takeScreenshot("invu-en-wave-settings");context.clickScreenButton("invumusicplayer.settings.back");
+context.clickScreenButton("invumusicplayer.menu.open");context.waitForScreen(PlayerScreen.class);
             context.clickScreenButton("invumusicplayer.player.settings");context.waitForScreen(SettingsScreen.class);
             context.takeScreenshot("invu-en-settings-without-world");context.clickScreenButton("invumusicplayer.settings.back");
             context.clickScreenButton("invumusicplayer.player.done");context.waitForScreen(net.minecraft.client.gui.screens.TitleScreen.class);
@@ -70,7 +75,25 @@ public final class InvuMusicPlayerClientSmokeTest implements FabricClientGameTes
                 context.waitFor(client -> InvuMusicPlayerClient.cover.ready() && ((PlayerScreen)client.gui.screen()).readyArtworkCount() == 2);
                 context.takeScreenshot("invumusicplayer-en-player-with-cover");
                 context.clickScreenButton("invumusicplayer.player.library");context.waitForScreen(LibraryScreen.class);
-                context.takeScreenshot("invu-en-queue-library");context.clickScreenButton("invumusicplayer.player.done");
+                context.waitFor(client->((LibraryScreen)client.gui.screen()).readyArtworkCount()==1);
+                context.takeScreenshot("invu-en-queue-library");
+                context.runOnClient(client->{fixture.rate(true);fixture.filterLikedMood("all");});context.waitFor(client->fixture.rating()==1);
+                context.clickScreenButton("invumusicplayer.library.liked");context.waitFor(client->fixture.items().size()==1&&((LibraryScreen)client.gui.screen()).readyArtworkCount()==1);
+                context.clickScreenButton("invumusicplayer.library.assign_mood");context.waitForScreen(TrackMoodScreen.class);
+                context.clickScreenButton("invumusicplayer.mood.sad");context.waitForScreen(LibraryScreen.class);
+                check(fixture.trackMood(fixture.current()).equals("sad"),"Personal mood UI did not assign its tag");
+                String any=context.computeOnClient(client->Component.translatable("invumusicplayer.library.mood_filter",Component.translatable("invumusicplayer.mood.all")).getString());
+                context.clickScreenButton(any);context.waitFor(client->fixture.items().isEmpty());
+                String happy=context.computeOnClient(client->Component.translatable("invumusicplayer.library.mood_filter",Component.translatable("invumusicplayer.mood.fun")).getString());
+                context.clickScreenButton(happy);context.waitFor(client->fixture.items().size()==1&&((LibraryScreen)client.gui.screen()).readyArtworkCount()==1);
+                context.takeScreenshot("invu-en-liked-sad-filter");
+                context.runOnClient(client->fixture.savePlaylist("Smoke playlist"));context.clickScreenButton("invumusicplayer.library.playlists");
+                context.clickScreenButton("invumusicplayer.library.delete");context.waitForScreen(DeletePlaylistScreen.class);
+                context.takeScreenshot("invu-en-delete-local-playlist");context.clickScreenButton("invumusicplayer.library.cancel");context.waitForScreen(LibraryScreen.class);
+                check(fixture.savedPlaylists().contains("Smoke playlist"),"Cancel deleted the playlist");
+                context.clickScreenButton("invumusicplayer.library.delete");context.waitForScreen(DeletePlaylistScreen.class);context.clickScreenButton("invumusicplayer.library.confirm_delete");context.waitForScreen(LibraryScreen.class);
+                check(!fixture.savedPlaylists().contains("Smoke playlist")&&fixture.playing(),"Delete did not remove only the playlist");
+                context.clickScreenButton("invumusicplayer.player.done");
                 context.waitForScreen(PlayerScreen.class);
 
                 context.clickScreenButton("invumusicplayer.player.account");
@@ -154,9 +177,11 @@ public final class InvuMusicPlayerClientSmokeTest implements FabricClientGameTes
                 context.waitForScreen(null);
             }
             context.waitForScreen(net.minecraft.client.gui.screens.TitleScreen.class);
-            context.waitFor(client -> !fixture.playing());
+            context.waitFor(client -> fixture.playing());
+            check(fixture.current().title().equals("First"),"World exit replaced the current track");
+            context.takeScreenshot("invu-ru-title-playing");
             check(!fixture.queue().isEmpty(),"Leaving the world erased its queue");
-            context.clickScreenButton("invumusicplayer");context.waitForScreen(PlayerScreen.class);
+            context.clickScreenButton("invumusicplayer.menu.open");context.waitForScreen(PlayerScreen.class);
             context.takeScreenshot("invu-ru-player-after-world-exit");context.clickScreenButton("invumusicplayer.player.done");
         } finally {
             context.runOnClient(client -> {
@@ -179,6 +204,15 @@ public final class InvuMusicPlayerClientSmokeTest implements FabricClientGameTes
                 check(!overlap,"Player control overlaps a vanilla pause button");
             }
         });
+        context.clickScreenButton("invumusicplayer.player.like");context.waitFor(client->fixture.rating()==1);
+        check(context.computeOnClient(client->Screens.getWidgets(client.gui.screen()).stream().anyMatch(w->w instanceof PlayerMenuButton b&&b.getMessage().getString().equals(Component.translatable("invumusicplayer.player.like").getString())&&b.isSelected())),"Like icon did not select");
+        context.takeScreenshot("invu-en-escape-liked");
+        context.clickScreenButton("invumusicplayer.player.like");context.waitFor(client->fixture.rating()==0);
+        context.clickScreenButton("invumusicplayer.player.dislike");context.waitFor(client->fixture.rating()==-1);
+        check(fixture.current().title().equals("First"),"Ordinary playlist dislike skipped the song");
+        context.clickScreenButton("invumusicplayer.player.dislike");context.waitFor(client->fixture.rating()==0);
+        context.clickScreenButton("invumusicplayer.player.shuffle");check(fixture.settings.shuffle,"Shuffle menu control failed");
+        context.clickScreenButton("invumusicplayer.player.shuffle");check(!fixture.settings.shuffle,"Shuffle menu control did not toggle off");
         context.takeScreenshot("invu-en-escape-player");
         context.clickScreenButton("invumusicplayer.player.pause");context.waitFor(client->!fixture.playing());
         context.waitForScreen(PauseScreen.class);context.clickScreenButton("invumusicplayer.player.play");context.waitFor(client->fixture.playing());

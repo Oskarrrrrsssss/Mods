@@ -268,7 +268,7 @@ final class PlayerTest {
             player.next();await(()->player.playing()&&player.current().id().equals("d"));assertEquals(2,remote.waveCalls.get());
         }
     }
-    @Test void leavingWorldStopsAudioButRetainsQueueAndSavedPlaylistsAcrossRestart() throws Exception {
+    @Test void explicitStopRetainsQueueAndSavedPlaylistsAcrossRestart() throws Exception {
         Remote remote=new Remote();Audio audio=new Audio();
         try(Player player=new Player(temp,remote,audio)) {
             player.choose(List.of(track("a"),track("b")),0);await(player::playing);player.enqueue(track("c"));
@@ -354,4 +354,58 @@ final class PlayerTest {
             audio.ended.run();assertFalse(player.playing());assertEquals(1,remote.waveCalls.get());
         }
     }
+    @Test void shuffleKeepsCurrentAndExplicitQueueAndRestoresUpcomingOrder() throws Exception {
+        Audio audio=new Audio();List<Track> tracks=List.of(track("a"),track("b"),track("c"),track("d"));
+        try(Player p=new Player(temp,new Remote(),audio)){
+            p.choose(tracks,0);await(p::playing);p.enqueue(track("x"));int starts=audio.played.size();p.toggleShuffle();
+            assertEquals("a",p.current().id());assertEquals(starts,audio.played.size());assertEquals("x",p.queue().getFirst().id());
+            assertEquals(Set.of("x","b","c","d"),new HashSet<>(p.queue().stream().map(Track::id).toList()));
+            p.toggleShuffle();assertEquals(List.of("x","b","c","d"),p.queue().stream().map(Track::id).toList());
+            p.next();await(()->p.playing()&&p.current().id().equals("x"));p.next();await(()->p.playing()&&p.current().id().equals("b"));
+        }
+    }
+    @Test void shuffledSelectionPlaysChosenSongAndConsumesEverySongExactlyOnce() throws Exception {
+        Audio audio=new Audio();List<Track> tracks=List.of(track("a"),track("b"),track("c"),track("d"));
+        try(Player p=new Player(temp,new Remote(),audio)){
+            p.toggleShuffle();p.choose(tracks,2);await(p::playing);assertEquals("c",p.current().id());
+            for(int n=1;n<4;n++){int count=n+1;p.next();await(()->p.playing()&&audio.played.size()==count);}
+            p.next();assertFalse(p.playing());assertEquals(4,new HashSet<>(audio.played).size());
+        }
+    }
+    @Test void shufflePersistsAndTurningItOffAfterRestartRestoresOriginalRemainder() throws Exception {
+        List<Track> tracks=List.of(track("a"),track("b"),track("c"),track("d"));
+        try(Player p=new Player(temp,new Remote(),new Audio())){p.choose(tracks,0);await(p::playing);p.toggleShuffle();}
+        try(Player p=new Player(temp,new Remote(),new Audio())){assertTrue(p.settings.shuffle);assertEquals("a",p.current().id());p.toggleShuffle();assertEquals(List.of("b","c","d"),p.queue().stream().map(Track::id).toList());}
+    }
+    @Test void repeatedLikeRemovesOnlyLikeAndRatingSwitchRemovesOppositeFirst() throws Exception {
+        List<String> calls=new CopyOnWriteArrayList<>();Remote remote=new Remote(){public void rate(Track t,boolean like,boolean remove){calls.add(like+":"+remove);}};
+        try(Player p=new Player(temp,remote,new Audio())){
+            p.choose(List.of(track("123:456")),0);await(p::playing);p.rate(true);await(()->p.rating()==1);p.rate(true);await(()->p.rating()==0);
+            assertEquals(List.of("true:false","true:true"),calls);
+            p.rate(false);await(()->p.rating()==-1);assertEquals("123:456",p.current().id());assertTrue(p.playing());
+            p.rate(true);await(()->p.rating()==1);assertEquals(List.of("true:false","true:true","false:false","false:true","true:false"),calls);
+        }
+    }
+    @Test void assignedLikedMoodFiltersAndPersistsAcrossRestart() throws Exception {
+        Remote remote=new Remote(){public List<Track> liked(){return List.of(track("123"),track("456"));}};
+        try(Player p=new Player(temp,remote,new Audio(),testStore())){
+            p.connect("test-token");await(p::connected);p.showLiked();await(()->p.items().size()==2);
+            p.setTrackMood(track("123:999"),"sad");p.setTrackMood(track("456"),"fun");p.filterLikedMood("sad");
+            assertEquals(List.of("123"),p.items().stream().map(Track::id).toList());p.filterLikedMood("calm");assertTrue(p.items().isEmpty());
+            p.filterLikedMood("all");assertEquals(2,p.items().size());p.setTrackMood(track("456"),"invalid");assertEquals("fun",p.trackMood(track("456")));
+        }
+        try(Player p=new Player(temp,remote,new Audio(),testStore())){
+            await(p::connected);assertEquals("sad",p.trackMood(track("123")));assertEquals("fun",p.trackMood(track("456")));
+            p.showLiked();await(()->p.items().size()==2);p.filterLikedMood("sad");assertEquals("123",p.items().getFirst().id());
+            p.setTrackMood(track("123"),"all");assertTrue(p.items().isEmpty());
+        }
+    }
+    @Test void deletingLocalPlaylistKeepsCurrentAudioAndQueueAndPersistsDeletion() throws Exception {
+        try(Player p=new Player(temp,new Remote(),new Audio())){
+            p.choose(List.of(track("a"),track("b")),0);await(p::playing);p.savePlaylist("Example");assertTrue(p.savedPlaylists().contains("Example"));
+            p.deleteSavedPlaylist("Example");assertFalse(p.savedPlaylists().contains("Example"));assertTrue(p.playing());assertEquals("a",p.current().id());assertEquals("b",p.queue().getFirst().id());
+        }
+        try(Player p=new Player(temp,new Remote(),new Audio())){assertFalse(p.savedPlaylists().contains("Example"));assertEquals("b",p.queue().getFirst().id());}
+    }
+
 }

@@ -198,6 +198,11 @@ public final class YandexMusic {
         }
         return List.copyOf(result);
     }
+    public void deletePlaylist(String owner,String kind) throws Exception {
+        long uid=user();if(!Long.toString(uid).equals(owner)||!kind.matches("[0-9]{1,20}"))throw Messages.error("invumusicplayer.error.playlist_owner");
+        JsonElement result=form("/users/"+uid+"/playlists/"+kind+"/delete",Map.of());
+        if(!result.isJsonPrimitive()||!"ok".equals(result.getAsString()))throw Messages.error("invumusicplayer.error.playlist_delete");
+    }
     public List<Track> playlist(String owner, String kind) throws Exception {
         if (!owner.matches("[a-zA-Z0-9_.-]{1,100}") || !kind.matches("[0-9]{1,20}")) throw Messages.error("invumusicplayer.error.playlist_link");
         JsonObject p = object(api("/users/" + enc(owner) + "/playlists/" + enc(kind), null), "invumusicplayer.context.search");

@@ -2,9 +2,11 @@
 
 [Русский](VALIDATION.md) · **English**
 
-Release 0.2.2 checks queue, artwork and spectrum analyzer fixes.
+Release 0.2.3 checks queue, artwork and spectrum analyzer fixes.
 The installation ZIP prefixes this report with the particular CI run, test counts and JAR SHA-256.
 
+- Shuffle tests cover chosen-track preservation, unique traversal, explicit queue priority, restoring order and persisted mode. Rating tests verify that a second like only removes the like. Personal mood filtering/persistence and playlist deletion with current playback retained are checked.
+- Native client navigation additionally opens My Wave settings from the title menu, toggles like/dislike/shuffle icons, assigns a personal mood in Liked, filters it, checks library artwork, cancels/confirms local playlist deletion and retains playing audio when leaving the world.
 - Queue tests verify playing an added item without duplicating the remainder, restoring the current item after restart, natural advancement, radio continuation and stale-request protection.
 - HTTP fixtures verify the artwork preset, metadata refresh after 404, `error: null`, audio signatures, recommendations and absent CDN authorization headers.
 - FFT tests use synthetic low/high tones, stereo audio, reduced volume and decay in silence.

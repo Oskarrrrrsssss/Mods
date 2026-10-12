@@ -210,5 +210,21 @@
   "invumusicplayer.menu.previous": "Предыдущий трек",
   "invumusicplayer.menu.next": "Следующий трек",
   "invumusicplayer.menu.empty": "Открой библиотеку",
-  "invumusicplayer.settings.hud_f1": "Плеер при F1: %s"
+  "invumusicplayer.settings.hud_f1": "Плеер при F1: %s",
+  "invumusicplayer.player.shuffle": "Перемешивание",
+  "invumusicplayer.settings.shuffle": "Перемешивание: %s",
+  "invumusicplayer.settings.cover_colors": "Цвета обложки: %s",
+  "invumusicplayer.wave.settings": "Настройки Моей волны",
+  "invumusicplayer.library.mood_filter": "Настроение: %s",
+  "invumusicplayer.library.assign_mood": "Назначить настроение",
+  "invumusicplayer.library.untagged": "Без метки",
+  "invumusicplayer.library.delete": "Удалить плейлист",
+  "invumusicplayer.library.confirm_delete": "Удалить",
+  "invumusicplayer.library.cancel": "Отмена",
+  "invumusicplayer.library.delete_remote": "Удалится также из аккаунта Яндекса.",
+  "invumusicplayer.library.delete_local": "Удалится только этот локальный плейлист.",
+  "invumusicplayer.error.playlist_owner": "Удалять можно только свои плейлисты Яндекса.",
+  "invumusicplayer.error.playlist_delete": "Яндекс не подтвердил удаление плейлиста.",
+  "invumusicplayer.status.playlist_deleted": "Плейлист удалён: %s",
+  "key.invumusicplayer.shuffle": "Перемешивание"
 }

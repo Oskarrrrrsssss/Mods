@@ -245,4 +245,13 @@ final class YandexMusicProtocolTest {
         assertEquals("https://avatars.yandex.net/new/200x200",script.requests.getLast().uri().toString());
         assertTrue(Arrays.asList(body(script.requests.get(1)).split("&")).contains("track-ids=1"));
     }
+    @Test void playlistDeleteRequiresAccountOwnerAndAcknowledgedPost() throws Exception {
+        Script script=new Script(json("{\"account\":{\"uid\":123}}"),json("\"ok\""));
+        script.client().deletePlaylist("123","1000");assertEquals("POST",script.requests.getLast().method());assertEquals("/users/123/playlists/1000/delete",script.requests.getLast().uri().getPath());
+        Script foreign=new Script(json("{\"account\":{\"uid\":123}}"));
+        assertThrows(IOException.class,()->foreign.client().deletePlaylist("999","1000"));assertEquals(1,foreign.requests.size());
+        Script rejected=new Script(json("{\"account\":{\"uid\":123}}"),json("\"failed\""));
+        assertThrows(IOException.class,()->rejected.client().deletePlaylist("123","1000"));
+    }
+
 }

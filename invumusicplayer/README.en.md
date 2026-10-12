@@ -6,9 +6,21 @@ A client music player: Yandex Music, My Wave, local music and YouTube audio.
 Move and scale the in-game panel and customize its colors and opacity.
 The interface follows Minecraft's language: Russian or English.
 
-## Changes in 0.2.2
+## Menu, shuffle and personal moods (0.2.3)
 
-- Escape now shows a compact player in the top-left free area of the pause menu: current track, artwork where space allows, equalizer, previous/play-pause/next controls and an Invu Player entry.
+The title and Escape menus show an album card with centered title/artist, a thin progress bar and vector controls. Music continues when leaving a world, until Minecraft closes or you press Pause/Stop. F1 visibility has its own option. Album colors can tint the menu card; disable Album colors to use your custom background.
+
+Shuffle changes upcoming playlist tracks without restarting the current song; manually queued tracks retain their priority and order. The button and an initially unbound configurable shortcut toggle it. With repeat enabled, the next shuffled cycle avoids immediately repeating the last song when possible.
+
+Click the heart to like, click again to remove that like (without disliking). Switching ratings removes the opposite rating first. Dislike skips a song in My Wave; in an ordinary playlist it leaves the current song playing. The bottom menu icons open Settings, My Wave settings and Library directly.
+
+In Library → Liked, click a song's mood icon to assign your own happy/sad/calm/energetic tag or remove it. The Mood filter cycles through these tags and Any. Tags are saved locally and do not change Yandex recommendations. My Wave settings are separate and update its recommendation preferences. Library lists also show song artwork.
+
+Playlist trash icons open a confirmation. Deleting a local playlist leaves files, the current track and queue intact. Deleting an owned Yandex playlist also deletes it from your Yandex account; the confirmation explicitly says so.
+
+## Changes in 0.2.3
+
+- Escape now shows a compact player in the top-left free area of the pause menu: current track, artwork where space allows, progress bar, previous/play-pause/next controls and an Invu Player entry.
 - A separate Settings button opens player settings directly from Escape; Back returns to the pause menu. Singleplayer remains paused while editing these settings.
 - F1 can hide Minecraft's HUD while retaining the music player at its saved position and scale. This is enabled by default; **Settings → Audio → Player with F1** turns it off. The main HUD visibility setting still controls the player itself.
 - Pause-menu entries have rounded corners, drawn icons and subtle hover accents. Their width adapts to the free space left of Minecraft's menu buttons.
@@ -25,10 +37,10 @@ The interface follows Minecraft's language: Russian or English.
 ## Installation
 
 1. Download the Windows artifact from a successful [GitHub Actions](https://github.com/Oskarrrrrsssss/Mods/actions/workflows/invumusicplayer.yml) run. Sign in to GitHub to access the private repository.
-2. Extract the ZIP. Put **invumusicplayer-0.2.2-alpha.jar** in the selected Minecraft instance's `mods` folder.
+2. Extract the ZIP. Put **invumusicplayer-0.2.3-alpha.jar** in the selected Minecraft instance's `mods` folder.
 3. Install Fabric Loader and Fabric API for **26.3**, and use Java 25.
 4. Remove the previous Musicraft/invumusicplayer JAR from `mods` to avoid loading two copies. Settings, queue and authorization are retained.
-5. Open **invumusicplayer** on the title screen or press **M** in a world.
+5. Open **Invu Player** on the title screen or press **M** in a world.
 
 The standard game folder is `%APPDATA%\.minecraft\`. Other launchers may use separate instance folders.
 Do not install `-sources.jar` or `-gametest.jar`.
@@ -61,7 +73,7 @@ Enter the token locally inside the mod.
 Search, My Wave, likes and dislikes use an unofficial API. A valid token, service access and appropriate subscription are required. Yandex determines regional restrictions and track availability.
 The user confirmed playback and My Wave in the preceding release; changed network features still need verification with a real account.
 
-**Settings → My Wave**: happy, sad, calm, energetic or any mood; favorites, popular, discovery or balanced mode; language. Select **Apply** to start a wave.
+**My Wave settings**: happy, sad, calm, energetic or any mood; favorites, popular, discovery or balanced mode; language. Select **Apply** to start a wave.
 After a recommendation batch ends, a new batch is requested. Recently issued tracks are filtered after session renewal too.
 
 **+** adds a track to the upcoming queue. **Library → Queue** shows upcoming tracks without the current one: click a title to play it or **×** to remove it. Manually added tracks play before the playlist/wave continues.
@@ -102,7 +114,7 @@ music/
 ```
 
 Without JSON, the filename is used. Embedded ID3 artwork is not extracted. Old `.lrc` files are unused.
-Settings are available before entering a world. Leaving a world stops audio while retaining the current track and queue. Music can be resumed from the title screen.
+Settings are available before entering a world. Leaving a world keeps audio playing while retaining the current track and queue. Music controls remain available on the title screen.
 The token is stored in `config/invumusicplayer-auth.dat`, encrypted with Windows DPAPI for the current user; **Disconnect** deletes it. Settings: `config/invumusicplayer.json`. Queue/local playlists: `config/invumusicplayer-session.json`.
 
 ## Building and verification
@@ -113,7 +125,7 @@ JDK 25 and internet access are required. In the `invumusicplayer` folder:
 build-windows.cmd
 ```
 
-Alternatively, `gradlew.bat build`; on Linux, `bash ./gradlew build`. Output: `build/libs/invumusicplayer-0.2.2-alpha.jar`.
+Alternatively, `gradlew.bat build`; on Linux, `bash ./gradlew build`. Output: `build/libs/invumusicplayer-0.2.3-alpha.jar`.
 Gradle Wrapper 9.7.1, Loom 1.18.4, Fabric Loader 0.19.5, Fabric API 0.162.0+26.3. Minecraft 26.3 uses unobfuscated names; Yarn is unnecessary.
 Tests: `gradlew.bat test`. Actual-client verification: `gradlew.bat runProductionClientGameTest`; the test mod is excluded from the installable JAR.
 Windows helper verification without downloading a video: `gradlew.bat verifyYouTubeTools`.

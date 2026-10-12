@@ -24,7 +24,8 @@ public final class PlayerScreen extends Screen {
         left = (width - panelWidth) / 2; top = (height - panelHeight) / 2;
         listWidth = (panelWidth - 32) / 2; rows = Math.max(1, (panelHeight - 138) / 24);
         button(Component.translatable("invumusicplayer.player.local"), left + 10, top + 32, (listWidth - 4) / 2, () -> { page = 0; player.refreshLocal(); });
-        button(Component.translatable("invumusicplayer.player.wave"), left + 14 + (listWidth - 4) / 2, top + 32, (listWidth - 4) / 2, () -> { if (player.connected()) player.startWave(); else minecraft.gui.setScreen(new AccountScreen(this)); });
+        button(Component.translatable("invumusicplayer.player.wave"), left + 14 + (listWidth - 4) / 2, top + 32, (listWidth - 4) / 2-24, () -> { if (player.connected()) player.startWave(); else minecraft.gui.setScreen(new AccountScreen(this)); });
+        icon("invumusicplayer.wave.settings",left+listWidth-10,top+32,20,PlayerMenuButton.Icon.WAVE,()->minecraft.gui.setScreen(new WaveSettingsScreen(this)));
         search = new EditBox(font, left + 10, top + 58, listWidth - 44, 20, Component.translatable("invumusicplayer.player.search_hint"));
         search.setBordered(false);search.setHint(Component.translatable("invumusicplayer.player.search_hint"));search.setMaxLength(256); search.setValue(query); search.setResponder(value -> query = value); addRenderableWidget(search);
         button(Component.translatable("invumusicplayer.player.search"), left + listWidth - 30, top + 58, 40, () -> { page = 0; if (player.connected()) player.search(query); else minecraft.gui.setScreen(new AccountScreen(this)); });
@@ -41,17 +42,18 @@ public final class PlayerScreen extends Screen {
         button(Component.literal("<"), left + 10, bottom, 24, () -> { page--; rebuildWidgets(); });
         button(Component.literal(">"), left + listWidth - 14, bottom, 24, () -> { page++; rebuildWidgets(); });
         int right = left + listWidth + 22, rightWidth = panelWidth - listWidth - 32;
-        button(Component.literal("<<"), right, bottom - 4, 36, player::previous);
-        pause = button(Component.translatable(player.playing() ? "invumusicplayer.player.pause" : "invumusicplayer.player.play"), right + 40, bottom - 4, rightWidth - 80, player::togglePause);
-        button(Component.literal(">>"), right + rightWidth - 36, bottom - 4, 36, player::next);
+        icon("invumusicplayer.menu.previous",right,bottom-4,36,PlayerMenuButton.Icon.PREVIOUS,player::previous);
+        pause=icon("invumusicplayer.player.pause",right+40,bottom-4,rightWidth-80,PlayerMenuButton.Icon.PAUSE,player::togglePause);
+        icon("invumusicplayer.menu.next",right+rightWidth-36,bottom-4,36,PlayerMenuButton.Icon.NEXT,player::next);
         int seekY=top+panelHeight-100;int third=(rightWidth-8)/3;
         button(Component.translatable("invumusicplayer.player.seek_back"),right,seekY,third,()->player.seek(player.positionMillis()-10000));
         button(Component.translatable("invumusicplayer.player.stop"),right+third+4,seekY,third,player::suspend);
         button(Component.translatable("invumusicplayer.player.seek_forward"),right+2*(third+4),seekY,third,()->player.seek(player.positionMillis()+10000));
         int footer = top + panelHeight - 26;
-        likeButton=button(Component.translatable("invumusicplayer.player.like"), right, top+32, 44, ()->player.rate(true));
-        dislikeButton=button(Component.translatable("invumusicplayer.player.dislike"), right+48, top+32, 44, ()->player.rate(false));
-        button(Component.translatable("invumusicplayer.player.library"), right+96, top+32, Math.max(50,rightWidth-96), ()->minecraft.gui.setScreen(new LibraryScreen(this)));
+        likeButton=icon("invumusicplayer.player.like",right,top+32,24,PlayerMenuButton.Icon.LIKE,()->player.rate(true));
+        icon("invumusicplayer.player.shuffle",right+28,top+32,24,PlayerMenuButton.Icon.SHUFFLE,player::toggleShuffle);
+        dislikeButton=icon("invumusicplayer.player.dislike",right+56,top+32,24,PlayerMenuButton.Icon.DISLIKE,()->player.rate(false));
+        icon("invumusicplayer.player.library",right+84,top+32,Math.max(24,rightWidth-84),PlayerMenuButton.Icon.LIBRARY,()->minecraft.gui.setScreen(new LibraryScreen(this)));
         addRenderableWidget(new ValueSlider(right,top+panelHeight-78,rightWidth,"invumusicplayer.slider.volume",player.settings.volume*100,0,100,v->player.volume((float)v/100)));
         serviceStatus = button(Component.empty(), left + 110, top + 6, panelWidth - 120, () -> {});
         updateServiceStatus();
@@ -60,6 +62,7 @@ public final class PlayerScreen extends Screen {
         button(Component.translatable("invumusicplayer.player.hud"), left + 176, footer, 44, () -> minecraft.gui.setScreen(new HudEditor(this)));
         button(Component.translatable("invumusicplayer.player.done"), left + panelWidth - 74, footer, 64, this::onClose);
     }
+    private Button icon(String key,int x,int y,int w,PlayerMenuButton.Icon icon,Runnable action){var b=new PlayerMenuButton(x,y,w,Component.translatable(key),icon,false,v->action.run());b.setTooltip(Tooltip.create(Component.translatable(key)));return addRenderableWidget(b);}
     private Button button(Component text, int x, int y, int w, Runnable action) {
         return addRenderableWidget(new ModernButton(x,y,Math.max(20,w),20,text,b->action.run()));
     }
@@ -67,7 +70,7 @@ public final class PlayerScreen extends Screen {
         if (seen != player.items()) rebuildWidgets();
         updateServiceStatus();
         if(likeButton!=null){boolean enabled=player.current()!=null&&!player.current().youtube();likeButton.active=dislikeButton.active=enabled;
-            ((ModernButton)likeButton).selected(()->player.rating()==1);((ModernButton)dislikeButton).selected(()->player.rating()==-1);}
+}
         if (pause != null) pause.setMessage(Component.translatable(player.loading() ? "invumusicplayer.player.loading" : player.playing() ? "invumusicplayer.player.pause" : "invumusicplayer.player.play"));
     }
     private void updateServiceStatus() {
@@ -107,5 +110,5 @@ public final class PlayerScreen extends Screen {
     public long readyArtworkCount() { return artwork.values().stream().filter(CoverTexture::ready).count(); }
     @Override public void onClose(){minecraft.gui.setScreen(parent);}
     @Override public void removed(){artwork.values().forEach(CoverTexture::close);artwork.clear();player.saveSettings();super.removed();}
-    @Override public boolean isPauseScreen() { return false; }
+    @Override public boolean isPauseScreen() { return parent!=null&&parent.isPauseScreen(); }
 }
