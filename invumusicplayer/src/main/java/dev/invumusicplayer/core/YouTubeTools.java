@@ -160,5 +160,20 @@ public final class YouTubeTools {
             if (!p.waitFor(30,TimeUnit.SECONDS) || p.exitValue()!=0) { p.destroyForcibly(); throw new IOException("Helper did not start: " + binary); }
             System.out.println("Verified helper / Инструмент проверен: " + binary);
         }
+        Path tone = Path.of(args[0]).resolve("conversion-smoke.mp3").toAbsolutePath();
+        Process conversion = new ProcessBuilder(path.resolve("ffmpeg.exe").toString(), "-nostdin", "-y", "-f", "lavfi",
+            "-i", "sine=frequency=440:duration=0.3", "-c:a", "libmp3lame", "-b:a", "192k", tone.toString())
+            .redirectErrorStream(true).redirectOutput(ProcessBuilder.Redirect.DISCARD).start();
+        try {
+            if(!conversion.waitFor(30,TimeUnit.SECONDS) || conversion.exitValue()!=0) throw new IOException("FFmpeg MP3 conversion failed");
+            try(var raw=new BufferedInputStream(Files.newInputStream(tone)); var encoded=javax.sound.sampled.AudioSystem.getAudioInputStream(raw)) {
+                var source=encoded.getFormat(); var pcm=new javax.sound.sampled.AudioFormat(javax.sound.sampled.AudioFormat.Encoding.PCM_SIGNED,
+                    source.getSampleRate(),16,source.getChannels(),source.getChannels()*2,source.getSampleRate(),false);
+                try(var decoded=javax.sound.sampled.AudioSystem.getAudioInputStream(pcm,encoded)) {
+                    if(decoded.readNBytes(4096).length<4096)throw new IOException("Converted MP3 cannot be decoded");
+                }
+            }
+            System.out.println("FFmpeg MP3 encode and JavaSound decode verified / MP3-кодирование и декодирование проверены");
+        } finally { conversion.destroyForcibly(); Files.deleteIfExists(tone); }
     }
 }

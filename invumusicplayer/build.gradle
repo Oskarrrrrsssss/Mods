@@ -80,6 +80,7 @@ tasks.register('runProductionClientGameTest', net.fabricmc.loom.task.prod.Client
     mods.from(tasks.named('gametestJar'))
     jvmArgs.add('-Dfabric.client.gametest')
     jvmArgs.add('-Dfabric.client.gametest.modid=invumusicplayer-gametest')
+    jvmArgs.add('-Dinvu.referenceCover=' + file('build/reference-cover.jpg').absolutePath)
     runDir = file('build/run/clientGameTest')
     useXVFB = false
 }

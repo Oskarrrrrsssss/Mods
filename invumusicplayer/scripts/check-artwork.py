@@ -2,7 +2,7 @@
 from pathlib import Path
 import json,urllib.request,urllib.error
 root=Path(__file__).resolve().parents[1]
-dest=root/'build/run/clientGameTest';dest.mkdir(parents=True,exist_ok=True)
+dest=root/'build';dest.mkdir(parents=True,exist_ok=True)
 base='https://avatars.yandex.net/get-music-content/95061/89c14a7d.a.5239478-1/'
 results={}
 for size in ['200x200','256x256']:

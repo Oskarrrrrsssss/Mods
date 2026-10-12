@@ -47,13 +47,16 @@ public final class SmokePlayerFactory {
 
     public static Player create(Path directory) throws IOException {
         // A fresh subdirectory avoids stale settings/credentials when the client test is rerun locally.
-        Path referenceCover = directory.resolve("reference-cover.jpg");
+        Path referenceCover = Path.of(System.getProperty("invu.referenceCover", directory.resolve("reference-cover.jpg").toString()));
         directory = Files.createTempDirectory(directory, "invumusicplayer-smoke-fixture-");
         Path music = directory.resolve("music");
         Files.createDirectories(music);
         writeTrack(music, "First", 0x82e39b);
         writeTrack(music, "Second", 0x8bc8ef);
-        if (Files.isRegularFile(referenceCover)) Files.copy(referenceCover, music.resolve("InvuMusicPlayer Smoke - First.png"), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+        if (Files.isRegularFile(referenceCover)) {
+            Files.copy(referenceCover, music.resolve("InvuMusicPlayer Smoke - First.png"), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+            System.out.println("Yandex CDN JPEG fixture used / Использована JPEG-обложка CDN Яндекса");
+        }
         return new Player(directory, null, new SilentPlayback());
     }
 

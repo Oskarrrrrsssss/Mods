@@ -10,7 +10,7 @@ The installation ZIP prefixes this report with the particular CI run, test count
 - FFT tests use synthetic low/high tones, stereo audio, reduced volume and decay in silence.
 - The actual Minecraft client on Linux verifies Russian/English screens, JPEG/PNG/WebP textures, two ready track thumbnails, settings, HUD and leaving a world. The audio device is replaced by a test fixture; this does not verify audible playback on Windows.
 - CI attempts to download a public Yandex CDN artwork without credentials. If available, the client test uses it, and the installation report states the result. An unavailable CDN is not represented as a successful network check.
-- Windows CI prepares real yt-dlp, Deno, FFmpeg/ffprobe, verifies downloads and runs each binary. This does not verify playback of a particular YouTube video.
+- Windows CI prepares real yt-dlp, Deno, FFmpeg/ffprobe, verifies downloads, runs each binary and converts a synthetic tone to MP3 for JavaSound decoding. This does not verify playback of a particular YouTube video.
 - Windows DPAPI token persistence is checked on Windows and skipped on Linux.
 
 No actual OAuth token is used in automated tests. Changed integration with a real Yandex account and playback of particular YouTube videos are not confirmed by these tests.

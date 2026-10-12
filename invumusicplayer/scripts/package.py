@@ -17,7 +17,7 @@ for file,en in [('VALIDATION.md',False),('VALIDATION.en.md',True)]:
  prefix=(f'# invumusicplayer 0.2.1: verified build\n\nCI: [{run}]({url}) · {os_name}\n\nTests: **{tests-skipped} passed, {failures} failed, {skipped} skipped**.\n\n' if en else f'# invumusicplayer 0.2.1: проверенная сборка\n\nCI: [{run}]({url}) · {os_name}\n\nТесты: **{tests-skipped} прошли, {failures} ошибок, {skipped} пропусков**.\n\n')
  if os_name=='Linux':prefix+=(f'Actual Minecraft client RU/EN verification completed; {screens} screenshots. Synthetic audio and WebP decoder checks only; no real Yandex account or physical sound device.\n\n' if en else f'Проверка настоящего Minecraft-клиента RU/EN завершена; {screens} скриншотов. Синтетическое аудио и проверка WebP; без настоящего аккаунта Яндекса и физического аудиоустройства.\n\n')
  else:prefix+=('The graphical Minecraft test runs in the Linux job of this workflow.\n\n' if en else 'Графический тест Minecraft выполняется в Linux-задаче этого же запуска CI.\n\n')
- if os_name=='Windows':prefix+=('Portable yt-dlp, Deno, FFmpeg and ffprobe binaries were downloaded, verified and started; no video was accessed.\n\n' if en else 'Портативные yt-dlp, Deno, FFmpeg и ffprobe скачаны, проверены и запущены; видео не загружалось.\n\n')
+ if os_name=='Windows':prefix+=('Portable yt-dlp, Deno, FFmpeg and ffprobe binaries were downloaded, verified and started; MP3 conversion and decoding were checked. No video was accessed.\n\n' if en else 'Портативные yt-dlp, Deno, FFmpeg и ffprobe скачаны, проверены и запущены; MP3-преобразование и декодирование проверены. Видео не загружалось.\n\n')
  probe=root/'build/artwork-probe.json'
  if probe.exists():
   data=json.loads(probe.read_text())
