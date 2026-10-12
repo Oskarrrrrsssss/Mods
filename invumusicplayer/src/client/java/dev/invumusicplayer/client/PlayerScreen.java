@@ -24,7 +24,7 @@ public final class PlayerScreen extends Screen {
         left = (width - panelWidth) / 2; top = (height - panelHeight) / 2;
         listWidth = (panelWidth - 32) / 2; rows = Math.max(1, (panelHeight - 138) / 24);
         button(Component.translatable("invumusicplayer.player.local"), left + 10, top + 32, (listWidth - 4) / 2, () -> { page = 0; player.refreshLocal(); });
-        button(Component.translatable("invumusicplayer.player.wave"), left + 14 + (listWidth - 4) / 2, top + 32, (listWidth - 4) / 2-24, () -> { if (player.connected()) player.startWave(); else minecraft.gui.setScreen(new AccountScreen(this)); });
+        button(Component.translatable("invumusicplayer.player.wave"), left + 14 + (listWidth - 4) / 2, top + 32, (listWidth - 4) / 2-24, () -> { if (player.connected()) player.showWave(); else minecraft.gui.setScreen(new AccountScreen(this)); });
         icon("invumusicplayer.wave.settings",left+listWidth-10,top+32,20,PlayerMenuButton.Icon.WAVE,()->minecraft.gui.setScreen(new WaveSettingsScreen(this)));
         search = new EditBox(font, left + 10, top + 58, listWidth - 44, 20, Component.translatable("invumusicplayer.player.search_hint"));
         search.setBordered(false);search.setHint(Component.translatable("invumusicplayer.player.search_hint"));search.setMaxLength(256); search.setValue(query); search.setResponder(value -> query = value); addRenderableWidget(search);
@@ -38,14 +38,14 @@ public final class PlayerScreen extends Screen {
             entry.setTooltip(Tooltip.create(Component.literal(t.display())));
             button(Component.literal("+"),left+listWidth-10,top+84+row*24,20,()->player.enqueue(t));
         }
-        int bottom = top + panelHeight - 54;
-        button(Component.literal("<"), left + 10, bottom, 24, () -> { page--; rebuildWidgets(); });
-        button(Component.literal(">"), left + listWidth - 14, bottom, 24, () -> { page++; rebuildWidgets(); });
+        int bottom = top + panelHeight - 86;
+        button(Component.literal("<"), left + 10, top+panelHeight-54, 24, () -> { page--; rebuildWidgets(); });
+        button(Component.literal(">"), left + listWidth - 14, top+panelHeight-54, 24, () -> { page++; rebuildWidgets(); });
         int right = left + listWidth + 22, rightWidth = panelWidth - listWidth - 32;
         icon("invumusicplayer.menu.previous",right,bottom-4,36,PlayerMenuButton.Icon.PREVIOUS,player::previous);
         pause=icon("invumusicplayer.player.pause",right+40,bottom-4,rightWidth-80,PlayerMenuButton.Icon.PAUSE,player::togglePause);
         icon("invumusicplayer.menu.next",right+rightWidth-36,bottom-4,36,PlayerMenuButton.Icon.NEXT,player::next);
-        int seekY=top+panelHeight-100;int third=(rightWidth-8)/3;
+        int seekY=top+panelHeight-116;int third=(rightWidth-8)/3;
         button(Component.translatable("invumusicplayer.player.seek_back"),right,seekY,third,()->player.seek(player.positionMillis()-10000));
         button(Component.translatable("invumusicplayer.player.stop"),right+third+4,seekY,third,player::suspend);
         button(Component.translatable("invumusicplayer.player.seek_forward"),right+2*(third+4),seekY,third,()->player.seek(player.positionMillis()+10000));
@@ -54,7 +54,7 @@ public final class PlayerScreen extends Screen {
         icon("invumusicplayer.player.shuffle",right+28,top+32,24,PlayerMenuButton.Icon.SHUFFLE,player::toggleShuffle);
         dislikeButton=icon("invumusicplayer.player.dislike",right+56,top+32,24,PlayerMenuButton.Icon.DISLIKE,()->player.rate(false));
         icon("invumusicplayer.player.library",right+84,top+32,Math.max(24,rightWidth-84),PlayerMenuButton.Icon.LIBRARY,()->minecraft.gui.setScreen(new LibraryScreen(this)));
-        addRenderableWidget(new ValueSlider(right,top+panelHeight-78,rightWidth,"invumusicplayer.slider.volume",player.settings.volume*100,0,100,v->player.volume((float)v/100)));
+        addRenderableWidget(new ValueSlider(right,top+panelHeight-56,rightWidth,"invumusicplayer.slider.volume",player.settings.volume*100,0,100,v->player.volume((float)v/100)));
         serviceStatus = button(Component.empty(), left + 110, top + 6, panelWidth - 120, () -> {});
         updateServiceStatus();
         button(Component.translatable("invumusicplayer.player.account"), left + 10, footer, 74, () -> minecraft.gui.setScreen(new AccountScreen(this)));
@@ -64,10 +64,10 @@ public final class PlayerScreen extends Screen {
     }
     private Button icon(String key,int x,int y,int w,PlayerMenuButton.Icon icon,Runnable action){var b=new PlayerMenuButton(x,y,w,Component.translatable(key),icon,false,v->action.run());b.setTooltip(Tooltip.create(Component.translatable(key)));return addRenderableWidget(b);}
     private Button button(Component text, int x, int y, int w, Runnable action) {
-        return addRenderableWidget(new ModernButton(x,y,Math.max(20,w),20,text,b->action.run()));
+        var b=new ModernButton(x,y,Math.max(20,w),20,text,v->action.run());if(text.equals(Component.translatable("invumusicplayer.player.local")))b.selected(()->player.listingSection().equals("local"));if(text.equals(Component.translatable("invumusicplayer.player.wave")))b.selected(()->player.listingSection().equals("wave"));return addRenderableWidget(b);
     }
     @Override public void tick() {
-        if (seen != player.items()) rebuildWidgets();
+        if (seen != player.items()){page=0;rebuildWidgets();}
         updateServiceStatus();
         if(likeButton!=null){boolean enabled=player.current()!=null&&!player.current().youtube();likeButton.active=dislikeButton.active=enabled;
 }
@@ -93,10 +93,10 @@ public final class PlayerScreen extends Screen {
         Track track = player.current();
         g.text(font, font.plainSubstrByWidth(track == null ? UiText.text("invumusicplayer.player.choose_track") : track.title(), rightWidth), right, y, PlayerHud.TEXT, false);
         g.text(font, font.plainSubstrByWidth(track == null ? UiText.text("invumusicplayer.player.tagline") : track.artist(), rightWidth), right, y + 14, PlayerHud.MUTED, false);
-        if(player.settings.visualizer)visualizer.draw(g,player.spectrum(),right,y+31,rightWidth,20,player.settings.accent);
+        if(player.settings.visualizer)visualizer.draw(g,player.spectrum(),right,y+29,rightWidth,Math.max(4,Math.min(20,top+panelHeight-120-y-29)),player.settings.accent);
         else {
-        g.text(font, PlayerHud.time(player.positionMillis()) + " / " + PlayerHud.time(player.durationMillis()), right, y + 32, PlayerHud.MUTED, false);
-        int barY = y + 47; g.fill(right, barY, right + rightWidth, barY + 3, 0xff35463b);
+        g.text(font, PlayerHud.time(player.positionMillis()) + " / " + PlayerHud.time(player.durationMillis()), right, y + 26, PlayerHud.MUTED, false);
+        int barY = y + 36; g.fill(right, barY, right + rightWidth, barY + 3, 0xff35463b);
         if (player.durationMillis() > 0) g.fill(right, barY, right + (int) (rightWidth * Math.min(1, (double) player.positionMillis() / player.durationMillis())), barY + 3, 0xff000000 | player.settings.accent);
         }
         if (seen.isEmpty()) g.text(font, font.plainSubstrByWidth(UiText.text("invumusicplayer.player.empty_library"), listWidth - 4), left + 12, top + 88, PlayerHud.MUTED, false);

@@ -215,9 +215,6 @@
   "invumusicplayer.settings.shuffle": "Перемешивание: %s",
   "invumusicplayer.settings.cover_colors": "Цвета обложки: %s",
   "invumusicplayer.wave.settings": "Настройки Моей волны",
-  "invumusicplayer.library.mood_filter": "Настроение: %s",
-  "invumusicplayer.library.assign_mood": "Назначить настроение",
-  "invumusicplayer.library.untagged": "Без метки",
   "invumusicplayer.library.delete": "Удалить плейлист",
   "invumusicplayer.library.confirm_delete": "Удалить",
   "invumusicplayer.library.cancel": "Отмена",
@@ -226,5 +223,9 @@
   "invumusicplayer.error.playlist_owner": "Удалять можно только свои плейлисты Яндекса.",
   "invumusicplayer.error.playlist_delete": "Яндекс не подтвердил удаление плейлиста.",
   "invumusicplayer.status.playlist_deleted": "Плейлист удалён: %s",
-  "key.invumusicplayer.shuffle": "Перемешивание"
+  "key.invumusicplayer.shuffle": "Перемешивание",
+  "invumusicplayer.menu.position": "Положение в меню",
+  "invumusicplayer.menu.reset": "Сброс позиции",
+  "invumusicplayer.menu.drag_hint": "Перетащи карточку. Размер и положение сохраняются.",
+  "invumusicplayer.library.play_all": "Играть понравившиеся"
 }

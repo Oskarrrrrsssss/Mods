@@ -62,9 +62,9 @@ public final class Player implements AutoCloseable {
     private volatile String token = "";
     private volatile List<Track> items = List.of();
     private List<Track> queue = List.of(), originalQueue = List.of();
-    private final Map<String,String> moods = new ConcurrentHashMap<>();
     private volatile List<Track> likedCache = List.of();
-    private volatile String likedMood = "all";
+    private volatile String listingSection="local";
+    public String listingSection(){return listingSection;}
     private volatile boolean showingLiked;
     private int queueIndex = -1;
     private volatile Track current;
@@ -92,7 +92,7 @@ public final class Player implements AutoCloseable {
         session = new SessionStore(gameDir.resolve("config/invumusicplayer-session.json"));
         SessionStore.State savedState = session.load();
         queue = savedState.queue(); queueIndex = savedState.index(); wave = savedState.wave();
-        originalQueue = savedState.originalQueue().isEmpty()?queue:savedState.originalQueue();moods.putAll(savedState.moods());
+        originalQueue = savedState.originalQueue().isEmpty()?queue:savedState.originalQueue();
         items = queue; upNext.addAll(savedState.pending()); ratings.putAll(savedState.ratings()); savedLists.putAll(savedState.playlists());
         current = savedState.current();
         if (current == null && queueIndex >= 0 && queueIndex < queue.size()) current = queue.get(queueIndex);
@@ -174,7 +174,7 @@ public final class Player implements AutoCloseable {
         submitStorage(() -> { try { settings.save(configPath); } catch (IOException e) { error = Messages.text("invumusicplayer.error.settings_save"); } });
     }
     public synchronized void refreshLocal() {
-        if (closed) return;showingLiked=false;
+        if (closed) return;showingLiked=false;listingSection="local";
         long request = ++listSerial; cancel(listJob);
         listJob = workers.submit(() -> {
             try {
@@ -188,7 +188,7 @@ public final class Player implements AutoCloseable {
     }
     public synchronized void search(String query) {
         if (closed || query == null || query.isBlank()) return;
-        showingLiked=false;
+        showingLiked=false;listingSection="search";
         long request = ++listSerial; cancel(listJob);
         status = Messages.text("invumusicplayer.status.searching");
         listJob = workers.submit(() -> {
@@ -262,7 +262,7 @@ public final class Player implements AutoCloseable {
             history.push(current); while (history.size() > 100) history.removeLast();
         }
         long request = invalidateLocked();
-        current = track; cover = covers.getOrDefault(track.id(), EMPTY_IMAGE); currentAudio = null; currentStarted = false;
+        current = track; publishWaveList();cover = covers.getOrDefault(track.id(), EMPTY_IMAGE); currentAudio = null; currentStarted = false;
         coverStatus = Messages.EMPTY;
         persist();
         listenedMillis = 0;
@@ -339,7 +339,7 @@ public final class Player implements AutoCloseable {
         try (InputStream in = Files.newInputStream(path)) { return YandexMusic.bounded(in, 8_000_000); }
     }
     public synchronized void startWave() {
-        if (closed) return;showingLiked=false;
+        if (closed) return;showingLiked=false;listingSection="wave";
         long request = invalidateLocked(); wave = true; ++waveSerial;
         long listRequest = ++listSerial; cancel(listJob);
         waveListSerial = listRequest;
@@ -458,11 +458,11 @@ public final class Player implements AutoCloseable {
     public void volume(float value) { settings.volume = Float.isFinite(value) ? Math.max(0, Math.min(1, value)) : settings.volume; audio.volume(settings.volume); }
     public synchronized void suspend() { invalidateLocked(); loading = false; currentStarted = false; persist(); }
     private synchronized void persist() {
-        SessionStore.State snapshot = new SessionStore.State(queue, queueIndex, wave, List.copyOf(upNext), Map.copyOf(ratings), Map.copyOf(savedLists), current,originalQueue,Map.copyOf(moods));
+        SessionStore.State snapshot = new SessionStore.State(queue, queueIndex, wave, List.copyOf(upNext), Map.copyOf(ratings), Map.copyOf(savedLists), current,originalQueue,Map.of());
         submitStorage(() -> { try { session.save(snapshot); } catch (IOException e) { error = Messages.text("invumusicplayer.error.session_save"); } });
     }
     public synchronized void toggleShuffle() {
-        if(closed)return;settings.shuffle=!settings.shuffle;reorderUpcoming(settings.shuffle);saveSettings();persist();
+        if(closed)return;settings.shuffle=!settings.shuffle;reorderUpcoming(settings.shuffle);publishWaveList();saveSettings();persist();
     }
     private void reorderUpcoming(boolean shuffled) {
         int start=Math.max(0,queueIndex+1);if(start>=queue.size())return;
@@ -494,28 +494,34 @@ public final class Player implements AutoCloseable {
             }catch(Exception e){fail(e);}
         }); }catch(RejectedExecutionException ignored){}
     }
-    public void showLiked() { showingLiked=true;browse(()->{
-        List<Track> result=new ArrayList<>();if(connected())for(Track t:remote.liked()){result.add(t);ratings.put(trackKey(t),1);}
-        for(Track t:local.scan())if(ratings.getOrDefault(trackKey(t),0)==1)result.add(t);
-        likedCache=List.copyOf(result);persist();return filterLiked();
-    });showingLiked=true; }
-    private List<Track> filterLiked(){return likedCache.stream().filter(t->ratings.getOrDefault(trackKey(t),0)==1)
-        .filter(t->likedMood.equals("all")||trackMood(t).equals(likedMood)).toList();}
-    public String likedMood(){return likedMood;}
-    public synchronized void filterLikedMood(String mood){if(!validMood(mood))return;likedMood=mood;if(showingLiked)items=filterLiked();}
-    private static boolean validMood(String mood){return Set.of("all","fun","sad","calm","active").contains(mood);}
-    public String trackMood(Track track){return moods.getOrDefault(trackKey(track),"all");}
-    public synchronized void setTrackMood(Track track,String mood){if(closed||!validMood(mood))return;if(mood.equals("all"))moods.remove(trackKey(track));else moods.put(trackKey(track),mood);persist();if(showingLiked)items=filterLiked();}
+    public synchronized void showLiked() {
+        if(closed)return;showingLiked=true;listingSection="liked";
+        long request=++listSerial;cancel(listJob);
+        listJob=workers.submit(()->{try{
+            List<Track> remoteTracks=connected()?remote.liked():List.of();List<Track> localTracks=local.scan();
+            synchronized(this){if(!validList(request))return;
+                for(Track t:remoteTracks)ratings.put(trackKey(t),1);
+                List<Track> found=new ArrayList<>(remoteTracks);for(Track t:localTracks)if(ratings.getOrDefault(trackKey(t),0)==1)found.add(t);
+                likedCache=List.copyOf(found);items=filterLiked();persist();
+            }
+        }catch(Exception e){synchronized(this){if(validList(request))fail(e);}}});
+    }
+    private List<Track> filterLiked(){return likedCache.stream().filter(t->ratings.getOrDefault(trackKey(t),0)==1).toList();}
+    private void publishWaveList(){
+        if(!wave||waveListSerial!=listSerial||current==null)return;
+        List<Track> visible=new ArrayList<>();visible.add(current);visible.addAll(queue());items=List.copyOf(visible);
+    }
+    public synchronized void showWave(){if(closed)return;if(!wave){startWave();return;}showingLiked=false;listingSection="wave";waveListSerial=++listSerial;cancel(listJob);publishWaveList();}
     @FunctionalInterface private interface Listing { List<Track> get() throws Exception; }
     private synchronized void browse(Listing list) {
-        showingLiked=false;
+        showingLiked=false;listingSection="tracks";
         long request = ++listSerial; cancel(listJob); listJob = workers.submit(() -> { try { List<Track> found = List.copyOf(list.get()); synchronized(this) { if (validList(request)) items = found; } } catch (Exception e) { if (validList(request)) fail(e); } });
     }
     public List<YandexMusic.Playlist> playlists() { return playlists; }
     public void loadPlaylists() { if(closed)return;if(!connected()){playlists=List.of();return;}workers.submit(() -> { try { playlists = remote.playlists(); } catch (Exception e) { fail(e); } }); }
     public void openPlaylist(String owner, String kind) { browse(() -> remote.playlist(owner, kind)); }
     public synchronized void importLink(String link) {
-        if (closed) return;showingLiked=false;
+        if (closed) return;showingLiked=false;listingSection="tracks";
         long request = ++listSerial; cancel(listJob);
         status = Messages.text("invumusicplayer.youtube.importing"); error = Messages.EMPTY;
         listJob = workers.submit(() -> {

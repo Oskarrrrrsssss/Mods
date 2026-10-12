@@ -53,6 +53,7 @@ public final class SmokePlayerFactory {
         Files.createDirectories(music);
         writeTrack(music, "First", 0x82e39b);
         writeTrack(music, "Second", 0x8bc8ef);
+        writeTrack(music, "Third", 0xefbd8b);
         if (Files.isRegularFile(referenceCover)) {
             Files.copy(referenceCover, music.resolve("InvuMusicPlayer Smoke - First.png"), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
             System.out.println("Yandex CDN JPEG fixture used / Использована JPEG-обложка CDN Яндекса");

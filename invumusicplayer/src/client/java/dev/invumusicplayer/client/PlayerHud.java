@@ -23,25 +23,27 @@ public final class PlayerHud {
         int x = Math.max(0, Math.min(s.hudX, (int) (g.guiWidth() / s.hudScale) - width));
         int y = Math.max(0, Math.min(s.hudY, (int) (g.guiHeight() / s.hudScale) - height));
         g.pose().pushMatrix(); g.pose().scale(s.hudScale);
-        int bg = ((int) (s.opacity * 255) << 24) | s.background;
+        int accent=PlayerMenuButton.themeAccent();
+        int bg = ((int) (s.opacity * 255) << 24) | PlayerMenuButton.themeColor();
         g.fill(x, y, x + width, y + height, bg);
-        g.fill(x, y, x + 2, y + height, 0xff000000 | s.accent);
+        g.fill(x, y, x + 2, y + height, 0xff000000 | accent);
         int tx = x + 10;
-        if (showCover) { InvuMusicPlayerClient.cover.draw(g, x + 8, y + 7, 38, s.accent); tx = x + 54; }
+        if (showCover) { InvuMusicPlayerClient.cover.draw(g, x + 8, y + 7, 38, accent); tx = x + 54; }
         var font = Minecraft.getInstance().font;
         g.text(font, font.plainSubstrByWidth(track.title(), width - (tx - x) - 8), tx, y + 8, 0xff000000|s.textColor, false);
         g.text(font, font.plainSubstrByWidth(track.artist().isBlank() ? UiText.text("invumusicplayer.hud.local_music") : track.artist(), width - (tx - x) - 8), tx, y + 20, 0xb0000000|s.textColor, false);
         if(s.visualizer){
-            visualizer.draw(g,player.spectrum(),tx,y+31,width-(tx-x)-8,18,s.accent);
+            visualizer.draw(g,player.spectrum(),tx,y+31,width-(tx-x)-8,18,accent);
         }else{
         String clock = (player.loading() ? UiText.text("invumusicplayer.hud.loading") : player.playing() ? "> " : "|| ") + time(player.positionMillis()) + " / " + time(player.durationMillis());
         g.text(font, clock, tx, y + 33, 0xb0000000|s.textColor, false);
         int bar = width - (tx - x) - 8; g.fill(tx, y + 46, tx + bar, y + 48, 0xff324036);
         long duration = player.durationMillis();
-        if (duration > 0) g.fill(tx, y + 46, tx + (int) (bar * Math.min(1, (double) player.positionMillis() / duration)), y + 48, 0xff000000 | s.accent);
+        if (duration > 0) g.fill(tx, y + 46, tx + (int) (bar * Math.min(1, (double) player.positionMillis() / duration)), y + 48, 0xff000000 | accent);
         }
         g.pose().popMatrix();
     }
+    static int backgroundColor(){return PlayerMenuButton.themeColor();}
     public static String time(long millis) {
         if (millis <= 0) return "0:00";
         long seconds = millis / 1000; return seconds / 60 + ":" + String.format("%02d", seconds % 60);

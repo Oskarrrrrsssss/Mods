@@ -43,7 +43,7 @@ public final class InvuMusicPlayerClientSmokeTest implements FabricClientGameTes
             checkTranslation(context, "invumusicplayer.player.account", "Account");
             checkTranslation(context, "invumusicplayer.player.wave", "My Wave");
             checkTranslation(context, "invumusicplayer.player.settings", "Settings");
-            context.waitFor(client -> fixture.items().size() == 2);
+            context.waitFor(client -> fixture.items().size() == 3);
             context.runOnClient(client -> {
                 fixture.settings.covers = true;
                 fixture.choose(fixture.items(), 0);
@@ -65,7 +65,7 @@ public final class InvuMusicPlayerClientSmokeTest implements FabricClientGameTes
             context.clickScreenButton("invumusicplayer.wave.settings");context.waitForScreen(WaveSettingsScreen.class);
             context.clickScreenButton("invumusicplayer.mood.sad");check(fixture.settings.waveMood.equals("sad"),"Direct wave mood setting failed");
             context.takeScreenshot("invu-en-wave-settings");context.clickScreenButton("invumusicplayer.settings.back");
-            context.clickScreenButton("invumusicplayer.menu.open");context.waitForScreen(PlayerScreen.class);
+                    context.clickScreenButton("invumusicplayer.menu.open");context.waitForScreen(PlayerScreen.class);
             context.clickScreenButton("invumusicplayer.player.settings");context.waitForScreen(SettingsScreen.class);
             context.takeScreenshot("invu-en-settings-without-world");context.clickScreenButton("invumusicplayer.settings.back");
             context.clickScreenButton("invumusicplayer.player.done");context.waitForScreen(net.minecraft.client.gui.screens.TitleScreen.class);
@@ -75,21 +75,22 @@ public final class InvuMusicPlayerClientSmokeTest implements FabricClientGameTes
                 context.takeScreenshot("invumusicplayer-en-world-hud-and-equalizer");
                 checkPauseAndHiddenHud(context,fixture);
                 openPlayerWithHotkey(context);
-                context.waitFor(client -> InvuMusicPlayerClient.cover.ready() && ((PlayerScreen)client.gui.screen()).readyArtworkCount() == 2);
+                context.waitFor(client -> InvuMusicPlayerClient.cover.ready() && ((PlayerScreen)client.gui.screen()).readyArtworkCount() == 3);
                 context.takeScreenshot("invumusicplayer-en-player-with-cover");
                 context.clickScreenButton("invumusicplayer.player.library");context.waitForScreen(LibraryScreen.class);
-                context.waitFor(client->((LibraryScreen)client.gui.screen()).readyArtworkCount()==1);
+                context.waitFor(client->((LibraryScreen)client.gui.screen()).readyArtworkCount()==2);
                 context.takeScreenshot("invu-en-queue-library");
-                context.runOnClient(client->{fixture.rate(true);fixture.filterLikedMood("all");});context.waitFor(client->fixture.rating()==1);
-                context.clickScreenButton("invumusicplayer.library.liked");context.waitFor(client->fixture.items().size()==1&&((LibraryScreen)client.gui.screen()).readyArtworkCount()==1);
-                context.clickScreenButton("invumusicplayer.library.assign_mood");context.waitForScreen(TrackMoodScreen.class);
-                context.clickScreenButton("invumusicplayer.mood.sad");context.waitForScreen(LibraryScreen.class);
-                check(fixture.trackMood(fixture.current()).equals("sad"),"Personal mood UI did not assign its tag");
-                String any=context.computeOnClient(client->Component.translatable("invumusicplayer.library.mood_filter",Component.translatable("invumusicplayer.mood.all")).getString());
-                context.clickScreenButton(any);context.waitFor(client->fixture.items().isEmpty());
-                String happy=context.computeOnClient(client->Component.translatable("invumusicplayer.library.mood_filter",Component.translatable("invumusicplayer.mood.fun")).getString());
-                context.clickScreenButton(happy);context.waitFor(client->fixture.items().size()==1&&((LibraryScreen)client.gui.screen()).readyArtworkCount()==1);
-                context.takeScreenshot("invu-en-liked-sad-filter");
+                var all=context.computeOnClient(client->fixture.items());
+                for(int index=0;index<all.size();index++){int item=index;context.runOnClient(client->fixture.choose(all,item));context.waitFor(client->fixture.playing()&&!fixture.loading());context.runOnClient(client->fixture.rate(true));context.waitFor(client->fixture.rating()==1);}
+                context.runOnClient(client->fixture.choose(all,0));context.waitFor(client->fixture.playing()&&!fixture.loading());
+                context.clickScreenButton("invumusicplayer.library.liked");context.waitFor(client->fixture.items().size()==3&&((LibraryScreen)client.gui.screen()).readyArtworkCount()==2);
+                check(context.computeOnClient(client->((LibraryScreen)client.gui.screen()).pageCount())==2,"Liked tracks do not have two pages");
+                checkSelected(context,"invumusicplayer.library.liked");
+                context.clickScreenButton("invumusicplayer.library.next");context.waitFor(client->((LibraryScreen)client.gui.screen()).page()==1&&((LibraryScreen)client.gui.screen()).readyArtworkCount()==1);
+                context.takeScreenshot("invu-en-liked-second-page");context.clickScreenButton("invumusicplayer.library.prev");
+                check(context.computeOnClient(client->((LibraryScreen)client.gui.screen()).page())==0,"Liked previous-page control failed");
+                context.clickScreenButton("invumusicplayer.library.play_all");context.waitFor(client->fixture.playing()&&fixture.current().title().equals("First"));
+                check(fixture.queue().size()==2,"Play all liked did not use the entire liked list");
                 context.runOnClient(client->fixture.savePlaylist("Smoke playlist"));context.clickScreenButton("invumusicplayer.library.playlists");
                 context.clickScreenButton("invumusicplayer.library.delete");context.waitForScreen(DeletePlaylistScreen.class);
                 context.takeScreenshot("invu-en-delete-local-playlist");context.clickScreenButton("invumusicplayer.library.cancel");context.waitForScreen(LibraryScreen.class);
@@ -200,7 +201,11 @@ public final class InvuMusicPlayerClientSmokeTest implements FabricClientGameTes
         context.runOnClient(client -> {
             var widgets=Screens.getWidgets(client.gui.screen());
             long open=widgets.stream().filter(w->w.getMessage().getString().equals(Component.translatable("invumusicplayer.menu.open").getString())).count();
-            check(open==1,"Pause menu did not add exactly one player entry");
+            check(open==1,"Pause menu did not add one icon opening the full player");
+            check(widgets.stream().filter(PlayerMenuButton.class::isInstance).allMatch(w->w.getHeight()<=10),"Menu controls are not scaled to 50 percent");
+            var volume=widgets.stream().filter(ValueSlider.class::isInstance).map(ValueSlider.class::cast).findFirst().orElseThrow(()->new AssertionError("Menu volume slider missing"));
+            for(var control:widgets)if(control instanceof PlayerMenuButton)check(volume.getY()-(control.getY()+control.getHeight())>=7,"Menu volume is too close to clickable controls");
+            check(PlayerHud.backgroundColor()==InvuMusicPlayerClient.cover.paletteColor(),"Gameplay HUD does not follow album color");
             for(var playerControl:widgets)if(playerControl instanceof PlayerMenuButton)for(var vanilla:widgets)if(!(vanilla instanceof PlayerMenuButton)) {
                 boolean overlap=playerControl.getX()<vanilla.getX()+vanilla.getWidth()&&playerControl.getX()+playerControl.getWidth()>vanilla.getX()
                     &&playerControl.getY()<vanilla.getY()+vanilla.getHeight()&&playerControl.getY()+playerControl.getHeight()>vanilla.getY();
@@ -216,6 +221,12 @@ public final class InvuMusicPlayerClientSmokeTest implements FabricClientGameTes
         context.clickScreenButton("invumusicplayer.player.dislike");context.waitFor(client->fixture.rating()==0);
         context.clickScreenButton("invumusicplayer.player.shuffle");check(fixture.settings.shuffle,"Shuffle menu control failed");
         context.clickScreenButton("invumusicplayer.player.shuffle");check(!fixture.settings.shuffle,"Shuffle menu control did not toggle off");
+        context.runOnClient(client->{
+            var slider=Screens.getWidgets(client.gui.screen()).stream().filter(ValueSlider.class::isInstance).map(ValueSlider.class::cast).findFirst().orElseThrow();
+            var click=new net.minecraft.client.input.MouseButtonEvent(slider.getX()+4+(slider.getWidth()-8)*.25,slider.getY()+slider.getHeight()/2.0,new net.minecraft.client.input.MouseButtonInfo(0,0));
+            check(slider.mouseClicked(click,false),"Menu volume slider did not receive click");slider.mouseReleased(click);
+            check(Math.abs(fixture.settings.volume-.25f)<.02,"Menu volume slider did not change playback volume");
+        });
         context.takeScreenshot("invu-en-escape-player");
         context.clickScreenButton("invumusicplayer.player.pause");context.waitFor(client->!fixture.playing());
         context.waitForScreen(PauseScreen.class);context.clickScreenButton("invumusicplayer.player.play");context.waitFor(client->fixture.playing());
@@ -223,7 +234,22 @@ public final class InvuMusicPlayerClientSmokeTest implements FabricClientGameTes
         context.clickScreenButton("invumusicplayer.menu.previous");context.waitFor(client->fixture.current().title().equals("First")&&fixture.playing());
         context.clickScreenButton("invumusicplayer.menu.settings");context.waitForScreen(SettingsScreen.class);
         check(context.computeOnClient(client->client.gui.screen().isPauseScreen()),"Settings opened from Escape resumed the singleplayer world");
+        checkSelected(context,"invumusicplayer.tabs.audio");
+        check(context.computeOnClient(client->client.gui.screen().children().stream().noneMatch(ValueSlider.class::isInstance)),"Settings still contain volume");
+        context.clickScreenButton("invumusicplayer.tabs.appearance");checkSelected(context,"invumusicplayer.tabs.appearance");
+        context.clickScreenButton("invumusicplayer.tabs.audio");
         context.takeScreenshot("invu-en-escape-settings");context.clickScreenButton("invumusicplayer.settings.back");context.waitForScreen(PauseScreen.class);
+        context.clickScreenButton("invumusicplayer.menu.position");context.waitForScreen(MenuEditor.class);
+        context.runOnClient(client->{var screen=client.gui.screen();var l=MenuPlayerPanel.layout(screen.width,screen.height,false);
+            var click=new net.minecraft.client.input.MouseButtonEvent(l.x()+l.width()/2.0,l.y()+l.height()/2.0,new net.minecraft.client.input.MouseButtonInfo(0,0));
+            check(screen.mouseClicked(click,false),"Menu editor card did not accept dragging");var drag=new net.minecraft.client.input.MouseButtonEvent(click.x()+20,click.y()+15,new net.minecraft.client.input.MouseButtonInfo(0,0));screen.mouseDragged(drag,20,15);screen.mouseReleased(drag);
+            check(fixture.settings.menuPositioned&&fixture.settings.menuX>0&&fixture.settings.menuY>0,"Menu card dragging did not change coordinates");});
+        context.clickScreenButton("invumusicplayer.hud_editor.bottom_right");check(fixture.settings.menuPositioned&&fixture.settings.menuX==1&&fixture.settings.menuY==1,"Menu position did not change");
+        context.clickScreenButton("invumusicplayer.hud_editor.scale_up");check(fixture.settings.menuScale>.5f,"Menu scaling did not change");
+        context.takeScreenshot("invu-en-menu-position-editor");context.clickScreenButton("invumusicplayer.hud_editor.done");context.waitForScreen(PauseScreen.class);
+        context.runOnClient(client->{var l=MenuPlayerPanel.layout(client.gui.screen().width,client.gui.screen().height,false);check(l.x()>100&&l.y()>8,"Custom menu position was not restored");});
+        context.takeScreenshot("invu-en-escape-moved");
+        context.clickScreenButton("invumusicplayer.menu.position");context.waitForScreen(MenuEditor.class);context.clickScreenButton("invumusicplayer.menu.reset");context.clickScreenButton("invumusicplayer.hud_editor.done");context.waitForScreen(PauseScreen.class);
         context.clickScreenButton("invumusicplayer.menu.open");context.waitForScreen(PlayerScreen.class);
         context.clickScreenButton("invumusicplayer.player.done");context.waitForScreen(PauseScreen.class);
         context.getInput().pressKey(SDLScancode.SDL_SCANCODE_ESCAPE);context.waitForScreen(null);
@@ -237,6 +263,7 @@ public final class InvuMusicPlayerClientSmokeTest implements FabricClientGameTes
         context.getInput().pressKey(SDLScancode.SDL_SCANCODE_F1);context.waitFor(client->!client.gui.hud.isHidden());
     }
 
+    private static void checkSelected(ClientGameTestContext context,String key){check(context.computeOnClient(client->client.gui.screen().children().stream().filter(ModernButton.class::isInstance).map(ModernButton.class::cast).anyMatch(b->b.getMessage().equals(Component.translatable(key))&&b.isSelected())),"Section is not highlighted: "+key);}
     private static void selectLanguage(ClientGameTestContext context, String code) {
         if (context.computeOnClient(client -> client.getLanguageManager().getSelected().equals(code))) return;
         CompletableFuture<Void> reload = context.computeOnClient(client -> {

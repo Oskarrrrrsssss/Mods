@@ -215,9 +215,6 @@
   "invumusicplayer.settings.shuffle": "Shuffle: %s",
   "invumusicplayer.settings.cover_colors": "Album colors: %s",
   "invumusicplayer.wave.settings": "My Wave settings",
-  "invumusicplayer.library.mood_filter": "Mood: %s",
-  "invumusicplayer.library.assign_mood": "Assign mood",
-  "invumusicplayer.library.untagged": "Untagged",
   "invumusicplayer.library.delete": "Delete playlist",
   "invumusicplayer.library.confirm_delete": "Delete",
   "invumusicplayer.library.cancel": "Cancel",
@@ -226,5 +223,9 @@
   "invumusicplayer.error.playlist_owner": "Only your own Yandex playlists can be deleted.",
   "invumusicplayer.error.playlist_delete": "Yandex did not confirm playlist deletion.",
   "invumusicplayer.status.playlist_deleted": "Deleted playlist: %s",
-  "key.invumusicplayer.shuffle": "Toggle shuffle"
+  "key.invumusicplayer.shuffle": "Toggle shuffle",
+  "invumusicplayer.menu.position": "Menu player position",
+  "invumusicplayer.menu.reset": "Reset position",
+  "invumusicplayer.menu.drag_hint": "Drag the card; size and position are saved.",
+  "invumusicplayer.library.play_all": "Play all liked"
 }

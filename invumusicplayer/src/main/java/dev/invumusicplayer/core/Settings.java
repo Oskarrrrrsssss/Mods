@@ -9,6 +9,8 @@ import java.nio.file.*;
 public final class Settings {
     public boolean hud = true, covers = true;
     public boolean hudWhileHidden = true, shuffle = false, menuCoverColors = true;
+    public boolean menuPositioned=false;
+    public float menuScale=.5f, menuX=0, menuY=0;
     public float volume = 0.7f, hudScale = 1f, opacity = 0.85f;
     public int hudX = 12, hudY = 12;
     public int accent = 0x82e39b, background = 0x111827, textColor = 0xf1f5f9;
@@ -18,6 +20,7 @@ public final class Settings {
     private static final Gson JSON = new GsonBuilder().setPrettyPrinting().create();
     public void normalize() {
         visualizerVersion = 1;
+        menuScale=finiteClamp(menuScale,.35f,1.25f,.5f);menuX=finiteClamp(menuX,0,1,0);menuY=finiteClamp(menuY,0,1,0);
         volume = finiteClamp(volume, 0, 1, .7f);
         hudScale = finiteClamp(hudScale, .5f, 2f, 1f);
         opacity = finiteClamp(opacity, .2f, 1, .85f);

@@ -94,4 +94,9 @@ final class CoreTest {
             assertArrayEquals(samples, input.readAllBytes());
         }
     }
+    @Test void menuPositionAndScalePersistAndInvalidValuesAreClamped() throws Exception {
+        Path path=temp.resolve("menu.json");Settings s=new Settings();assertEquals(.5f,s.menuScale);s.menuPositioned=true;s.menuX=.8f;s.menuY=.3f;s.menuScale=.65f;s.save(path);Settings loaded=Settings.load(path);assertTrue(loaded.menuPositioned);assertEquals(.8f,loaded.menuX);assertEquals(.3f,loaded.menuY);assertEquals(.65f,loaded.menuScale);
+        loaded.menuX=Float.NaN;loaded.menuY=20;loaded.menuScale=100;loaded.normalize();assertEquals(0,loaded.menuX);assertEquals(1,loaded.menuY);assertEquals(1.25f,loaded.menuScale);
+    }
+
 }

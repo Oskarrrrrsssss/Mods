@@ -6,24 +6,19 @@ A client music player: Yandex Music, My Wave, local music and YouTube audio.
 Move and scale the in-game panel and customize its colors and opacity.
 The interface follows Minecraft's language: Russian or English.
 
-## Menu, shuffle and personal moods (0.2.3)
+## Compact menu player (0.2.4)
 
-The title and Escape menus show an album card with centered title/artist, a thin progress bar and vector controls. Music continues when leaving a world, until Minecraft closes or you press Pause/Stop. F1 visibility has its own option. Album colors can tint the menu card; disable Album colors to use your custom background.
+The title and Escape menus show a compact album card. The default scale is 50%; the large top button is removed. The music-note icon below the card opens the full player. The other icons open Settings, My Wave preferences, Library and Menu player position. Music continues when leaving a world.
 
-Shuffle changes upcoming playlist tracks without restarting the current song; manually queued tracks retain their priority and order. The button and an initially unbound configurable shortcut toggle it. With repeat enabled, the next shuffled cycle avoids immediately repeating the last song when possible.
+The menu volume slider has its own row with an empty gap above it. The full player also has a volume slider separated from transport and seek buttons; volume is removed from Settings. Changes apply immediately and are saved.
 
-Click the heart to like, click again to remove that like (without disliking). Switching ratings removes the opposite rating first. Dislike skips a song in My Wave; in an ordinary playlist it leaves the current song playing. The bottom menu icons open Settings, My Wave settings and Library directly.
+**Menu player position** opens a separate editor: drag the card, change its scale, choose a corner or reset it. Position/scale apply to the title and Escape menus and persist between sessions. The gameplay HUD has its own independent editor. **Album colors** applies artwork colors to both the menu and gameplay HUD; turn it off for your custom colors.
 
-In Library → Liked, click a song's mood icon to assign your own happy/sad/calm/energetic tag or remove it. The Mood filter cycles through these tags and Any. Tags are saved locally and do not change Yandex recommendations. My Wave settings are separate and update its recommendation preferences. Library lists also show song artwork.
+Current Settings/Library tabs and the selected track are highlighted. Library lists show artwork, a page counter and enabled previous/next page arrows. Scroll over a track list to change pages. **Liked → Play all liked** plays the entire liked list, including tracks on other pages. Deleting a local/owned Yandex playlist still opens an explicit confirmation.
 
-Playlist trash icons open a confirmation. Deleting a local playlist leaves files, the current track and queue intact. Deleting an owned Yandex playlist also deletes it from your Yandex account; the confirmation explicitly says so.
+Manual mood tagging and the Liked mood filter are removed. The supported Yandex track metadata does not expose a reliable per-track mood suitable for this filter. Mood remains available in **My Wave preferences**, directly from the main menu. On each wave track change, the visible list moves forward to show the current and upcoming tracks, without overwriting a separately opened search/library list; new recommendation batches still load automatically.
 
-## Changes in 0.2.3
-
-- Escape now shows a compact player in the top-left free area of the pause menu: current track, artwork where space allows, progress bar, previous/play-pause/next controls and an Invu Player entry.
-- A separate Settings button opens player settings directly from Escape; Back returns to the pause menu. Singleplayer remains paused while editing these settings.
-- F1 can hide Minecraft's HUD while retaining the music player at its saved position and scale. This is enabled by default; **Settings → Audio → Player with F1** turns it off. The main HUD visibility setting still controls the player itself.
-- Pause-menu entries have rounded corners, drawn icons and subtle hover accents. Their width adapts to the free space left of Minecraft's menu buttons.
+Shuffle, repeat, like/dislike toggles and configurable hotkeys are retained. A second like only removes that like. The token, queue, playlists and settings remain saved locally.
 
 ## Earlier fixes
 
@@ -37,7 +32,7 @@ Playlist trash icons open a confirmation. Deleting a local playlist leaves files
 ## Installation
 
 1. Download the Windows artifact from a successful [GitHub Actions](https://github.com/Oskarrrrrsssss/Mods/actions/workflows/invumusicplayer.yml) run. Sign in to GitHub to access the private repository.
-2. Extract the ZIP. Put **invumusicplayer-0.2.3-alpha.jar** in the selected Minecraft instance's `mods` folder.
+2. Extract the ZIP. Put **invumusicplayer-0.2.4-alpha.jar** in the selected Minecraft instance's `mods` folder.
 3. Install Fabric Loader and Fabric API for **26.3**, and use Java 25.
 4. Remove the previous Musicraft/invumusicplayer JAR from `mods` to avoid loading two copies. Settings, queue and authorization are retained.
 5. Open **Invu Player** on the title screen or press **M** in a world.
@@ -125,7 +120,7 @@ JDK 25 and internet access are required. In the `invumusicplayer` folder:
 build-windows.cmd
 ```
 
-Alternatively, `gradlew.bat build`; on Linux, `bash ./gradlew build`. Output: `build/libs/invumusicplayer-0.2.3-alpha.jar`.
+Alternatively, `gradlew.bat build`; on Linux, `bash ./gradlew build`. Output: `build/libs/invumusicplayer-0.2.4-alpha.jar`.
 Gradle Wrapper 9.7.1, Loom 1.18.4, Fabric Loader 0.19.5, Fabric API 0.162.0+26.3. Minecraft 26.3 uses unobfuscated names; Yarn is unnecessary.
 Tests: `gradlew.bat test`. Actual-client verification: `gradlew.bat runProductionClientGameTest`; the test mod is excluded from the installable JAR.
 Windows helper verification without downloading a video: `gradlew.bat verifyYouTubeTools`.

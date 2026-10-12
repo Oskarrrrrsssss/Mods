@@ -18,9 +18,9 @@ public final class SettingsScreen extends Screen {
     private void slider(String key,int x,int y,double initial,double min,double max,java.util.function.DoubleConsumer action){addRenderableWidget(new ValueSlider(x,y,150,key,initial,min,max,action));}
     @Override protected void init(){
         int x=width/2-155,y=62;String[] tabs={"audio","appearance","wave"};
-        for(int i=0;i<tabs.length;i++){int selected=i;button("invumusicplayer.tabs."+tabs[i],x+i*105,32,100,()->{tab=selected;rebuildWidgets();});}
+        for(int i=0;i<tabs.length;i++){int selected=i;var b=new ModernButton(x+i*105,32,100,20,Component.translatable("invumusicplayer.tabs."+tabs[i]),v->{tab=selected;rebuildWidgets();});b.selected(()->tab==selected);addRenderableWidget(b);}
         if(tab==0){
-            slider("invumusicplayer.slider.volume",x,y,s.volume*100,0,100,v->InvuMusicPlayerClient.player.volume((float)v/100));
+            button("invumusicplayer.menu.position",x,y,150,()->minecraft.gui.setScreen(new MenuEditor(this)));
             toggle("invumusicplayer.settings.repeat",x+160,y,s.repeat,()->s.repeat=!s.repeat);
             button("invumusicplayer.settings.hotkeys",x,y+30,150,()->minecraft.gui.setScreen(new net.minecraft.client.gui.screens.options.controls.KeyBindsScreen(this,minecraft.options)));
             button("invumusicplayer.settings.hud_position",x+160,y+30,150,()->minecraft.gui.setScreen(new HudEditor(this)));

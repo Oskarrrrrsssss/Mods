@@ -386,18 +386,20 @@ final class PlayerTest {
             p.rate(true);await(()->p.rating()==1);assertEquals(List.of("true:false","true:true","false:false","false:true","true:false"),calls);
         }
     }
-    @Test void assignedLikedMoodFiltersAndPersistsAcrossRestart() throws Exception {
-        Remote remote=new Remote(){public List<Track> liked(){return List.of(track("123"),track("456"));}};
+    @Test void likedListHasNoManualMoodFilterAndDoesNotOverwriteLaterSearch() throws Exception {
+        CountDownLatch gate=new CountDownLatch(1);Remote remote=new Remote(){public List<Track> liked(){waitForGate(gate);return List.of(track("123"),track("456"));}};
         try(Player p=new Player(temp,remote,new Audio(),testStore())){
-            p.connect("test-token");await(p::connected);p.showLiked();await(()->p.items().size()==2);
-            p.setTrackMood(track("123:999"),"sad");p.setTrackMood(track("456"),"fun");p.filterLikedMood("sad");
-            assertEquals(List.of("123"),p.items().stream().map(Track::id).toList());p.filterLikedMood("calm");assertTrue(p.items().isEmpty());
-            p.filterLikedMood("all");assertEquals(2,p.items().size());p.setTrackMood(track("456"),"invalid");assertEquals("fun",p.trackMood(track("456")));
-        }
-        try(Player p=new Player(temp,remote,new Audio(),testStore())){
-            await(p::connected);assertEquals("sad",p.trackMood(track("123")));assertEquals("fun",p.trackMood(track("456")));
-            p.showLiked();await(()->p.items().size()==2);p.filterLikedMood("sad");assertEquals("123",p.items().getFirst().id());
-            p.setTrackMood(track("123"),"all");assertTrue(p.items().isEmpty());
+            p.connect("test-token");await(p::connected);p.showLiked();p.search("other");gate.countDown();await(()->p.items().size()==1&&p.items().getFirst().id().equals("other"));
+            p.showLiked();await(()->p.items().size()==2);assertEquals("liked",p.listingSection());assertEquals(List.of("123","456"),p.items().stream().map(Track::id).toList());
+        }finally{gate.countDown();}
+    }
+    @Test void waveVisibleListMovesOnEverySkipAndDoesNotOverwriteLiked() throws Exception {
+        Remote remote=new Remote();Audio audio=new Audio();try(Player p=new Player(temp,remote,audio)){
+            p.startWave();await(p::playing);assertEquals(List.of("a","b","c"),p.items().stream().map(Track::id).toList());
+            p.next();await(()->p.playing()&&p.current().id().equals("b"));assertEquals(List.of("b","c"),p.items().stream().map(Track::id).toList());
+            p.next();await(()->p.playing()&&p.current().id().equals("c"));assertEquals(List.of("c"),p.items().stream().map(Track::id).toList());
+            p.search("other");await(()->p.items().getFirst().id().equals("other"));p.next();await(()->p.playing()&&p.current().id().equals("d"));assertEquals("other",p.items().getFirst().id());
+            p.showWave();assertEquals(List.of("d","e"),p.items().stream().map(Track::id).toList());assertEquals("wave",p.listingSection());
         }
     }
     @Test void deletingLocalPlaylistKeepsCurrentAudioAndQueueAndPersistsDeletion() throws Exception {
