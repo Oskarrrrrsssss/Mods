@@ -223,7 +223,7 @@ public final class InvuMusicPlayerClientSmokeTest implements FabricClientGameTes
         context.clickScreenButton("invumusicplayer.player.shuffle");check(!fixture.settings.shuffle,"Shuffle menu control did not toggle off");
         context.runOnClient(client->{
             var slider=Screens.getWidgets(client.gui.screen()).stream().filter(ValueSlider.class::isInstance).map(ValueSlider.class::cast).findFirst().orElseThrow();
-            var click=new net.minecraft.client.input.MouseButtonEvent(slider.getX()+4+(slider.getWidth()-8)*.25,slider.getY()+slider.getHeight()/2.0,new net.minecraft.client.input.MouseButtonInfo(0,0));
+            var click=new net.minecraft.client.input.MouseButtonEvent(slider.getX()+4+(slider.getWidth()-8)*.25,slider.getY()+slider.getHeight()/2.0,new net.minecraft.client.input.MouseButtonInfo(com.mojang.blaze3d.platform.InputConstants.MOUSE_BUTTON_LEFT,0));
             check(slider.mouseClicked(click,false),"Menu volume slider did not receive click");slider.mouseReleased(click);
             check(Math.abs(fixture.settings.volume-.25f)<.02,"Menu volume slider did not change playback volume");
         });
@@ -241,8 +241,8 @@ public final class InvuMusicPlayerClientSmokeTest implements FabricClientGameTes
         context.takeScreenshot("invu-en-escape-settings");context.clickScreenButton("invumusicplayer.settings.back");context.waitForScreen(PauseScreen.class);
         context.clickScreenButton("invumusicplayer.menu.position");context.waitForScreen(MenuEditor.class);
         context.runOnClient(client->{var screen=client.gui.screen();var l=MenuPlayerPanel.layout(screen.width,screen.height,false);
-            var click=new net.minecraft.client.input.MouseButtonEvent(l.x()+l.width()/2.0,l.y()+l.height()/2.0,new net.minecraft.client.input.MouseButtonInfo(0,0));
-            check(screen.mouseClicked(click,false),"Menu editor card did not accept dragging");var drag=new net.minecraft.client.input.MouseButtonEvent(click.x()+20,click.y()+15,new net.minecraft.client.input.MouseButtonInfo(0,0));screen.mouseDragged(drag,20,15);screen.mouseReleased(drag);
+            var click=new net.minecraft.client.input.MouseButtonEvent(l.x()+l.width()/2.0,l.y()+l.height()/2.0,new net.minecraft.client.input.MouseButtonInfo(com.mojang.blaze3d.platform.InputConstants.MOUSE_BUTTON_LEFT,0));
+            check(screen.mouseClicked(click,false),"Menu editor card did not accept dragging");var drag=new net.minecraft.client.input.MouseButtonEvent(click.x()+20,click.y()+15,new net.minecraft.client.input.MouseButtonInfo(com.mojang.blaze3d.platform.InputConstants.MOUSE_BUTTON_LEFT,0));screen.mouseDragged(drag,20,15);screen.mouseReleased(drag);
             check(fixture.settings.menuPositioned&&fixture.settings.menuX>0&&fixture.settings.menuY>0,"Menu card dragging did not change coordinates");});
         context.clickScreenButton("invumusicplayer.hud_editor.bottom_right");check(fixture.settings.menuPositioned&&fixture.settings.menuX==1&&fixture.settings.menuY==1,"Menu position did not change");
         context.clickScreenButton("invumusicplayer.hud_editor.scale_up");check(fixture.settings.menuScale>.5f,"Menu scaling did not change");
