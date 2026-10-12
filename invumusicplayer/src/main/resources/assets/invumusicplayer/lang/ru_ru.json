@@ -203,5 +203,12 @@
   "invumusicplayer.error.youtube_unavailable": "Видео недоступно, удалено или закрыто в твоём регионе.",
   "invumusicplayer.error.youtube_forbidden": "YouTube запретил загрузку (HTTP 403). Обнови yt-dlp; доступ зависит от ограничений YouTube и сети.",
   "invumusicplayer.error.youtube_live": "Прямые трансляции YouTube пока не поддерживаются. Вставь ссылку на обычное видео.",
-  "invumusicplayer.status.youtube": "YouTube: воспроизведение"
+  "invumusicplayer.status.youtube": "YouTube: воспроизведение",
+  "invumusicplayer.menu.open": "Invu Player",
+  "invumusicplayer.menu.settings": "Настройки",
+  "invumusicplayer.menu.settings_tooltip": "Настройки плеера",
+  "invumusicplayer.menu.previous": "Предыдущий трек",
+  "invumusicplayer.menu.next": "Следующий трек",
+  "invumusicplayer.menu.empty": "Открой библиотеку",
+  "invumusicplayer.settings.hud_f1": "Плеер при F1: %s"
 }

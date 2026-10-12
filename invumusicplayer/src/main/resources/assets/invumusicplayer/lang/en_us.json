@@ -203,5 +203,12 @@
   "invumusicplayer.error.youtube_unavailable": "The video is unavailable, removed or blocked in your region.",
   "invumusicplayer.error.youtube_forbidden": "YouTube blocked the download (HTTP 403). Update yt-dlp; access depends on YouTube and network restrictions.",
   "invumusicplayer.error.youtube_live": "YouTube live streams are not supported yet. Paste a regular video link.",
-  "invumusicplayer.status.youtube": "YouTube: playing"
+  "invumusicplayer.status.youtube": "YouTube: playing",
+  "invumusicplayer.menu.open": "Invu Player",
+  "invumusicplayer.menu.settings": "Settings",
+  "invumusicplayer.menu.settings_tooltip": "Player settings",
+  "invumusicplayer.menu.previous": "Previous track",
+  "invumusicplayer.menu.next": "Next track",
+  "invumusicplayer.menu.empty": "Open the library",
+  "invumusicplayer.settings.hud_f1": "Player with F1: %s"
 }

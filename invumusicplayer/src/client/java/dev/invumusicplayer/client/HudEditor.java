@@ -68,5 +68,5 @@ public final class HudEditor extends Screen {
         super.extractRenderState(g, mx, my, delta);
     }
     @Override public void onClose() { dragging = false; InvuMusicPlayerClient.player.saveSettings(); minecraft.gui.setScreen(parent); }
-    @Override public boolean isPauseScreen() { return false; }
+    @Override public boolean isPauseScreen() { return parent!=null && parent.isPauseScreen(); }
 }

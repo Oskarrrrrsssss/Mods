@@ -8,7 +8,6 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
-import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.network.chat.Component;
@@ -40,6 +39,7 @@ public final class InvuMusicPlayerClient implements ClientModInitializer {
         net.fabricmc.fabric.api.client.screen.v1.ScreenEvents.AFTER_INIT.register((client,screen,w,h)->{
             if(screen instanceof net.minecraft.client.gui.screens.TitleScreen) net.fabricmc.fabric.api.client.screen.v1.Screens.getWidgets(screen).add(
                 new ModernButton(w-124,8,116,20,Component.literal("invumusicplayer"),b->client.gui.setScreen(new PlayerScreen())));
+            if(screen instanceof net.minecraft.client.gui.screens.PauseScreen) PausePlayerPanel.install(screen,w);
         });
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             boolean inWorld=client.level!=null;
@@ -53,7 +53,7 @@ public final class InvuMusicPlayerClient implements ClientModInitializer {
             while(like.consumeClick())player.rate(true);
             while(dislike.consumeClick())player.rate(false);
         });
-        HudElementRegistry.attachElementBefore(VanillaHudElements.CHAT,
+        HudElementRegistry.addLast(
             Identifier.fromNamespaceAndPath("invumusicplayer", "player"), (graphics, delta) -> PlayerHud.draw(graphics));
         ClientLifecycleEvents.CLIENT_STOPPING.register(client -> { player.close(); cover.close(); });
     }

@@ -36,12 +36,12 @@ final class CoreTest {
     }
     @Test void settingsPersistAndNormalizeInvalidValues() throws Exception {
         Settings settings = new Settings(); settings.hudX = 23; settings.hudY = 47;
-        settings.covers = false; settings.volume = Float.NaN;
+        settings.covers = false; settings.hudWhileHidden = false; settings.volume = Float.NaN;
         settings.hudScale = 99;
         Path config = temp.resolve("config/invumusicplayer.json"); settings.save(config);
         Settings loaded = Settings.load(config);
         assertEquals(23, loaded.hudX); assertEquals(47, loaded.hudY);
-        assertFalse(loaded.covers); assertEquals(.7f, loaded.volume); assertEquals(2f, loaded.hudScale);
+        assertFalse(loaded.covers); assertFalse(loaded.hudWhileHidden); assertEquals(.7f, loaded.volume); assertEquals(2f, loaded.hudScale);
     }
     @Test void corruptedSettingsAreBackedUp() throws Exception {
         Path config = temp.resolve("invumusicplayer.json"); Files.writeString(config, "broken");

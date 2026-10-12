@@ -15,6 +15,9 @@ import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.network.chat.Component;
+import net.minecraft.client.gui.screens.PauseScreen;
+import net.fabricmc.fabric.api.client.screen.v1.Screens;
+import org.lwjgl.sdl.SDLScancode;
 
 /** Runs against the actual client, UI, input registration and world rendering; ships in a separate test mod. */
 @SuppressWarnings("UnstableApiUsage")
@@ -62,6 +65,7 @@ public final class InvuMusicPlayerClientSmokeTest implements FabricClientGameTes
                 world.getConnection().waitForChunksRender();
                 context.waitTicks(4);
                 context.takeScreenshot("invumusicplayer-en-world-hud-and-equalizer");
+                checkPauseAndHiddenHud(context,fixture);
                 openPlayerWithHotkey(context);
                 context.waitFor(client -> InvuMusicPlayerClient.cover.ready() && ((PlayerScreen)client.gui.screen()).readyArtworkCount() == 2);
                 context.takeScreenshot("invumusicplayer-en-player-with-cover");
@@ -117,6 +121,12 @@ public final class InvuMusicPlayerClientSmokeTest implements FabricClientGameTes
                 checkTranslation(context, "invumusicplayer.player.account", "Аккаунт");
                 checkTranslation(context, "invumusicplayer.player.wave", "Моя волна");
                 checkTranslation(context, "invumusicplayer.player.settings", "Настройки");
+                context.getInput().pressKey(SDLScancode.SDL_SCANCODE_ESCAPE);context.waitForScreen(PauseScreen.class);
+                context.takeScreenshot("invu-ru-escape-player");
+                context.clickScreenButton("invumusicplayer.menu.settings");context.waitForScreen(SettingsScreen.class);
+                context.takeScreenshot("invu-ru-escape-settings");
+                context.clickScreenButton("invumusicplayer.settings.back");context.waitForScreen(PauseScreen.class);
+                context.getInput().pressKey(SDLScancode.SDL_SCANCODE_ESCAPE);context.waitForScreen(null);
                 openPlayerWithHotkey(context);
                 context.takeScreenshot("invumusicplayer-ru-player-text-only");
                 context.clickScreenButton("invumusicplayer.player.account");
@@ -155,6 +165,39 @@ public final class InvuMusicPlayerClientSmokeTest implements FabricClientGameTes
             });
             selectLanguage(context, originalLanguage);
         }
+    }
+
+    private static void checkPauseAndHiddenHud(ClientGameTestContext context,Player fixture) {
+        context.getInput().pressKey(SDLScancode.SDL_SCANCODE_ESCAPE);context.waitForScreen(PauseScreen.class);
+        context.runOnClient(client -> {
+            var widgets=Screens.getWidgets(client.gui.screen());
+            long open=widgets.stream().filter(w->w.getMessage().getString().equals(Component.translatable("invumusicplayer.menu.open").getString())).count();
+            check(open==1,"Pause menu did not add exactly one player entry");
+            for(var playerControl:widgets)if(playerControl instanceof PlayerMenuButton)for(var vanilla:widgets)if(!(vanilla instanceof PlayerMenuButton)) {
+                boolean overlap=playerControl.getX()<vanilla.getX()+vanilla.getWidth()&&playerControl.getX()+playerControl.getWidth()>vanilla.getX()
+                    &&playerControl.getY()<vanilla.getY()+vanilla.getHeight()&&playerControl.getY()+playerControl.getHeight()>vanilla.getY();
+                check(!overlap,"Player control overlaps a vanilla pause button");
+            }
+        });
+        context.takeScreenshot("invu-en-escape-player");
+        context.clickScreenButton("invumusicplayer.player.pause");context.waitFor(client->!fixture.playing());
+        context.waitForScreen(PauseScreen.class);context.clickScreenButton("invumusicplayer.player.play");context.waitFor(client->fixture.playing());
+        context.clickScreenButton("invumusicplayer.menu.next");context.waitFor(client->fixture.current().title().equals("Second")&&fixture.playing());
+        context.clickScreenButton("invumusicplayer.menu.previous");context.waitFor(client->fixture.current().title().equals("First")&&fixture.playing());
+        context.clickScreenButton("invumusicplayer.menu.settings");context.waitForScreen(SettingsScreen.class);
+        check(context.computeOnClient(client->client.gui.screen().isPauseScreen()),"Settings opened from Escape resumed the singleplayer world");
+        context.takeScreenshot("invu-en-escape-settings");context.clickScreenButton("invumusicplayer.settings.back");context.waitForScreen(PauseScreen.class);
+        context.clickScreenButton("invumusicplayer.menu.open");context.waitForScreen(PlayerScreen.class);
+        context.clickScreenButton("invumusicplayer.player.done");context.waitForScreen(PauseScreen.class);
+        context.getInput().pressKey(SDLScancode.SDL_SCANCODE_ESCAPE);context.waitForScreen(null);
+        context.getInput().pressKey(SDLScancode.SDL_SCANCODE_F1);context.waitFor(client->client.gui.hud.isHidden());
+        check(context.computeOnClient(client->PlayerHud.isVisible()),"F1 hid the music player with the option enabled");
+        context.waitTicks(8);context.takeScreenshot("invu-en-f1-player-visible");
+        context.runOnClient(client->fixture.settings.hudWhileHidden=false);
+        check(context.computeOnClient(client->!PlayerHud.isVisible()),"The F1 visibility opt-out was ignored");
+        context.waitTicks(8);context.takeScreenshot("invu-en-f1-player-hidden");
+        context.runOnClient(client->fixture.settings.hudWhileHidden=true);
+        context.getInput().pressKey(SDLScancode.SDL_SCANCODE_F1);context.waitFor(client->!client.gui.hud.isHidden());
     }
 
     private static void selectLanguage(ClientGameTestContext context, String code) {

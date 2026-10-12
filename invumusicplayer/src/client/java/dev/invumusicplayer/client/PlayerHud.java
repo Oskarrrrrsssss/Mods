@@ -9,9 +9,14 @@ public final class PlayerHud {
     static final int TEXT = 0xffe6eee5, MUTED = 0xff9bad9f;
     public static void draw(GuiGraphicsExtractor g) { draw(g, false); }
     public static void preview(GuiGraphicsExtractor g) { draw(g, true); }
+    public static boolean isVisible() {
+        var client=Minecraft.getInstance();var player=InvuMusicPlayerClient.player;
+        return player!=null && client.level!=null && player.settings.hud && player.current()!=null
+            && client.gui.screen()==null && (!client.gui.hud.isHidden() || player.settings.hudWhileHidden);
+    }
     private static void draw(GuiGraphicsExtractor g, boolean preview) {
         Player player = InvuMusicPlayerClient.player; Settings s = player.settings; Track track = player.current();
-        if (!preview && (!s.hud || track == null || Minecraft.getInstance().gui.screen() != null)) return;
+        if (!preview && !isVisible()) return;
         if (track == null) track = new Track("preview", UiText.text("invumusicplayer.hud.preview_title"), UiText.text("invumusicplayer.hud.preview_artist"), 180000, null, null, "", "");
         boolean showCover=s.covers && !track.youtube();
         int width = showCover ? 244 : 196, height = 54;

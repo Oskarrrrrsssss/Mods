@@ -8,6 +8,7 @@ import java.nio.file.*;
 
 public final class Settings {
     public boolean hud = true, covers = true;
+    public boolean hudWhileHidden = true;
     public float volume = 0.7f, hudScale = 1f, opacity = 0.85f;
     public int hudX = 12, hudY = 12;
     public int accent = 0x82e39b, background = 0x111827, textColor = 0xf1f5f9;

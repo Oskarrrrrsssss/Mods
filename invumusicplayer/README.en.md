@@ -6,7 +6,15 @@ A client music player: Yandex Music, My Wave, local music and YouTube audio.
 Move and scale the in-game panel and customize its colors and opacity.
 The interface follows Minecraft's language: Russian or English.
 
-## Changes in 0.2.1
+## Changes in 0.2.2
+
+- Escape now shows a compact player in the top-left free area of the pause menu: current track, artwork where space allows, equalizer, previous/play-pause/next controls and an Invu Player entry.
+- A separate Settings button opens player settings directly from Escape; Back returns to the pause menu. Singleplayer remains paused while editing these settings.
+- F1 can hide Minecraft's HUD while retaining the music player at its saved position and scale. This is enabled by default; **Settings → Audio → Player with F1** turns it off. The main HUD visibility setting still controls the player itself.
+- Pause-menu entries have rounded corners, drawn icons and subtle hover accents. Their width adapts to the free space left of Minecraft's menu buttons.
+
+## Earlier fixes
+
 
 - Artwork uses Yandex's standard `200x200` preset; saved `256x256` addresses are normalized. Stale artwork addresses trigger a full track metadata refresh. Artwork starts loading immediately, independently of audio. Errors are visible and failed thumbnails no longer remain empty permanently. JPEG, PNG and WebP are supported.
 - Clicking a queued track plays it without copying and duplicating the remaining queue. The current track, upcoming order and My Wave continuation are retained. Entered links and playlist names survive list updates.
@@ -17,7 +25,7 @@ The interface follows Minecraft's language: Russian or English.
 ## Installation
 
 1. Download the Windows artifact from a successful [GitHub Actions](https://github.com/Oskarrrrrsssss/Mods/actions/workflows/invumusicplayer.yml) run. Sign in to GitHub to access the private repository.
-2. Extract the ZIP. Put **invumusicplayer-0.2.1-alpha.jar** in the selected Minecraft instance's `mods` folder.
+2. Extract the ZIP. Put **invumusicplayer-0.2.2-alpha.jar** in the selected Minecraft instance's `mods` folder.
 3. Install Fabric Loader and Fabric API for **26.3**, and use Java 25.
 4. Remove the previous Musicraft/invumusicplayer JAR from `mods` to avoid loading two copies. Settings, queue and authorization are retained.
 5. Open **invumusicplayer** on the title screen or press **M** in a world.
@@ -105,7 +113,7 @@ JDK 25 and internet access are required. In the `invumusicplayer` folder:
 build-windows.cmd
 ```
 
-Alternatively, `gradlew.bat build`; on Linux, `bash ./gradlew build`. Output: `build/libs/invumusicplayer-0.2.1-alpha.jar`.
+Alternatively, `gradlew.bat build`; on Linux, `bash ./gradlew build`. Output: `build/libs/invumusicplayer-0.2.2-alpha.jar`.
 Gradle Wrapper 9.7.1, Loom 1.18.4, Fabric Loader 0.19.5, Fabric API 0.162.0+26.3. Minecraft 26.3 uses unobfuscated names; Yarn is unnecessary.
 Tests: `gradlew.bat test`. Actual-client verification: `gradlew.bat runProductionClientGameTest`; the test mod is excluded from the installable JAR.
 Windows helper verification without downloading a video: `gradlew.bat verifyYouTubeTools`.
