@@ -42,6 +42,10 @@ public final class PlayerScreen extends Screen {
         button(Component.literal("<<"), right, bottom - 4, 36, player::previous);
         pause = button(Component.translatable(player.playing() ? "invumusicplayer.player.pause" : "invumusicplayer.player.play"), right + 40, bottom - 4, rightWidth - 80, player::togglePause);
         button(Component.literal(">>"), right + rightWidth - 36, bottom - 4, 36, player::next);
+        int seekY=top+panelHeight-100;int third=(rightWidth-8)/3;
+        button(Component.translatable("invumusicplayer.player.seek_back"),right,seekY,third,()->player.seek(player.positionMillis()-10000));
+        button(Component.translatable("invumusicplayer.player.stop"),right+third+4,seekY,third,player::suspend);
+        button(Component.translatable("invumusicplayer.player.seek_forward"),right+2*(third+4),seekY,third,()->player.seek(player.positionMillis()+10000));
         int footer = top + panelHeight - 26;
         button(Component.translatable("invumusicplayer.player.like"), right, top+32, 44, ()->player.rate(true));
         button(Component.translatable("invumusicplayer.player.dislike"), right+48, top+32, 44, ()->player.rate(false));
@@ -66,7 +70,7 @@ public final class PlayerScreen extends Screen {
         if (serviceStatus == null) return;
         String status = player.error().isBlank() ? player.status() : player.error();
         serviceStatus.setMessage(Component.literal(font.plainSubstrByWidth(status, serviceStatus.getWidth() - 12)));
-        serviceStatus.setTooltip(Tooltip.create(Component.literal(status)));
+        serviceStatus.setTooltip(Tooltip.create(Component.literal(status+"\n"+player.lyricStatus())));
     }
     @Override public void extractRenderState(GuiGraphicsExtractor g, int mouseX, int mouseY, float delta) {
         g.fill(0, 0, width, height, 0x9a080d0a);
@@ -88,9 +92,9 @@ public final class PlayerScreen extends Screen {
         if (seen.isEmpty()) g.text(font, font.plainSubstrByWidth(UiText.text("invumusicplayer.player.empty_library"), listWidth - 4), left + 12, top + 88, PlayerHud.MUTED, false);
         g.text(font, (page + 1) + " / " + Math.max(1, (seen.size() + rows - 1) / rows), left + 44, top + panelHeight - 46, PlayerHud.MUTED, false);
         for(int row=0;row<rows;row++){int index=page*rows+row;if(index>=seen.size())break;Track t=seen.get(index);if(player.settings.covers&&!t.youtube()){
+            if(!artwork.containsKey(t.id())&&artwork.size()>=64){String old=artwork.keySet().iterator().next();artwork.remove(old).close();}
             CoverTexture texture=artwork.computeIfAbsent(t.id(),id->new CoverTexture());texture.update(player.coverFor(t));texture.draw(g,left+12,top+86+row*24,16,player.settings.accent);
         }}
-        g.text(font,font.plainSubstrByWidth(player.lyricStatus(),rightWidth),right,y+61,PlayerHud.MUTED,false);
         super.extractRenderState(g, mouseX, mouseY, delta);
     }
     @Override public void removed(){artwork.values().forEach(CoverTexture::close);artwork.clear();player.saveSettings();super.removed();}

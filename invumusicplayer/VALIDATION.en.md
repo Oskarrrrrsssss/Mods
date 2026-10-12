@@ -1,6 +1,6 @@
 # 0.2.0 validation status
 
-Build/UI verification for this update is in progress. The user confirmed Yandex audio and My Wave on their PC before this update. New endpoints and optional YouTube are not yet tested with a live account/service. Historical results below belong to version 0.1.0, before the rename.
+The downloadable ZIP includes an automatically generated CI report with the run link, actual test counts and JAR SHA-256. The user confirmed Yandex audio and My Wave on their PC before this update. New endpoints and optional YouTube are not yet tested with a live account/service. Historical results below belong to version 0.1.0, before the rename.
 
 # Verification results
 

@@ -177,7 +177,7 @@
   "invumusicplayer.diversity.favorite": "Любимые",
   "invumusicplayer.diversity.popular": "Популярные",
   "invumusicplayer.diversity.discover": "Открытия",
-  "invumusicplayer.wave.apply": "Применить и включить Мою волну",
+  "invumusicplayer.wave.apply": "Включить волну",
   "invumusicplayer.library.queue": "Очередь",
   "invumusicplayer.library.liked": "Понравившиеся",
   "invumusicplayer.library.playlists": "Плейлисты",
@@ -202,5 +202,9 @@
   "invumusicplayer.color.text_r": "Текст R: %s",
   "invumusicplayer.color.text_g": "Текст G: %s",
   "invumusicplayer.color.text_b": "Текст B: %s",
-  "invumusicplayer.library.tracks": "Треки"
+  "invumusicplayer.library.tracks": "Треки",
+  "invumusicplayer.wave_language.any": "Любой язык",
+  "invumusicplayer.wave_language.russian": "Русский",
+  "invumusicplayer.wave_language.not-russian": "Иностранный",
+  "invumusicplayer.error.rating_failed": "Яндекс не сохранил отметку трека."
 }

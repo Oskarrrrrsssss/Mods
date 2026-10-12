@@ -7,9 +7,9 @@ album artwork, and synchronized 3D lyrics in front of the player. Move and resiz
 **The interface follows Minecraft's language:** Russian for Russian, English for other languages.
 Track names, artists, and lyrics retain the source language.
 
-The build passed on Windows and Linux; **62 tests passed on Windows**, including DPAPI token protection.
+The previous release passed **62 Windows tests**, including DPAPI token protection. See CI and the included validation report for this updated build.
 The interface and rendering were checked in the actual Minecraft 26.3 client on Linux.
-**Yandex Music playback with a real account has not yet been verified.**
+The user confirmed Yandex playback and My Wave before this update. New service features still need a live account check.
 See [verification results](VALIDATION.en.md).
 
 ## Changes in 0.2.0

@@ -177,7 +177,7 @@
   "invumusicplayer.diversity.favorite": "Favorites",
   "invumusicplayer.diversity.popular": "Popular",
   "invumusicplayer.diversity.discover": "Discover",
-  "invumusicplayer.wave.apply": "Apply and start My Wave",
+  "invumusicplayer.wave.apply": "Start wave",
   "invumusicplayer.library.queue": "Queue",
   "invumusicplayer.library.liked": "Liked",
   "invumusicplayer.library.playlists": "Playlists",
@@ -202,5 +202,9 @@
   "invumusicplayer.color.text_r": "Text R: %s",
   "invumusicplayer.color.text_g": "Text G: %s",
   "invumusicplayer.color.text_b": "Text B: %s",
-  "invumusicplayer.library.tracks": "Tracks"
+  "invumusicplayer.library.tracks": "Tracks",
+  "invumusicplayer.wave_language.any": "Any language",
+  "invumusicplayer.wave_language.russian": "Russian",
+  "invumusicplayer.wave_language.not-russian": "Other languages",
+  "invumusicplayer.error.rating_failed": "Could not save this rating to Yandex."
 }

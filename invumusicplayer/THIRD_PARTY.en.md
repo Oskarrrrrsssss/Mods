@@ -16,6 +16,7 @@ are preserved; this documentation does not translate or replace them.
 | javasound-mp3 | 1.9.8 | LGPL-2.0; https://github.com/Tianscar/javasound-mp3 |
 | javasound-vorbis | 2.1.0 | LGPL-2.0 and Xiph BSD; https://github.com/Tianscar/javasound-vorbis |
 | tritonus-share | 0.3.7.4 | LGPL; https://github.com/umjammer/tritonus |
+| TwelveMonkeys ImageIO (WebP, core, common) | 3.12.0 | BSD-3-Clause; https://github.com/haraldk/TwelveMonkeys |
 | JNA / JNA Platform | 5.18.1 | LGPL-2.1 / Apache-2.0; https://github.com/java-native-access/jna |
 | JUnit Jupiter | 5.13.4 | EPL-2.0; https://github.com/junit-team/junit-framework |
 

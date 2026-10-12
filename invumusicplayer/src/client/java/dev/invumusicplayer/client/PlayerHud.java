@@ -24,12 +24,12 @@ public final class PlayerHud {
         if (showCover) { InvuMusicPlayerClient.cover.draw(g, x + 8, y + 7, 38, s.accent); tx = x + 54; }
         var font = Minecraft.getInstance().font;
         g.text(font, font.plainSubstrByWidth(track.title(), width - (tx - x) - 8), tx, y + 8, 0xff000000|s.textColor, false);
-        g.text(font, font.plainSubstrByWidth(track.artist().isBlank() ? UiText.text("invumusicplayer.hud.local_music") : track.artist(), width - (tx - x) - 8), tx, y + 20, MUTED, false);
+        g.text(font, font.plainSubstrByWidth(track.artist().isBlank() ? UiText.text("invumusicplayer.hud.local_music") : track.artist(), width - (tx - x) - 8), tx, y + 20, 0xb0000000|s.textColor, false);
         if(s.visualizer){float[] values=player.spectrum();int area=width-(tx-x)-8;
             for(int i=0;i<values.length;i++){int bx=tx+i*area/values.length;int h=Math.max(1,(int)(values[i]*17));g.fill(bx,y+49-h,bx+Math.max(1,area/values.length-2),y+49,0xff000000|s.accent);}
         }else{
         String clock = (player.loading() ? UiText.text("invumusicplayer.hud.loading") : player.playing() ? "> " : "|| ") + time(player.positionMillis()) + " / " + time(player.durationMillis());
-        g.text(font, clock, tx, y + 33, MUTED, false);
+        g.text(font, clock, tx, y + 33, 0xb0000000|s.textColor, false);
         int bar = width - (tx - x) - 8; g.fill(tx, y + 46, tx + bar, y + 48, 0xff324036);
         long duration = player.durationMillis();
         if (duration > 0) g.fill(tx, y + 46, tx + (int) (bar * Math.min(1, (double) player.positionMillis() / duration)), y + 48, 0xff000000 | s.accent);

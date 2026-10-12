@@ -26,13 +26,13 @@ public final class SessionStore {
             List<Track> queue=read(data.queue); return new State(queue,Math.max(-1,Math.min(data.index,queue.size()-1)),data.wave,read(data.pending),data.ratings==null?Map.of():Map.copyOf(data.ratings),Map.copyOf(lists));
         } catch(Exception ignored) { return empty; }
     }
-    private static List<Track> read(List<Item> items) { if(items==null)return List.of(); return items.stream().limit(1000).map(Item::track).toList(); }
-    private static List<Item> write(List<Track> tracks) { return tracks.stream().limit(1000).map(Item::from).toList(); }
+    private static List<Track> read(List<Item> items) { if(items==null)return List.of(); return items.stream().limit(10000).map(Item::track).toList(); }
+    private static List<Item> write(List<Track> tracks) { return tracks.stream().limit(10000).map(Item::from).toList(); }
     public void save(State state) throws IOException {
         Map<String,List<Item>> lists=new LinkedHashMap<>(); state.playlists.entrySet().stream().limit(100).forEach(e->lists.put(e.getKey(),write(e.getValue())));
         Data data=new Data(write(state.queue),state.index,state.wave,write(state.pending),state.ratings,lists);
         Files.createDirectories(path.getParent()); Path temp=Files.createTempFile(path.getParent(),"invu-session-",".tmp");
-        try { Files.writeString(temp,JSON.toJson(data)); try { Files.move(temp,path,StandardCopyOption.REPLACE_EXISTING,StandardCopyOption.ATOMIC_MOVE); } catch(AtomicMoveNotSupportedException e) { Files.move(temp,path,StandardCopyOption.REPLACE_EXISTING); } }
+        try { String json=JSON.toJson(data);if(json.getBytes(java.nio.charset.StandardCharsets.UTF_8).length>4_000_000)throw Messages.error("invumusicplayer.error.resource_too_large");Files.writeString(temp,json); try { Files.move(temp,path,StandardCopyOption.REPLACE_EXISTING,StandardCopyOption.ATOMIC_MOVE); } catch(AtomicMoveNotSupportedException e) { Files.move(temp,path,StandardCopyOption.REPLACE_EXISTING); } }
         finally { Files.deleteIfExists(temp); }
     }
 }

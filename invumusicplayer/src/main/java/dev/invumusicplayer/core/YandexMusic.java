@@ -128,7 +128,7 @@ public final class YandexMusic {
             throw new InterruptedIOException(Messages.get("invumusicplayer.error.wave_cancelled"));
     }
     public void resetWave() {
-        synchronized (waveLock) { waveGeneration.incrementAndGet(); activeWave = null; batchSessions.clear(); }
+        synchronized (waveLock) { waveGeneration.incrementAndGet(); activeWave = null; batchSessions.clear(); uid=0; }
     }
     public void feedback(String type, Track track, long playedMillis) throws Exception {
         if (!Set.of("radioStarted", "trackStarted", "trackFinished", "skip").contains(type))
@@ -164,13 +164,15 @@ public final class YandexMusic {
             || !Set.of("any", "russian", "not-russian").contains(language)) throw Messages.error("invumusicplayer.error.wave_settings");
         JsonObject data = new JsonObject(); data.addProperty("moodEnergy", mood); data.addProperty("diversity", diversity);
         data.addProperty("language", language); data.addProperty("type", "rotor");
-        api("/rotor/station/" + enc(STATION) + "/settings3", data);
+        JsonElement result=api("/rotor/station/" + enc(STATION) + "/settings3", data);
+        if(!result.isJsonPrimitive()||!result.getAsString().equals("ok"))throw Messages.error("invumusicplayer.error.wave_settings");
         this.mood = mood; this.diversity = diversity; this.waveLanguage = language;
     }
     private long user() throws Exception { if (uid == 0) checkAccount(); return uid; }
     public void rate(Track track, boolean like, boolean remove) throws Exception {
-        form("/users/" + user() + (like ? "/likes" : "/dislikes") + "/tracks/" + (remove ? "remove" : "add-multiple"),
+        JsonElement result=form("/users/" + user() + (like ? "/likes" : "/dislikes") + "/tracks/" + (remove ? "remove" : "add-multiple"),
             Map.of("track-ids", track.id()));
+        if(!result.isJsonObject()||!result.getAsJsonObject().has("revision"))throw Messages.error("invumusicplayer.error.rating_failed");
     }
     public List<Track> liked() throws Exception {
         JsonObject library = object(api("/users/" + user() + "/likes/tracks", null), "invumusicplayer.context.search");

@@ -72,7 +72,7 @@ public final class Player implements AutoCloseable {
     private boolean currentStarted;
     private long listenedMillis;
     private long serial, listSerial, authSerial, waveSerial, waveListSerial;
-    private Future<?> playbackJob, metadataJob, listJob, authJob;
+    private Future<?> playbackJob, metadataJob, coverJob, listJob, authJob;
 
     public Player(Path gameDir) throws IOException { this(migrate(gameDir), null, new AudioEngine()); }
     Player(Path gameDir, RemoteProvider provider, Playback audio) throws IOException {
@@ -137,7 +137,8 @@ public final class Player implements AutoCloseable {
         Path config=gameDir.resolve("config");
         for(String suffix:new String[]{".json","-auth.dat","-session.json"}){
             Path old=config.resolve("musicraft"+suffix), current=config.resolve("invumusicplayer"+suffix);
-            if(!Files.exists(current)&&Files.exists(old)){Files.createDirectories(config);Files.copy(old,current);}
+            if(!Files.exists(current)&&Files.exists(old)){Files.createDirectories(config);Files.copy(old,current);
+                if(suffix.equals(".json"))try{com.google.gson.JsonObject json=com.google.gson.JsonParser.parseString(Files.readString(current)).getAsJsonObject();json.addProperty("sprintOnly",false);Files.writeString(current,json.toString());}catch(RuntimeException ignored){}}
         }
         return gameDir;
     }
@@ -278,15 +279,16 @@ public final class Player implements AutoCloseable {
                 synchronized (this) { if (valid(request)) { loading = false; fail(e); } }
             });
     }
-    private void loadMetadata(Track track, long request) {
+    private synchronized void loadMetadata(Track track, long request) {
+        if(!valid(request))return;
         if (track.youtube()) { lyricStatus = Messages.text("invumusicplayer.lyrics.none"); return; }
-        workers.submit(() -> {
+        metadataJob = workers.submit(() -> {
             try {
                 Lyrics found = track.remote() ? remote.lyrics(track) : local.lyrics(track);
                 synchronized (this) { if (valid(request)) { lyrics = found; lyricStatus = Messages.text(found.lines().isEmpty() ? "invumusicplayer.lyrics.none" : "invumusicplayer.lyrics.ready"); } }
             } catch (Exception e) { synchronized (this) { if (valid(request)) lyricStatus = safeError(e, token); } }
         });
-        workers.submit(() -> {
+        coverJob = workers.submit(() -> {
             try {
                 byte[] image = track.remote() ? remote.cover(track) : track.coverFile() == null ? new byte[0] : readCover(track.coverFile());
                 synchronized (this) { if (valid(request)) { cover = image; cacheCover(track.id(), image); } }
@@ -318,7 +320,7 @@ public final class Player implements AutoCloseable {
         playbackJob = workers.submit(() -> {
             try {
                 // Only successful session creation can emit radioStarted; feedback does not delay audio.
-                remote.waveSettings(settings.waveMood, settings.waveDiversity, settings.waveLanguage);
+                if(settings.waveCustom)remote.waveSettings(settings.waveMood, settings.waveDiversity, settings.waveLanguage);
                 List<Track> found = remote.wave(null);
                 synchronized (this) {
                     if (!valid(request)) return;
@@ -447,7 +449,7 @@ public final class Player implements AutoCloseable {
         queue = List.of(); queueIndex = -1; upNext.clear(); persist(); status = Messages.text("invumusicplayer.status.stopped");
     }
     private long invalidateLocked() {
-        ++serial; cancel(playbackJob); cancel(metadataJob); playbackJob = metadataJob = null;
+        ++serial; cancel(playbackJob); cancel(metadataJob); cancel(coverJob); playbackJob = metadataJob = coverJob = null;
         audio.stop(); loading = true; return serial;
     }
     private boolean valid(long request) { return !closed && serial == request; }

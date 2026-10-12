@@ -66,13 +66,7 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
       - name: Package RU-EN guides / Добавить инструкции RU-EN
-        run: |
-          mkdir -p build/distribution
-          for jar in build/libs/invumusicplayer-*.jar; do
-            case "$jar" in *-sources.jar|*-gametest.jar) continue ;; esac
-            cp "$jar" build/distribution/
-          done
-          cp README.md README.en.md VALIDATION.md VALIDATION.en.md THIRD_PARTY.md THIRD_PARTY.en.md LICENSE build/distribution/
+        run: python scripts/package.py
       - name: Downloadable mod and guides / Мод и инструкции
         uses: actions/upload-artifact@v4
         with:

@@ -12,7 +12,7 @@ public final class Settings {
     public float lyricDistance = 3f, lyricHeight = -0.25f, lyricScale = 0.025f;
     public int hudX = 12, hudY = 12, lyricOffsetMillis = 0;
     public int accent = 0x82e39b, background = 0x111827, textColor = 0xf1f5f9;
-    public boolean visualizer = false, repeat = false;
+    public boolean visualizer = false, repeat = false, waveCustom = false;
     public String waveMood = "all", waveDiversity = "default", waveLanguage = "any";
     private static final Gson JSON = new GsonBuilder().setPrettyPrinting().create();
     public void normalize() {
