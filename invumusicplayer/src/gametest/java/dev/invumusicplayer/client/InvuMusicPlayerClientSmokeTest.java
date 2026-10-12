@@ -59,10 +59,13 @@ public final class InvuMusicPlayerClientSmokeTest implements FabricClientGameTes
             context.waitForScreen(net.minecraft.client.gui.screens.TitleScreen.class);
             context.waitFor(client->InvuMusicPlayerClient.cover.ready());
             context.takeScreenshot("invu-en-title-screen-entry");
+            context.runOnClient(client->{client.options.guiScale().set(2);client.resizeGui();});context.waitTicks(4);
+            context.takeScreenshot("invu-en-title-card-large");
+            context.runOnClient(client->{client.options.guiScale().set(3);client.resizeGui();});context.waitTicks(4);
             context.clickScreenButton("invumusicplayer.wave.settings");context.waitForScreen(WaveSettingsScreen.class);
             context.clickScreenButton("invumusicplayer.mood.sad");check(fixture.settings.waveMood.equals("sad"),"Direct wave mood setting failed");
             context.takeScreenshot("invu-en-wave-settings");context.clickScreenButton("invumusicplayer.settings.back");
-context.clickScreenButton("invumusicplayer.menu.open");context.waitForScreen(PlayerScreen.class);
+            context.clickScreenButton("invumusicplayer.menu.open");context.waitForScreen(PlayerScreen.class);
             context.clickScreenButton("invumusicplayer.player.settings");context.waitForScreen(SettingsScreen.class);
             context.takeScreenshot("invu-en-settings-without-world");context.clickScreenButton("invumusicplayer.settings.back");
             context.clickScreenButton("invumusicplayer.player.done");context.waitForScreen(net.minecraft.client.gui.screens.TitleScreen.class);

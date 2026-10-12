@@ -45,7 +45,11 @@ public final class LibraryScreen extends Screen {
         if(tab!=2&&player.settings.covers)for(int row=0;row<rows;row++){int index=page*rows+row;if(index>=seen.size())break;Track t=(Track)seen.get(index);if(t.youtube())continue;if(!artwork.containsKey(t.id())&&artwork.size()>=64){String old=artwork.keySet().iterator().next();artwork.remove(old).close();}CoverTexture texture=artwork.computeIfAbsent(t.id(),id->new CoverTexture());texture.update(player.coverFor(t));texture.draw(g,x,y+row*24+1,18,player.settings.accent);}
     }
     private void icon(String key,int x,int y,PlayerMenuButton.Icon icon,Runnable action){var v=new PlayerMenuButton(x,y,24,Component.translatable(key),icon,false,w->action.run());v.setTooltip(Tooltip.create(Component.translatable(key)));addRenderableWidget(v);}
-    public long readyArtworkCount(){return artwork.values().stream().filter(CoverTexture::ready).count();}
+    public long readyArtworkCount(){
+        if(tab==2||!player.settings.covers)return 0;int rows=Math.max(1,(height-(tab==1?200:176))/24);
+        return seen.stream().skip((long)page*rows).limit(rows).filter(Track.class::isInstance).map(Track.class::cast)
+            .map(t->artwork.get(t.id())).filter(java.util.Objects::nonNull).filter(CoverTexture::ready).count();
+    }
     @Override public void removed(){artwork.values().forEach(CoverTexture::close);artwork.clear();super.removed();}
     @Override public void onClose(){minecraft.gui.setScreen(parent);}
     @Override public boolean isPauseScreen(){return parent!=null&&parent.isPauseScreen();}

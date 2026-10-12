@@ -12,7 +12,7 @@ import net.minecraft.network.chat.Component;
 /** Album card in the title and pause menus, sized to the free space beside native controls. */
 final class MenuPlayerPanel {
     private final int x=8,width,top,art,bodyHeight;
-    private MenuPlayerPanel(int width,int height,boolean title){this.width=width;top=title?68:32;art=Math.max(0,Math.min(width-16,height-top-8-72-43));bodyHeight=art+43;}
+    private MenuPlayerPanel(int width,int height,boolean title){this.width=width;top=title?68:32;art=Math.max(0,Math.min(width-16,height-top-(title?20:8)-72-43));bodyHeight=art+43;}
     static void install(Screen screen,int w,int h){
         int first=Screens.getWidgets(screen).stream().filter(v->v instanceof Button&&!(v instanceof PlayerMenuButton)).mapToInt(v->v.getX()).min().orElse(w/2-102);
         var p=new MenuPlayerPanel(Math.min(228,Math.max(32,first-16)),h,screen instanceof net.minecraft.client.gui.screens.TitleScreen);
