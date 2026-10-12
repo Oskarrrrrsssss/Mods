@@ -1,0 +1,82 @@
+name: InvuMusicPlayer build / Сборка InvuMusicPlayer
+
+on:
+  pull_request:
+    paths: ['invumusicplayer/**', '.github/workflows/invumusicplayer.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: invumusicplayer-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Fabric 26.3 / ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+    defaults:
+      run:
+        working-directory: invumusicplayer
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+      - name: Build and tests / Сборка и тесты
+        run: bash ./gradlew inspectClientApi build --no-daemon --stacktrace
+      - name: Test display / Дисплей для проверки
+        if: runner.os == 'Linux'
+        run: sudo apt-get update -qq && sudo apt-get install -y xvfb xauth mesa-utils libgl1-mesa-dri libglx-mesa0 libegl1 mesa-vulkan-drivers libpulse0
+      - name: Minecraft UI RU-EN / Интерфейс Minecraft RU-EN
+        if: runner.os == 'Linux'
+        env:
+          LIBGL_ALWAYS_SOFTWARE: '1'
+          GALLIUM_DRIVER: llvmpipe
+          SDL_VIDEODRIVER: x11
+        run: |
+          xvfb-run -a -s '-screen 0 1280x720x24 +extension GLX +render -noreset' bash -c 'glxinfo -B && timeout 6m bash ./gradlew runProductionClientGameTest --no-daemon --stacktrace'
+      - name: Screenshots and logs / Скриншоты и логи
+        if: always() && runner.os == 'Linux'
+        uses: actions/upload-artifact@v4
+        with:
+          name: minecraft-client-smoke
+          path: |
+            invumusicplayer/build/run/clientGameTest/screenshots/
+            invumusicplayer/build/run/clientGameTest/logs/
+            invumusicplayer/build/run/clientGameTest/crash-reports/
+          if-no-files-found: ignore
+          retention-days: 7
+      - name: Test reports / Результаты тестов
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tests-${{ matrix.os }}
+          path: invumusicplayer/build/reports/tests/
+          if-no-files-found: ignore
+          retention-days: 7
+      - name: Package RU-EN guides / Добавить инструкции RU-EN
+        run: |
+          mkdir -p build/distribution
+          for jar in build/libs/invumusicplayer-*.jar; do
+            case "$jar" in *-sources.jar|*-gametest.jar) continue ;; esac
+            cp "$jar" build/distribution/
+          done
+          cp README.md README.en.md VALIDATION.md VALIDATION.en.md THIRD_PARTY.md THIRD_PARTY.en.md LICENSE build/distribution/
+      - name: Downloadable mod and guides / Мод и инструкции
+        uses: actions/upload-artifact@v4
+        with:
+          name: invumusicplayer-fabric-26.3-${{ matrix.os }}
+          path: invumusicplayer/build/distribution/
+          if-no-files-found: error
+          retention-days: 14

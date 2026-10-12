@@ -1,0 +1,79 @@
+plugins {
+    id 'net.fabricmc.fabric-loom' version "${loom_version}"
+}
+version = project.mod_version
+group = 'dev.invumusicplayer'
+base { archivesName = 'invumusicplayer' }
+repositories { mavenCentral() }
+loom {
+    splitEnvironmentSourceSets()
+    mods { invumusicplayer { sourceSet sourceSets.main; sourceSet sourceSets.client } }
+}
+dependencies {
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    implementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+    // PCM output uses JavaSound. Bundle the MP3 and Vorbis SPI providers and their dependencies.
+    for (artifact in [
+        'com.tianscar.javasound:javasound-mp3:1.9.8',
+        'com.tianscar.javasound:javasound-vorbis:2.1.0',
+        'com.googlecode.soundlibs:tritonus-share:0.3.7.4',
+        'net.java.dev.jna:jna:5.18.1',
+        'net.java.dev.jna:jna-platform:5.18.1',
+        'com.twelvemonkeys.imageio:imageio-webp:3.12.0', 'com.twelvemonkeys.imageio:imageio-core:3.12.0',
+        'com.twelvemonkeys.imageio:imageio-metadata:3.12.0', 'com.twelvemonkeys.common:common-lang:3.12.0',
+        'com.twelvemonkeys.common:common-io:3.12.0', 'com.twelvemonkeys.common:common-image:3.12.0'
+    ]) { implementation artifact; include artifact }
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.13.4'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+processResources {
+    inputs.property 'version', project.version
+    filesMatching('fabric.mod.json') { expand version: project.version }
+}
+java { toolchain { languageVersion = JavaLanguageVersion.of(25) }; withSourcesJar() }
+tasks.withType(JavaCompile).configureEach { options.release = 25; options.encoding = 'UTF-8' }
+test { useJUnitPlatform() }
+jar { from('LICENSE') }
+
+// A small inspection task makes Minecraft API changes diagnosable in CI without stubs.
+tasks.register('inspectClientApi', Exec) {
+    doFirst {
+        commandLine 'javap', '-protected', '-classpath', sourceSets.client.compileClasspath.asPath,
+            'net.minecraft.client.Minecraft', 'net.minecraft.client.Options',
+            'net.minecraft.client.gui.Gui', 'net.minecraft.client.gui.components.EditBox',
+            'net.minecraft.util.Util$OS', 'net.minecraft.client.gui.Hud',
+            'net.minecraft.client.gui.components.EditBox$TextFormatter',
+            'com.mojang.blaze3d.Blaze3D', 'net.minecraft.client.gui.components.AbstractSliderButton',
+            'net.minecraft.client.gui.components.Button', 'net.minecraft.client.gui.components.AbstractButton',
+            'net.minecraft.client.gui.components.AbstractWidget', 'net.minecraft.client.gui.screens.options.controls.KeyBindsScreen',
+            'net.fabricmc.fabric.api.client.screen.v1.ScreenEvents'
+    }
+}
+
+fabricApi {
+    configureTests {
+        createSourceSet = true
+        modId = 'invumusicplayer-gametest'
+        enableGameTests = false
+        enableClientGameTests = true
+        eula = false
+    }
+}
+
+tasks.register('gametestJar', Jar) {
+    from sourceSets.gametest.output
+    archiveClassifier = 'gametest'
+}
+
+dependencies {
+    productionRuntimeMods "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+}
+
+tasks.register('runProductionClientGameTest', net.fabricmc.loom.task.prod.ClientProductionRunTask) {
+    mods.from(tasks.named('gametestJar'))
+    jvmArgs.add('-Dfabric.client.gametest')
+    jvmArgs.add('-Dfabric.client.gametest.modid=invumusicplayer-gametest')
+    runDir = file('build/run/clientGameTest')
+    useXVFB = false
+}

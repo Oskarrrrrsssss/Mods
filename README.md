@@ -1,8 +1,17 @@
-# Mods
+# InvuMusicPlayer
 
-Musicraft — клиентский музыкальный мод для Minecraft Java 26.3 + Fabric / Windows.
+**Русский** · [English](README.en.md)
 
-Проект: `Musicraft/`. Инструкция: `Musicraft/README.md`. Проверка: `Musicraft/VALIDATION.md`.
+Клиентский музыкальный мод для **Minecraft Java 26.3 + Fabric**, предназначенный для Windows.
+Локальные треки, интеграция Яндекс Музыки и «Моей волны», перемещаемый плеер и отключаемые 3D-субтитры.
+Интерфейс выбирает русский или английский язык по языку Minecraft.
 
-Сборки JAR: https://github.com/Oskarrrrrsssss/Mods/actions/workflows/musicraft.yml
-Изменения: https://github.com/Oskarrrrrsssss/Mods/pull/1
+- [Установка, управление и настройка](invumusicplayer/README.md)
+- [Результаты и ограничения проверки](invumusicplayer/VALIDATION.md)
+- [Зависимости и лицензии](invumusicplayer/THIRD_PARTY.md)
+- [Готовые сборки в GitHub Actions](https://github.com/Oskarrrrrsssss/Mods/actions/workflows/invumusicplayer.yml)
+- [Изменения проекта](https://github.com/Oskarrrrrsssss/Mods/pull/1)
+
+Яндекс Музыка подключается токеном внутри игры. Интеграция использует неофициальный API;
+воспроизведение с настоящим аккаунтом ещё не проверено. Для локальной музыки аккаунт не нужен.
+Исходный код находится в папке `invumusicplayer/`.
