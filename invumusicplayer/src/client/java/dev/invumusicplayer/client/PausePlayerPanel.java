@@ -14,7 +14,8 @@ final class PausePlayerPanel {
     private final AudioVisualizer visualizer=new AudioVisualizer();
     private PausePlayerPanel(int width){this.width=width;}
     static void install(Screen screen,int scaledWidth) {
-        int firstMenuX=Screens.getWidgets(screen).stream().mapToInt(w->w.getX()).min().orElse(scaledWidth/2-102);
+        int firstMenuX=Screens.getWidgets(screen).stream().filter(w->w instanceof net.minecraft.client.gui.components.Button)
+            .mapToInt(w->w.getX()).min().orElse(scaledWidth/2-102);
         PausePlayerPanel panel=new PausePlayerPanel(Math.min(228,Math.max(32,firstMenuX-16)));
         panel.button(screen,0,panel.width,"invumusicplayer.menu.open",PlayerMenuButton.Icon.MUSIC,true,b->Minecraft.getInstance().gui.setScreen(new PlayerScreen()));
         int usable=panel.width-8,part=usable/3;
