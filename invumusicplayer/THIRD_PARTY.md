@@ -34,3 +34,7 @@ Minecraft — проприетарное ПО; игра не включена в
 ## Отдельно загружаемые инструменты YouTube
 
 Мод автоматически подготавливает на Windows x64 официальные yt-dlp (Unlicense; компоненты исполняемого файла имеют отдельные лицензии), Deno (MIT), FFmpeg/ffprobe LGPL из BtbN/FFmpeg-Builds. Исполняемые файлы не встроены в JAR. Их источники, условия и сборочные скрипты доступны в https://github.com/yt-dlp/yt-dlp, https://github.com/denoland/deno и https://github.com/BtbN/FFmpeg-Builds. Информация сохраняется рядом с инструментами в NOTICE.txt.
+
+## Встроенный движок Spotify
+
+Нативный адаптер `native-spotify` распространяется под MIT и использует librespot (MIT), commit `4a005903e078d512456fb008aaa9ba6246881bd9`: https://github.com/librespot-org/librespot. Исходники адаптера, Cargo.toml и Cargo.lock включены в репозиторий. Полный список Rust-зависимостей и версий находится в Cargo.lock; декодер Symphonia — MPL-2.0: https://github.com/pdeljanov/Symphonia. При распространении бинарников сохраняй уведомления этих компонентов и исходники по их лицензиям. Движок воспроизводит авторизованный поток и не включает музыку или данные пользователей. Spotify — товарный знак Spotify AB; мод не является официальным продуктом Spotify.

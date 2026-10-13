@@ -3,7 +3,7 @@
   "id": "invumusicplayer",
   "version": "${version}",
   "name": "invumusicplayer",
-  "description": "Client music player: Yandex Music, My Wave, local tracks, YouTube audio and equalizer. / Клиентский плеер: Яндекс Музыка, Моя волна, локальные треки, звук YouTube и эквалайзер.",
+  "description": "Client music player: Yandex Music, experimental native Spotify, local tracks, YouTube audio and equalizer. / Клиентский плеер: Яндекс Музыка, экспериментальный встроенный Spotify, локальные треки, звук YouTube и эквалайзер.",
   "license": "MIT",
   "environment": "client",
   "entrypoints": {

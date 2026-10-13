@@ -28,9 +28,9 @@ dependencies {
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 tasks.register('buildNativeSpotify', Exec) {
-    inputs.dir('native-spotify/src'); inputs.file('native-spotify/Cargo.toml')
+    inputs.dir('native-spotify/src'); inputs.file('native-spotify/Cargo.toml'); inputs.file('native-spotify/Cargo.lock')
     outputs.file('native-spotify/target/release/invumusicplayer-spotify' + (System.getProperty('os.name').startsWith('Windows') ? '.exe' : ''))
-    commandLine 'cargo', 'build', '--release', '--manifest-path', 'native-spotify/Cargo.toml'
+    commandLine 'cargo', 'build', '--release', '--locked', '--manifest-path', 'native-spotify/Cargo.toml'
 }
 tasks.register('stageNativeSpotify', Exec) {
     dependsOn 'buildNativeSpotify'
@@ -51,7 +51,7 @@ tasks.register('verifyYouTubeTools', JavaExec) {
     mainClass = 'dev.invumusicplayer.core.YouTubeTools'
     args file('build/youtube-tools-smoke').absolutePath
 }
-jar { from('LICENSE') }
+jar { from('LICENSE'); from('native-spotify/licenses') { into 'META-INF/licenses/spotify' } }
 
 // A small inspection task makes Minecraft API changes diagnosable in CI without stubs.
 tasks.register('inspectClientApi', Exec) {

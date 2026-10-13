@@ -1,6 +1,7 @@
 """Stage the decoder built on this platform; credentials and audio are never packaged."""
 from pathlib import Path
-import hashlib,platform,shutil
+import hashlib,platform,shutil,sys
+if hasattr(sys.stdout,"reconfigure"):sys.stdout.reconfigure(encoding="utf-8")
 root=Path(__file__).resolve().parents[1]
 windows=platform.system()=='Windows'
 name='invumusicplayer-spotify'+('.exe' if windows else '')

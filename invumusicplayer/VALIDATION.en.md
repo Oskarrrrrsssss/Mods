@@ -2,7 +2,7 @@
 
 [Русский](VALIDATION.md) · **English**
 
-Release 0.2.7 checks queue, artwork and spectrum analyzer fixes.
+Release 0.2.8 checks queue, artwork and spectrum analyzer fixes.
 The installation ZIP prefixes this report with the particular CI run, test counts and JAR SHA-256.
 
 - Previous-track regression tests reproduce list-neighbour jumps, explicit-queue skipping, first-track wrapping and skipped loading selections in Wave. They verify one-step history traversal, retracing across Wave batches without extra requests, queue removal/selection and saved continuation. Native Minecraft checks use actual mouse-button events for full/Escape Previous controls and the registered hotkey.
@@ -14,7 +14,7 @@ The installation ZIP prefixes this report with the particular CI run, test count
 - HTTP fixtures verify the artwork preset, metadata refresh after 404, `error: null`, audio signatures, recommendations and absent CDN authorization headers.
 - FFT tests use synthetic low/high tones, stereo audio and source silence. A real AudioEngine decoder with a controlled output line verifies identical spectral levels at 100%, 10% and 0% output gain, while the written audio is attenuated/muted.
 - Client verification additionally presses real Escape/F1 keys, checks pause-menu transport controls, return paths from player/settings, continued singleplayer pause in settings and both enabled/disabled F1 visibility. Screenshots record actual rendering; pause controls are checked for overlap with vanilla buttons.
-- The actual Minecraft client on Linux verifies Russian/English screens, JPEG/PNG/WebP textures, three ready track thumbnails, settings, HUD and leaving a world. The audio device is replaced by a test fixture; this does not verify audible playback on Windows.
+- The actual Minecraft client on Linux verifies Russian/English screens, JPEG/PNG/WebP textures, ready queue/library thumbnails, settings, HUD and leaving a world. The audio device is replaced by a test fixture; this does not verify audible playback on Windows.
 - CI attempts to download a public Yandex CDN artwork without credentials. If available, the client test uses it, and the installation report states the result. An unavailable CDN is not represented as a successful network check.
 - Windows CI prepares real yt-dlp, Deno, FFmpeg/ffprobe, verifies downloads, runs each binary and converts a synthetic tone to MP3 for JavaSound decoding. This does not verify playback of a particular YouTube video.
 - Windows DPAPI token persistence is checked on Windows and skipped on Linux.
@@ -23,3 +23,5 @@ No actual OAuth token is used in automated tests. Changed integration with a rea
 3D lyrics are removed: no UI, shortcut, renderer or network lyrics requests remain.
 
 [CI runs and artifacts](https://github.com/Oskarrrrrsssss/Mods/actions/workflows/invumusicplayer.yml).
+
+0.2.8 checks: PKCE/state/loopback OAuth, Spotify catalogue JSON variants, pagination, likes/library removal, secret-safe errors and separate logins. The native decoder builds on Windows/Linux; a synthetic tone passes through the production IPC/JavaSound pipe with position, FFT and 100/10/0% volume checks. This does not verify real Spotify playback. Minecraft checks RU/EN service selection, search/queue and seek preview/release, stale-drag cancellation and pause preservation. Local tests cover MP3 ID3v2.2/2.3/2.4, Unicode descriptions, Ogg picture comments, malformed tags and adjacent-artwork priority.

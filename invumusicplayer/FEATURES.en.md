@@ -1,8 +1,8 @@
-# User requirements audit — 0.2.7
+# User requirements audit — 0.2.8
 
 [Русский](FEATURES.md) · **English**
 
-This audit covers the resulting code and automated checks. Later requests supersede earlier ones: audio continues on world exit, Spotify is deferred, and unreliable 3D lyrics and manually assigned Liked moods are removed.
+This audit covers the resulting code and automated checks. Later requests supersede earlier ones: audio continues on world exit, native Spotify is added, and unreliable 3D lyrics and manually assigned Liked moods are removed.
 
 | Request | Result and verification |
 |---|---|
@@ -22,12 +22,14 @@ This audit covers the resulting code and automated checks. Later requests supers
 | Independently hide players or hide all | Settings → Visibility: game, title, Escape and Hide all. Panels and controls disappear while music continues. Recovery through Minecraft Options. Native/persistence tests. |
 | Mouse wheel in full player | Pages in both directions; boundary/outside-list scrolling leaves playback unchanged. Actual client test. |
 | Volume sliders on full/mini players, separated from buttons | Dedicated row/gap; removed from settings. Click and spacing checks. |
-| Equalizer instead of time, independent of volume | 24 FFT bands from decoded audio before output gain. Identical spectrum at 100%, 10% and 0%; audible output changes. Pause/source silence fade it. Decoder/controlled-output tests. |
+| Equalizer together with time, independent of volume | 24 FFT bands from decoded audio before output gain. Identical spectrum at 100%, 10% and 0%; audible output changes. Pause/source silence fade it. Decoder/controlled-output tests. |
 | Settings before entering a world, remembered token, continued audio after world exit | Access via mini player/Minecraft Options; encrypted DPAPI token restored automatically, queue/settings persisted. Windows DPAPI checked on Windows; world exit checked in Minecraft. |
 | YouTube audio only, title and no artwork | Import and Windows yt-dlp/Deno/FFmpeg preparation implemented. Real tools downloaded/started; synthetic MP3 conversion/decoding checked. **No real video was played in automated verification; a particular link's playback remains unconfirmed.** |
 | Current-line 3D lyrics without outlines | Entire feature removed with user authorization: reliable Yandex synchronization was not established. No lyrics requests or broken hidden toggle remain. |
 | Liked mood without manual assignment | Filter/manual tags removed as later requested: supported Yandex metadata lacks reliable per-track moods. My Wave mood retained. |
-| Spotify | Deferred by the user; no Spotify integration/switch. |
+| Spotify | Service selection, two PKCE logins, encrypted persistence, Web API catalogue/library and bundled librespot PCM playback inside the mod. Native pipe tested with synthetic audio; real Premium playback remains unconfirmed. |
 | Russian/English instructions | UI, README, audit, verification report and dependencies in both languages included in ZIP. |
 
 Verification limits: physical audio on the user's computer, particular YouTube videos and changed real-account Yandex operations need testing in that environment. Automated tests use synthetic audio/protocol fixtures and require no user token. Details: [VALIDATION.en.md](VALIDATION.en.md).
+
+Added in 0.2.8: main-screen queue, library search, seek committed once on release; removed Stop, ±10 and separate full-screen Pause; manual-queue shuffle and embedded/local artwork. Details and Spotify setup: [README](README.en.md).

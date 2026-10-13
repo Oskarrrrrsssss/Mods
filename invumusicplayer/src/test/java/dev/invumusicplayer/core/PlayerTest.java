@@ -471,6 +471,9 @@ final class PlayerTest {
             p.next();await(()->p.playing()&&p.current().id().equals("x"));p.next();await(()->p.playing()&&p.current().id().equals("b"));
         }
     }
+    @Test void shuffleChangesManualQueueWithoutRestartingAndRestoresItsRemainder()throws Exception{
+        Audio audio=new Audio();try(Player p=new Player(temp,new Remote(),audio)){p.choose(List.of(track("a"),track("b"),track("c")),0);await(p::playing);p.enqueue(track("x"));p.enqueue(track("y"));p.enqueue(track("z"));var before=p.queue();int count=audio.played.size();p.toggleShuffle();assertNotEquals(before.subList(0,3),p.queue().subList(0,3));assertNotEquals(before.subList(3,5),p.queue().subList(3,5));assertEquals(count,audio.played.size());p.toggleShuffle();assertEquals(before,p.queue());p.toggleShuffle();Track consumed=p.queue().getFirst();p.next();await(()->p.playing()&&p.current().equals(consumed));p.toggleShuffle();assertEquals(before.stream().filter(t->!t.equals(consumed)).toList(),p.queue());}
+    }
     @Test void shuffledSelectionPlaysChosenSongAndConsumesEverySongExactlyOnce() throws Exception {
         Audio audio=new Audio();List<Track> tracks=List.of(track("a"),track("b"),track("c"),track("d"));
         try(Player p=new Player(temp,new Remote(),audio)){

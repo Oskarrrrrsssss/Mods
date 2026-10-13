@@ -34,3 +34,7 @@ No third-party music, artwork, lyrics, reference mod files, or account data are 
 ## Separately downloaded YouTube helpers
 
 On Windows x64 the mod prepares official yt-dlp (Unlicense; executable components have separate licenses), Deno (MIT), and LGPL FFmpeg/ffprobe from BtbN/FFmpeg-Builds. Binaries are not bundled inside the JAR. Sources, license terms and build scripts are available at https://github.com/yt-dlp/yt-dlp, https://github.com/denoland/deno and https://github.com/BtbN/FFmpeg-Builds. Information is saved alongside helpers in NOTICE.txt.
+
+## Bundled Spotify engine
+
+The MIT `native-spotify` adapter uses MIT librespot, commit `4a005903e078d512456fb008aaa9ba6246881bd9`: https://github.com/librespot-org/librespot. Adapter source, Cargo.toml and Cargo.lock are in the repository. Cargo.lock records all Rust dependency versions; the Symphonia decoder is MPL-2.0: https://github.com/pdeljanov/Symphonia. Preserve component notices and corresponding source under their licenses when distributing binaries. The engine plays authenticated streams and includes no music or user credentials. Spotify is a trademark of Spotify AB; this mod is not an official Spotify product.

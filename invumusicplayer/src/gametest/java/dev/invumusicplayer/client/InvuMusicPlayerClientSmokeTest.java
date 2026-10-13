@@ -70,6 +70,7 @@ public final class InvuMusicPlayerClientSmokeTest implements FabricClientGameTes
             context.clickScreenButton("invumusicplayer.player.settings");context.waitForScreen(SettingsScreen.class);
             context.takeScreenshot("invu-en-settings-without-world");context.clickScreenButton("invumusicplayer.settings.back");
             checkPlayerWheel(context,fixture);
+            checkSeekSlider(context,fixture);
             context.clickScreenButton("invumusicplayer.player.done");context.waitForScreen(net.minecraft.client.gui.screens.TitleScreen.class);
             try (TestSingleplayerContext world = context.worldBuilder().create()) {
                 world.getConnection().waitForChunksRender();
@@ -265,6 +266,18 @@ public final class InvuMusicPlayerClientSmokeTest implements FabricClientGameTes
         var click=new net.minecraft.client.input.MouseButtonEvent(button.getX()+button.getWidth()/2.0,button.getY()+button.getHeight()/2.0,new net.minecraft.client.input.MouseButtonInfo(com.mojang.blaze3d.platform.InputConstants.MOUSE_BUTTON_LEFT,0));
         check(client.gui.screen().mouseClicked(click,false),"Previous did not receive a native mouse click");client.gui.screen().mouseReleased(click);
     });}
+
+    private static void checkSeekSlider(ClientGameTestContext context,Player fixture){
+        context.runOnClient(client->{var screen=client.gui.screen();check(screen.children().stream().filter(EditBox.class::isInstance).count()==0,"Search input remained on main queue screen");
+            for(String key:new String[]{"stop","seek_back","seek_forward","pause"})check(Screens.getWidgets(screen).stream().noneMatch(w->w.getMessage().equals(Component.translatable("invumusicplayer.player."+key))),"Obsolete transport control remained: "+key);
+            var slider=screen.children().stream().filter(SeekSlider.class::isInstance).map(SeekSlider.class::cast).findFirst().orElseThrow();long position=fixture.positionMillis(),revision=fixture.playbackRevision();
+            var event=new net.minecraft.client.input.MouseButtonEvent(slider.getX()+4+(slider.getWidth()-8)*.75,slider.getY()+slider.getHeight()/2.0,new net.minecraft.client.input.MouseButtonInfo(com.mojang.blaze3d.platform.InputConstants.MOUSE_BUTTON_LEFT,0));
+            slider.onClick(event,false);check(slider.dragging()&&fixture.positionMillis()==position&&fixture.playbackRevision()==revision,"Seek preview restarted audio before release");slider.onRelease(event);check(fixture.playbackRevision()==revision+1,"Seek release did not commit exactly once");
+        });context.waitFor(client->fixture.playing()&&!fixture.loading()&&Math.abs(fixture.positionMillis()-2250)<2);context.takeScreenshot("invu-en-main-queue-seek-and-equalizer");
+        context.runOnClient(client->{var slider=client.gui.screen().children().stream().filter(SeekSlider.class::isInstance).map(SeekSlider.class::cast).findFirst().orElseThrow();var event=new net.minecraft.client.input.MouseButtonEvent(slider.getX()+4+(slider.getWidth()-8)*.2,slider.getY()+8,new net.minecraft.client.input.MouseButtonInfo(com.mojang.blaze3d.platform.InputConstants.MOUSE_BUTTON_LEFT,0));slider.onClick(event,false);fixture.choose(fixture.items(),1);long revision=fixture.playbackRevision();slider.onRelease(event);check(fixture.playbackRevision()==revision,"Old drag sought a newly selected track");});context.waitFor(client->fixture.playing()&&!fixture.loading());
+        context.runOnClient(client->{fixture.togglePause();var slider=client.gui.screen().children().stream().filter(SeekSlider.class::isInstance).map(SeekSlider.class::cast).findFirst().orElseThrow();var event=new net.minecraft.client.input.MouseButtonEvent(slider.getX()+4+(slider.getWidth()-8)*.5,slider.getY()+8,new net.minecraft.client.input.MouseButtonInfo(com.mojang.blaze3d.platform.InputConstants.MOUSE_BUTTON_LEFT,0));slider.onClick(event,false);slider.onRelease(event);});context.waitFor(client->!fixture.loading()&&!fixture.playing()&&fixture.positionMillis()==1500);
+        context.runOnClient(client->fixture.choose(fixture.items(),0));context.waitFor(client->fixture.playing()&&!fixture.loading());
+    }
 
     private static void checkPlayerWheel(ClientGameTestContext context,Player fixture) {
         var original=fixture.items();var first=fixture.current();long position=fixture.positionMillis();

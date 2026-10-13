@@ -14,18 +14,20 @@ import java.util.function.Consumer;
 /** Official Web API for metadata/library only. Full audio is handled by NativeSpotifyPlayback. */
 public final class SpotifyMusic implements AutoCloseable {
     interface Transport { Response send(String method,String path,String bearer,String body)throws Exception; }
+    interface TokenExchange{SpotifyAuthorization.Tokens exchange(Map<String,String> values)throws Exception;}
     record Response(int status,String body,String retryAfter){}
     private static final HttpClient HTTP=HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(15)).followRedirects(HttpClient.Redirect.NEVER).build();
     private static final List<String> SCOPES=List.of("user-read-private","user-library-read","user-library-modify","playlist-read-private","playlist-read-collaborative","playlist-modify-private","playlist-modify-public");
-    private final Settings settings;private final TokenStore credentials;private final Transport transport;
+    private final Settings settings;private final TokenStore credentials;private final Transport transport;private final TokenExchange tokenExchange;
     private final ExecutorService worker=Executors.newSingleThreadExecutor(r->{Thread t=new Thread(r,"invumusicplayer-spotify-account");t.setDaemon(true);return t;});
     private volatile String access="",refresh="",owner="";private volatile long expiry,retryUntil;private long generation;private volatile boolean connecting,closed,verified;
     private final Object tokenLock=new Object();
     private volatile Messages.Text status=Messages.text("invumusicplayer.account.disconnected"),error=Messages.EMPTY;
     private SpotifyAuthorization flow;private volatile URI loginUri;
     public SpotifyMusic(Path game,Settings settings){this(settings,new TokenStore(game.resolve("config/invumusicplayer-spotify-auth.dat")),SpotifyMusic::sendHttp);worker.submit(this::restore);}
-    SpotifyMusic(Settings settings,TokenStore credentials,Transport transport){this.settings=settings;this.credentials=credentials;this.transport=transport;}
-    private void restore(){long request; synchronized(this){if(closed||settings.spotifyClientId.isBlank())return;request=generation;}
+    SpotifyMusic(Settings settings,TokenStore credentials,Transport transport){this(settings,credentials,transport,values->SpotifyAuthorization.tokenRequest(URI.create("https://accounts.spotify.com/api/token"),values));}
+    SpotifyMusic(Settings settings,TokenStore credentials,Transport transport,TokenExchange exchange){this.settings=settings;this.credentials=credentials;this.transport=transport;this.tokenExchange=exchange;}
+    void restore(){long request; synchronized(this){if(closed||settings.spotifyClientId.isBlank())return;request=generation;}
         try{String saved=credentials.load();if(saved.isBlank())return;JsonObject data=JsonParser.parseString(new String(Base64.getDecoder().decode(saved),StandardCharsets.UTF_8)).getAsJsonObject();
             synchronized(this){if(closed||generation!=request||!data.get("client_id").getAsString().equals(settings.spotifyClientId))return;refresh=TokenInput.normalize(data.get("refresh").getAsString());}
             refreshAccess();String user=profile();synchronized(this){if(closed||generation!=request)return;owner=user;verified=true;status=Messages.text("invumusicplayer.spotify.connected");}
@@ -44,7 +46,7 @@ public final class SpotifyMusic implements AutoCloseable {
     private void apply(SpotifyAuthorization.Tokens t){access=t.access();if(!t.refresh().isBlank())refresh=t.refresh();expiry=System.nanoTime()+TimeUnit.SECONDS.toNanos(t.expires()-10);}
     private void saveRefresh()throws IOException{if(refresh.isBlank())throw Messages.error("invumusicplayer.spotify.oauth_failed");JsonObject data=new JsonObject();data.addProperty("client_id",settings.spotifyClientId);data.addProperty("refresh",refresh);credentials.save(Base64.getEncoder().encodeToString(data.toString().getBytes(StandardCharsets.UTF_8)));}
     private void refreshAccess()throws Exception{synchronized(tokenLock){String refreshToken,clientId;long request; synchronized(this){if(closed||refresh.isBlank())throw Messages.error("invumusicplayer.spotify.login_required");refreshToken=refresh;clientId=settings.spotifyClientId;request=generation;}
-        var tokens=SpotifyAuthorization.tokenRequest(URI.create("https://accounts.spotify.com/api/token"),Map.of("grant_type","refresh_token","refresh_token",refreshToken,"client_id",clientId));
+        var tokens=tokenExchange.exchange(Map.of("grant_type","refresh_token","refresh_token",refreshToken,"client_id",clientId));
         synchronized(this){if(closed||request!=generation)throw Messages.error("invumusicplayer.spotify.login_required");apply(tokens);saveRefresh();}
     }}
     private String profile()throws Exception{JsonObject me=request("GET","/me",null).getAsJsonObject();String user=str(me,"id","");if(user.isBlank())throw Messages.error("invumusicplayer.spotify.response_invalid");if(me.has("product")&&!str(me,"product","").equals("premium"))throw Messages.error("invumusicplayer.spotify.premium_required");return user;}

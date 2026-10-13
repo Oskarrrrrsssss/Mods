@@ -10,7 +10,7 @@ import net.minecraft.network.chat.Component;
 public final class SeekSlider extends AbstractSliderButton{
     private final float scale;private final boolean label;private boolean dragging;private long revision,duration;
     public SeekSlider(int x,int y,int width,float scale,boolean label){super(x,y,width,Math.max(7,Math.round(16*scale)),Component.empty(),0);this.scale=scale;this.label=label;active=InvuMusicPlayerClient.player.canSeek();updateMessage();}
-    @Override protected void updateMessage(){if(InvuMusicPlayerClient.player==null)return;var p=InvuMusicPlayerClient.player;long total=dragging?duration:p.durationMillis();setMessage(Component.translatable("invumusicplayer.slider.seek",PlayerHud.time((long)(value*total)),PlayerHud.time(total)));}
+    @Override protected void updateMessage(){if(InvuMusicPlayerClient.player==null)return;var p=InvuMusicPlayerClient.player;long total=dragging?duration:p.durationMillis();setMessage(Component.translatable("invumusicplayer.slider.seek",PlayerHud.time((long)(value*total)),PlayerHud.time(total)));setTooltip(net.minecraft.client.gui.components.Tooltip.create(getMessage()));}
     @Override protected void applyValue(){updateMessage();if(!dragging){var p=InvuMusicPlayerClient.player;if(p.canSeek())p.seek((long)(value*p.durationMillis()));}}
     @Override public void onClick(MouseButtonEvent event,boolean doubleClick){var p=InvuMusicPlayerClient.player;dragging=true;revision=p.playbackRevision();duration=p.durationMillis();super.onClick(event,doubleClick);}
     @Override public void onRelease(MouseButtonEvent event){super.onRelease(event);if(!dragging)return;dragging=false;var p=InvuMusicPlayerClient.player;if(p.playbackRevision()==revision&&p.canSeek())p.seek((long)(value*duration));}

@@ -2,8 +2,8 @@
 setlocal
 chcp 65001 >nul
 cd /d "%~dp0"
-echo InvuMusicPlayer: Minecraft 26.3 + Fabric. Requires JDK 25 and Rust (cargo).
-echo InvuMusicPlayer: Minecraft 26.3 + Fabric. Требуются JDK 25 и Rust (cargo).
+echo InvuMusicPlayer: Minecraft 26.3 + Fabric. Requires JDK 25, Rust (cargo), Python 3.
+echo InvuMusicPlayer: Minecraft 26.3 + Fabric. Требуются JDK 25, Rust (cargo), Python 3.
 call gradlew.bat build --no-daemon
 if errorlevel 1 (
     echo Build failed. Read the error above; no mod was installed.

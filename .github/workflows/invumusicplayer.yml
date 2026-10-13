@@ -37,8 +37,9 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: invumusicplayer/native-spotify
+          cache-on-failure: true
       - name: Spotify decoder tests / Проверка декодера Spotify
-        run: cargo test --release --manifest-path native-spotify/Cargo.toml
+        run: cargo test --release --locked --manifest-path native-spotify/Cargo.toml
       - name: Decoder dependency lock / Версии зависимостей декодера
         if: always()
         uses: actions/upload-artifact@v4
