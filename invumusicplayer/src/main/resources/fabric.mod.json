@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "id": "invumusicplayer",
+  "version": "${version}",
+  "name": "invumusicplayer",
+  "description": "Client music player: Yandex Music, experimental native Spotify, local tracks, YouTube audio and equalizer. / Клиентский плеер: Яндекс Музыка, экспериментальный встроенный Spotify, локальные треки, звук YouTube и эквалайзер.",
+  "license": "MIT",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "dev.invumusicplayer.client.InvuMusicPlayerClient"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.19.5",
+    "minecraft": "26.3",
+    "java": ">=25",
+    "fabric-api": ">=0.162.0"
+  }
+}

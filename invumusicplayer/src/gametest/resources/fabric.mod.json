@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "id": "invumusicplayer-gametest",
+  "version": "1.0.0",
+  "name": "InvuMusicPlayer Client Smoke Tests",
+  "environment": "client",
+  "entrypoints": {
+    "fabric-client-gametest": ["dev.invumusicplayer.client.InvuMusicPlayerClientSmokeTest"]
+  },
+  "depends": {
+    "invumusicplayer": "*",
+    "fabric-client-gametest-api-v1": "*"
+  }
+}
