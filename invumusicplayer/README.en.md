@@ -6,6 +6,12 @@ A client music player: Yandex Music, My Wave, local music and YouTube audio.
 Move and scale the in-game panel and customize its colors and opacity.
 The interface follows Minecraft's language: Russian or English.
 
+## Previous track fix (0.2.7)
+
+Each Previous click returns one step through the track selection history, including explicit queue entries, shuffle, manual selection and My Wave batch boundaries. Rapid selections are remembered even while audio downloads. At the beginning, the first track restarts instead of wrapping to the last.
+
+Next retraces forward before resuming the playlist/Wave; this continuation also appears in the queue and is saved on restart. Buttons in the full/Escape players and the Previous hotkey use the same navigation.
+
 ## Player visibility and mouse wheel (0.2.6)
 
 **Player settings → Visibility** has separate switches for the in-game HUD, title-menu mini player and Escape-menu mini player. **Hide all** temporarily hides all three, including their controls, without stopping music or changing individual switches. The title menu contains only the mini player: no separate invumusic button.
@@ -50,7 +56,7 @@ Shuffle, repeat, like/dislike toggles and configurable hotkeys are retained. A s
 ## Installation
 
 1. Download the Windows artifact from a successful [GitHub Actions](https://github.com/Oskarrrrrsssss/Mods/actions/workflows/invumusicplayer.yml) run. Sign in to GitHub to access the private repository.
-2. Extract the ZIP. Put **invumusicplayer-0.2.6-alpha.jar** in the selected Minecraft instance's `mods` folder.
+2. Extract the ZIP. Put **invumusicplayer-0.2.7-alpha.jar** in the selected Minecraft instance's `mods` folder.
 3. Install Fabric Loader and Fabric API for **26.3**, and use Java 25.
 4. Remove the previous Musicraft/invumusicplayer JAR from `mods` to avoid loading two copies. Settings, queue and authorization are retained.
 5. Select the music-note icon in the title-screen mini player or press **M** in a world.
@@ -138,7 +144,7 @@ JDK 25 and internet access are required. In the `invumusicplayer` folder:
 build-windows.cmd
 ```
 
-Alternatively, `gradlew.bat build`; on Linux, `bash ./gradlew build`. Output: `build/libs/invumusicplayer-0.2.6-alpha.jar`.
+Alternatively, `gradlew.bat build`; on Linux, `bash ./gradlew build`. Output: `build/libs/invumusicplayer-0.2.7-alpha.jar`.
 Gradle Wrapper 9.7.1, Loom 1.18.4, Fabric Loader 0.19.5, Fabric API 0.162.0+26.3. Minecraft 26.3 uses unobfuscated names; Yarn is unnecessary.
 Tests: `gradlew.bat test`. Actual-client verification: `gradlew.bat runProductionClientGameTest`; the test mod is excluded from the installable JAR.
 Windows helper verification without downloading a video: `gradlew.bat verifyYouTubeTools`.

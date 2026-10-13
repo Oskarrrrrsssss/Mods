@@ -1,4 +1,4 @@
-# User requirements audit — 0.2.6
+# User requirements audit — 0.2.7
 
 [Русский](FEATURES.md) · **English**
 
@@ -14,6 +14,7 @@ This audit covers the resulting code and automated checks. Later requests supers
 | Track/library artwork | Fixed CDN preset and metadata refresh; JPEG/PNG/WebP and retry. Native textures/thumbnails verified; public Yandex CDN artwork used when network access permits. |
 | Queue, playlists, Liked and playlist deletion | Explicit queue priority, saved queue/current track, Yandex URL import and local playlists. Confirmed deletion of local/owned Yandex playlists. Liked pages and Play all across every page. Core/native tests. |
 | Like/dislike symbols and second like only removes like | Separate stateful icons, toggle removal. Dislike auto-skips only in Wave. Verified. |
+| Previous without jumping across songs | Selection-history navigation rather than list adjacency; explicit queue, loading, shuffle and Wave batches. Next retraces forward; no first-to-last wrapping. Regression tests, mouse events and hotkey in Minecraft. |
 | Shuffle and custom hotkeys | Persisted shuffle, explicit queue priority; Minecraft key bindings including like/dislike. Registration/playback tests. |
 | Custom interface, album colors and active navigation | Custom panels/buttons, album card, highlighted current section/track, adaptive colors. RU/EN screenshots. |
 | Move, scale, colors and opacity | Separate HUD/menu editors, dragging, four corners and persisted settings. Native checks. |

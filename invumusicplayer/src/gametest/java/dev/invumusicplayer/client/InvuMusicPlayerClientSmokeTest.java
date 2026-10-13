@@ -77,6 +77,7 @@ public final class InvuMusicPlayerClientSmokeTest implements FabricClientGameTes
                 context.takeScreenshot("invumusicplayer-en-world-hud-and-equalizer");
                 checkPauseAndHiddenHud(context,fixture);
                 openPlayerWithHotkey(context);
+                checkPreviousInput(context,fixture);
                 context.waitFor(client -> InvuMusicPlayerClient.cover.ready() && ((PlayerScreen)client.gui.screen()).readyArtworkCount() == 3);
                 context.runOnClient(client->{var widgets=client.gui.screen().children();var volume=widgets.stream().filter(ValueSlider.class::isInstance).map(ValueSlider.class::cast).findFirst().orElseThrow();
                     for(var w:widgets)if(w instanceof net.minecraft.client.gui.components.Button button){int distance=button.getY()>=volume.getY()?button.getY()-(volume.getY()+volume.getHeight()):volume.getY()-(button.getY()+button.getHeight());check(distance>=10,"Full-player volume is adjacent to clickable buttons");}
@@ -229,6 +230,27 @@ public final class InvuMusicPlayerClientSmokeTest implements FabricClientGameTes
         context.getInput().pressKey(SDLScancode.SDL_SCANCODE_ESCAPE);context.waitForScreen(net.minecraft.client.gui.screens.TitleScreen.class);
         check(context.computeOnClient(client->MenuPlayerPanel.isVisible(client.gui.screen())),"Could not restore hidden title player without a world");
     }
+    private static void checkPreviousInput(ClientGameTestContext context,Player fixture){
+        var tracks=fixture.items();
+        context.runOnClient(client->fixture.choose(tracks,0));context.waitFor(client->fixture.playing()&&!fixture.loading());
+        for(int index=1;index<3;index++){int selected=index;context.runOnClient(client->fixture.choose(tracks,selected));context.waitFor(client->fixture.playing()&&!fixture.loading());}
+        clickPrevious(context);context.waitFor(client->fixture.playing()&&!fixture.loading());
+        check(fixture.current().title().equals("Second"),"A single full-player mouse click skipped more than one previous track");
+        context.takeScreenshot("invu-en-previous-single-click");
+        clickPrevious(context);context.waitFor(client->fixture.playing()&&!fixture.loading());
+        check(fixture.current().title().equals("First"),"Second Previous click did not take exactly one step");
+        context.clickScreenButton("invumusicplayer.player.done");context.waitForScreen(null);
+        context.runOnClient(client->fixture.choose(tracks,2));context.waitFor(client->fixture.playing()&&!fixture.loading());
+        press(context,"previous");context.waitFor(client->fixture.playing()&&!fixture.loading()&&fixture.current().title().equals("First"));
+        check(fixture.current().title().equals("First"),"Previous hotkey selected a list neighbour instead of the last selected track");
+        context.runOnClient(client->fixture.choose(tracks,0));context.waitFor(client->fixture.playing()&&!fixture.loading());
+        openPlayerWithHotkey(context);
+    }
+    private static void clickPrevious(ClientGameTestContext context){context.runOnClient(client->{
+        var button=Screens.getWidgets(client.gui.screen()).stream().filter(w->w.getMessage().equals(Component.translatable("invumusicplayer.menu.previous"))).findFirst().orElseThrow();
+        var click=new net.minecraft.client.input.MouseButtonEvent(button.getX()+button.getWidth()/2.0,button.getY()+button.getHeight()/2.0,new net.minecraft.client.input.MouseButtonInfo(com.mojang.blaze3d.platform.InputConstants.MOUSE_BUTTON_LEFT,0));
+        check(client.gui.screen().mouseClicked(click,false),"Previous did not receive a native mouse click");client.gui.screen().mouseReleased(click);
+    });}
 
     private static void checkPlayerWheel(ClientGameTestContext context,Player fixture) {
         var original=fixture.items();var first=fixture.current();long position=fixture.positionMillis();
@@ -277,7 +299,7 @@ public final class InvuMusicPlayerClientSmokeTest implements FabricClientGameTes
         context.clickScreenButton("invumusicplayer.player.pause");context.waitFor(client->!fixture.playing());
         context.waitForScreen(PauseScreen.class);context.clickScreenButton("invumusicplayer.player.play");context.waitFor(client->fixture.playing());
         context.clickScreenButton("invumusicplayer.menu.next");context.waitFor(client->fixture.current().title().equals("Second")&&fixture.playing());
-        context.clickScreenButton("invumusicplayer.menu.previous");context.waitFor(client->fixture.current().title().equals("First")&&fixture.playing());
+        clickPrevious(context);context.waitFor(client->fixture.current().title().equals("First")&&fixture.playing());
         context.clickScreenButton("invumusicplayer.menu.settings");context.waitForScreen(SettingsScreen.class);
         check(context.computeOnClient(client->client.gui.screen().isPauseScreen()),"Settings opened from Escape resumed the singleplayer world");
         checkSelected(context,"invumusicplayer.tabs.audio");

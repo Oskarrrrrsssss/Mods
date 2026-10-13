@@ -99,6 +99,113 @@ final class PlayerTest {
             assertEquals("b", audio.played.getLast());
         } finally { remote.blockAudio.countDown(); }
     }
+    @Test void previousReturnsToTheSelectedTrackRatherThanAnUnplayedListNeighbour() throws Exception {
+        Audio audio=new Audio();List<Track> tracks=List.of(track("a"),track("b"),track("c"),track("d"));
+        try(Player p=new Player(temp,new Remote(),audio)){
+            p.choose(tracks,0);await(p::playing);p.choose(tracks,3);await(()->p.playing()&&p.current().id().equals("d"));
+            p.previous();await(()->p.playing()&&p.current().id().equals("a"));
+            assertEquals(List.of("a","d","a"),audio.played);
+            assertEquals(List.of("d"),p.queue().stream().map(Track::id).toList());
+            p.next();await(()->p.playing()&&p.current().id().equals("d"));p.next();assertFalse(p.playing());
+        }
+    }
+    @Test void previousTraversesExplicitQueueOneTrackAtATimeAndNextRetracesIt() throws Exception {
+        Audio audio=new Audio();List<Track> tracks=List.of(track("a"),track("b"),track("c"));
+        try(Player p=new Player(temp,new Remote(),audio)){
+            p.choose(tracks,0);await(p::playing);p.next();await(()->p.playing()&&p.current().id().equals("b"));
+            p.enqueue(track("x"));p.enqueue(track("y"));p.next();await(()->p.playing()&&p.current().id().equals("x"));
+            p.previous();await(()->p.playing()&&p.current().id().equals("b"));
+            assertEquals(List.of("x","y","c"),p.queue().stream().map(Track::id).toList());
+            p.previous();await(()->p.playing()&&p.current().id().equals("a"));
+            assertEquals(List.of("b","x","y","c"),p.queue().stream().map(Track::id).toList());
+            for(String id:List.of("b","x","y","c")){p.next();await(()->p.playing()&&p.current().id().equals(id));}
+            p.next();assertFalse(p.playing());
+        }
+    }
+    @Test void previousAtTheBeginningRestartsTheFirstTrackWithoutWrappingToTheLast() throws Exception {
+        Audio audio=new Audio();
+        try(Player p=new Player(temp,new Remote(),audio)){
+            p.choose(List.of(track("a"),track("b"),track("c")),0);await(p::playing);audio.position=5000;
+            p.previous();await(()->p.playing()&&p.positionMillis()==0);assertEquals("a",p.current().id());
+            p.next();await(()->p.playing()&&p.current().id().equals("b"));
+        }
+    }
+    @Test void wavePreviousDoesNotSkipASelectedTrackWhoseDownloadIsStillLoading() throws Exception {
+        Remote remote=new Remote();Audio audio=new Audio();remote.blockAudio=new CountDownLatch(1);remote.blockedId="b";
+        try(Player p=new Player(temp,remote,audio)){
+            p.startWave();await(p::playing);p.next();await(()->remote.fetched.contains("b"));
+            p.next();await(()->p.playing()&&p.current().id().equals("c"));p.previous();
+            assertEquals("b",p.current().id());assertTrue(p.loading());
+            remote.blockAudio.countDown();await(()->p.playing()&&p.current().id().equals("b"));
+            p.previous();await(()->p.playing()&&p.current().id().equals("a"));
+        }finally{remote.blockAudio.countDown();}
+    }
+    @Test void waveHistoryRetracesAcrossBatchBoundariesWithoutFetchingOrDuplicatingTracks() throws Exception {
+        Remote remote=new Remote();Audio audio=new Audio();
+        try(Player p=new Player(temp,remote,audio)){
+            p.startWave();await(p::playing);
+            for(String id:List.of("b","c","d","e")){p.next();await(()->p.playing()&&p.current().id().equals(id));}
+            for(String id:List.of("d","c","b")){p.previous();await(()->p.playing()&&p.current().id().equals(id));}
+            assertEquals(List.of("c","d","e"),p.queue().stream().map(Track::id).toList());
+            for(String id:List.of("c","d","e")){p.next();await(()->p.playing()&&p.current().id().equals(id));}
+            assertEquals(2,remote.waveCalls.get());assertTrue(p.isWave());
+        }
+    }
+    @Test void queuedSelectionAndRemovalRespectHistoryForwardEntries() throws Exception {
+        Audio audio=new Audio();
+        try(Player p=new Player(temp,new Remote(),audio)){
+            p.choose(List.of(track("a"),track("b"),track("c"),track("d")),0);await(p::playing);
+            for(String id:List.of("b","c")){p.next();await(()->p.playing()&&p.current().id().equals(id));}
+            p.previous();await(()->p.playing()&&p.current().id().equals("b"));p.previous();await(()->p.playing()&&p.current().id().equals("a"));
+            p.removeQueued(0);assertEquals(List.of("c","d"),p.queue().stream().map(Track::id).toList());
+            p.enqueue(track("x"));assertEquals(List.of("c","x","d"),p.queue().stream().map(Track::id).toList());
+            p.playQueued(1);await(()->p.playing()&&p.current().id().equals("x"));
+            assertEquals(List.of("d"),p.queue().stream().map(Track::id).toList());
+            p.previous();await(()->p.playing()&&p.current().id().equals("a"));
+            assertEquals(List.of("x","d"),p.queue().stream().map(Track::id).toList());
+        }
+    }
+    @Test void restoredPlaylistFallsBackToExactlyOnePreviousPosition() throws Exception {
+        var tracks=List.of(track("a"),track("b"),track("c"));
+        try(Player p=new Player(temp,new Remote(),new Audio())){p.choose(tracks,2);await(p::playing);}
+        try(Player p=new Player(temp,new Remote(),new Audio())){p.previous();await(()->p.playing()&&p.current().id().equals("b"));p.previous();await(()->p.playing()&&p.current().id().equals("a"));}
+    }
+    @Test void backNavigationContinuationIsSavedWithoutLosingExplicitQueueOrder() throws Exception {
+        try(Player p=new Player(temp,new Remote(),new Audio())){
+            p.choose(List.of(track("a"),track("b"),track("c"),track("d")),0);await(p::playing);
+            for(String id:List.of("b","c")){p.next();await(()->p.playing()&&p.current().id().equals(id));}
+            p.enqueue(track("x"));p.previous();await(()->p.playing()&&p.current().id().equals("b"));
+            assertEquals(List.of("c","x","d"),p.queue().stream().map(Track::id).toList());
+        }
+        try(Player p=new Player(temp,new Remote(),new Audio())){
+            assertEquals("b",p.current().id());assertEquals(List.of("c","x","d"),p.queue().stream().map(Track::id).toList());
+            for(String id:List.of("c","x","d")){p.next();await(()->p.playing()&&p.current().id().equals(id));}
+            p.next();assertFalse(p.playing());
+        }
+    }
+    @Test void selectingAForwardEntryPreservesTheRemainingHistoryAndPlaylistCursor() throws Exception {
+        try(Player p=new Player(temp,new Remote(),new Audio())){
+            p.choose(List.of(track("a"),track("b"),track("c"),track("d")),0);await(p::playing);
+            for(String id:List.of("b","c")){p.next();await(()->p.playing()&&p.current().id().equals(id));}
+            p.previous();await(()->p.playing()&&p.current().id().equals("b"));p.previous();await(()->p.playing()&&p.current().id().equals("a"));
+            p.playQueued(0);await(()->p.playing()&&p.current().id().equals("b"));
+            assertEquals(List.of("c","d"),p.queue().stream().map(Track::id).toList());
+            p.toggleShuffle();p.next();await(()->p.playing()&&p.current().id().equals("c"));
+            p.next();await(()->p.playing()&&p.current().id().equals("d"));p.next();assertFalse(p.playing());
+        }
+    }
+    @Test void shuffledPreviousKeepsTheActualPlaybackOrderAcrossExplicitQueueEntries() throws Exception {
+        try(Player p=new Player(temp,new Remote(),new Audio())){
+            p.toggleShuffle();p.choose(List.of(track("a"),track("b"),track("c"),track("d")),0);await(p::playing);
+            p.next();await(()->p.playing()&&!p.current().id().equals("a"));String previous=p.current().id();
+            p.enqueue(track("x"));p.next();await(()->p.playing()&&p.current().id().equals("x"));
+            p.previous();await(()->p.playing()&&p.current().id().equals(previous));
+            p.previous();await(()->p.playing()&&p.current().id().equals("a"));
+            p.next();await(()->p.playing()&&p.current().id().equals(previous));
+            p.next();await(()->p.playing()&&p.current().id().equals("x"));
+            assertEquals(2,p.queue().size());assertFalse(p.queue().stream().anyMatch(t->t.id().equals(previous)||t.id().equals("a")||t.id().equals("x")));
+        }
+    }
     @Test void stalledSearchDoesNotBlockPlaybackAndStaleListIsDiscarded() throws Exception {
         Remote remote = new Remote(); Audio audio = new Audio(); remote.blockSearch = new CountDownLatch(1);
         try (Player player = new Player(temp, remote, audio)) {

@@ -2,9 +2,10 @@
 
 [Русский](VALIDATION.md) · **English**
 
-Release 0.2.6 checks queue, artwork and spectrum analyzer fixes.
+Release 0.2.7 checks queue, artwork and spectrum analyzer fixes.
 The installation ZIP prefixes this report with the particular CI run, test counts and JAR SHA-256.
 
+- Previous-track regression tests reproduce list-neighbour jumps, explicit-queue skipping, first-track wrapping and skipped loading selections in Wave. They verify one-step history traversal, retracing across Wave batches without extra requests, queue removal/selection and saved continuation. Native Minecraft checks use actual mouse-button events for full/Escape Previous controls and the registered hotkey.
 - Visibility persistence tests cover legacy settings, independent game/title/Escape flags and preserving individual choices when toggling Hide all. Native tests hide and restore title/Escape controls through Minecraft Options, verify uninterrupted music and the absence of a standalone title-menu button. Full-player wheel tests check both directions, page bounds and scrolling outside the list without changing playback.
 - Shuffle tests cover chosen-track preservation, unique traversal, explicit queue priority, restoring order and persisted mode. Rating tests verify that a second like only removes the like. Liked-list race protection, wave-list updates after each skip and playlist deletion with current playback retained are checked.
 - Native client navigation additionally opens My Wave settings from the title menu, toggles like/dislike/shuffle icons, pages through Liked, plays the full list, verifies active sections and separated volume controls, moves/scales the menu player, checks library artwork, cancels/confirms local playlist deletion and retains playing audio when leaving the world.

@@ -10,5 +10,5 @@ if errorlevel 1 (
     echo Сборка не удалась. Прочитайте ошибку выше; мод не установлен.
     exit /b 1
 )
-echo Built / Собрано: build\libs\invumusicplayer-0.2.6-alpha.jar
+echo Built / Собрано: build\libs\invumusicplayer-0.2.7-alpha.jar
 endlocal

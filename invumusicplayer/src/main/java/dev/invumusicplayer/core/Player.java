@@ -75,7 +75,7 @@ public final class Player implements AutoCloseable {
     private volatile boolean loading, wave, closed, connecting;
     private volatile Messages.Text status = Messages.text("invumusicplayer.status.local_library"), error = Messages.EMPTY;
     private volatile Messages.Text accountStatus = Messages.text("invumusicplayer.account.disconnected"), accountError = Messages.EMPTY;
-    private final Deque<Track> history = new ArrayDeque<>();
+    private final Deque<Track> history = new ArrayDeque<>(), forward = new ArrayDeque<>();
     private byte[] currentAudio;
     private boolean currentStarted;
     private long listenedMillis;
@@ -250,6 +250,7 @@ public final class Player implements AutoCloseable {
     }
     public synchronized void choose(List<Track> selectedQueue, int index) {
         if (closed || index < 0 || index >= selectedQueue.size()) return;
+        forward.clear();
         originalQueue = List.copyOf(selectedQueue); queueIndex = index;
         if(settings.shuffle) {
             List<Track> shuffled=new ArrayList<>(selectedQueue);Track chosen=shuffled.remove(index);Collections.shuffle(shuffled);shuffled.addFirst(chosen);
@@ -260,9 +261,7 @@ public final class Player implements AutoCloseable {
         requestStartLocked(queue.get(queueIndex), true);
     }
     private void requestStartLocked(Track track, boolean remember) {
-        if (remember && currentStarted && current != null && !current.id().equals(track.id())) {
-            history.push(current); while (history.size() > 100) history.removeLast();
-        }
+        if (remember && current != null && !current.id().equals(track.id())) remember(history,current);
         long request = invalidateLocked();
         current = track; publishWaveList();cover = covers.getOrDefault(track.id(), EMPTY_IMAGE); currentAudio = null; currentStarted = false;
         coverStatus = Messages.EMPTY;
@@ -282,6 +281,7 @@ public final class Player implements AutoCloseable {
             } catch (Exception e) { synchronized (this) { if (valid(request)) { loading = false; fail(e); } } }
         });
     }
+    private static void remember(Deque<Track> list,Track track){list.push(track);while(list.size()>100)list.removeLast();}
     private void startAudioLocked(Track track, byte[] data, long request, long target, boolean paused,
                                   long waveRequest, boolean sendStarted) {
         audio.play(() -> track.remote() ? new ByteArrayInputStream(data) : Files.newInputStream(track.file()),
@@ -342,6 +342,7 @@ public final class Player implements AutoCloseable {
     }
     public synchronized void startWave() {
         if (closed) return;showingLiked=false;listingSection="wave";
+        if(current!=null)remember(history,current);forward.clear();
         long request = invalidateLocked(); wave = true; ++waveSerial;
         long listRequest = ++listSerial; cancel(listJob);
         waveListSerial = listRequest;
@@ -368,6 +369,7 @@ public final class Player implements AutoCloseable {
         if (!valid(expectedRequest)) return;
         Track previous = current; long played = listenedMillis + audio.playedMillis();
         if (wave && previous != null && currentStarted && !previous.batchId().isBlank()) submitFeedback(finished ? "trackFinished" : "skip", previous, played, waveSerial);
+        if (!forward.isEmpty()) { requestStartLocked(forward.removeFirst(),true);persist();return; }
         if (!upNext.isEmpty()) { Track explicit = upNext.removeFirst(); requestStartLocked(explicit, true); persist(); return; }
         if (!wave) {
             if (queue.isEmpty()) { invalidateLocked(); loading = false; return; }
@@ -381,9 +383,6 @@ public final class Player implements AutoCloseable {
         } else if (queueIndex + 1 < queue.size()) {
             ++queueIndex; requestStartLocked(queue.get(queueIndex), true);
         } else {
-            if (currentStarted && previous != null) {
-                history.push(previous); while (history.size() > 100) history.removeLast();
-            }
             long request = invalidateLocked(); currentStarted = false;
             status = Messages.text("invumusicplayer.status.wave_next");
             String seed = queue.isEmpty() ? null : queue.getLast().id();
@@ -402,15 +401,17 @@ public final class Player implements AutoCloseable {
         }
     }
     public synchronized void previous() {
-        if (closed) return;
-        Track track;
-        if (!wave && queue.size() > 1) {
-            queueIndex = (queueIndex - 1 + queue.size()) % queue.size(); track = queue.get(queueIndex);
-        } else {
-            track = history.poll();
-            if (track != null) { if(wave)queueIndex=queue.indexOf(track);else { ++waveSerial;queue=List.of(track);originalQueue=queue;queueIndex=0; } }
+        if (closed || current==null) return;
+        Track track=history.pollFirst();
+        // Old saved sessions have no history. Use the current position, never wrap to the last song.
+        if(track==null){int position=queueIndex>=0&&queueIndex<queue.size()&&queue.get(queueIndex).equals(current)&&forward.isEmpty()?queueIndex:queue.indexOf(current);
+            if(position>0)track=queue.get(position-1);
         }
-        if (track != null) requestStartLocked(track, false); else seek(0);
+        if(track==null){seek(0);return;}
+        if(wave&&currentStarted&&!current.batchId().isBlank())submitFeedback("skip",current,listenedMillis+audio.playedMillis(),waveSerial);
+        remember(forward,current);
+        // The playlist cursor keeps its continuation point; Next retraces forward before resuming it.
+        requestStartLocked(track,false);
     }
     public synchronized void togglePause() {
         if (closed || loading) return;
@@ -431,7 +432,7 @@ public final class Player implements AutoCloseable {
     }
     public float[] spectrum() { return playing() ? audio.spectrum() : new float[24]; }
     public synchronized boolean isWave() { return wave; }
-    public synchronized List<Track> queue() { List<Track> list = new ArrayList<>(upNext); if (queueIndex + 1 < queue.size()) list.addAll(queue.subList(queueIndex + 1, queue.size())); return List.copyOf(list); }
+    public synchronized List<Track> queue() { List<Track> list = new ArrayList<>(forward);list.addAll(upNext); if (queueIndex + 1 < queue.size()) list.addAll(queue.subList(queueIndex + 1, queue.size())); return List.copyOf(list); }
     public synchronized void enqueue(Track track) { upNext.addLast(track); persist(); }
     /** Play one upcoming item without copying the explicit queue into the playlist. */
     public synchronized void playQueued(int index) {
@@ -439,28 +440,33 @@ public final class Player implements AutoCloseable {
         if (wave && currentStarted && current != null && !current.batchId().isBlank())
             submitFeedback("skip", current, listenedMillis + audio.playedMillis(), waveSerial);
         Track selected;
-        if (index < upNext.size()) {
+        if(index<forward.size()){
+            selected=null;for(int i=0;i<=index;i++)selected=forward.removeFirst();
+        }else if (index-forward.size() < upNext.size()) {
             List<Track> explicit = new ArrayList<>(upNext);
-            selected = explicit.remove(index); upNext.clear(); upNext.addAll(explicit);
+            selected = explicit.remove(index-forward.size()); upNext.clear(); upNext.addAll(explicit);forward.clear();
         } else {
-            queueIndex += 1 + index - upNext.size(); selected = queue.get(queueIndex);
+            queueIndex += 1 + index - forward.size() - upNext.size(); selected = queue.get(queueIndex);forward.clear();
         }
         requestStartLocked(selected, true);
     }
     public synchronized void removeQueued(int index) {
         if(index<0)return;
+        if(index<forward.size()){List<Track> copy=new ArrayList<>(forward);copy.remove(index);forward.clear();forward.addAll(copy);persist();publishWaveList();return;}
+        index-=forward.size();
         if(index<upNext.size()){List<Track> copy=new ArrayList<>(upNext);copy.remove(index);upNext.clear();upNext.addAll(copy);}
         else{int actual=queueIndex+1+index-upNext.size();if(actual>=queue.size())return;List<Track> copy=new ArrayList<>(queue);Track removed=copy.remove(actual);queue=List.copyOf(copy);List<Track> original=new ArrayList<>(originalQueue);original.remove(removed);originalQueue=List.copyOf(original);}
         persist();
     }
     public synchronized void clearQueue() {
-        upNext.clear(); queue = current == null ? List.of() : List.of(current); originalQueue=queue;queueIndex = current == null ? -1 : 0;
+        upNext.clear();forward.clear(); queue = current == null ? List.of() : List.of(current); originalQueue=queue;queueIndex = current == null ? -1 : 0;
         wave = false; ++waveSerial; persist();
     }
     public void volume(float value) { settings.volume = Float.isFinite(value) ? Math.max(0, Math.min(1, value)) : settings.volume; audio.volume(settings.volume); }
     public synchronized void suspend() { invalidateLocked(); loading = false; currentStarted = false; persist(); }
     private synchronized void persist() {
-        SessionStore.State snapshot = new SessionStore.State(queue, queueIndex, wave, List.copyOf(upNext), Map.copyOf(ratings), Map.copyOf(savedLists), current,originalQueue,Map.of());
+        List<Track> pending=new ArrayList<>(forward);pending.addAll(upNext);
+        SessionStore.State snapshot = new SessionStore.State(queue, queueIndex, wave, List.copyOf(pending), Map.copyOf(ratings), Map.copyOf(savedLists), current,originalQueue,Map.of());
         submitStorage(() -> { try { session.save(snapshot); } catch (IOException e) { error = Messages.text("invumusicplayer.error.session_save"); } });
     }
     public synchronized void toggleShuffle() {
@@ -566,7 +572,7 @@ public final class Player implements AutoCloseable {
         if (closed) return;
         invalidateLocked(); loading = false; current = null; currentStarted = false;
         cover = EMPTY_IMAGE; coverStatus = Messages.EMPTY; currentAudio = null; wave = false; ++waveSerial;
-        queue = List.of(); originalQueue=queue;queueIndex = -1; upNext.clear(); persist(); status = Messages.text("invumusicplayer.status.stopped");
+        queue = List.of(); originalQueue=queue;queueIndex = -1; upNext.clear();history.clear();forward.clear(); persist(); status = Messages.text("invumusicplayer.status.stopped");
     }
     private long invalidateLocked() {
         ++serial; cancel(playbackJob); cancel(coverJob); playbackJob = coverJob = null;
