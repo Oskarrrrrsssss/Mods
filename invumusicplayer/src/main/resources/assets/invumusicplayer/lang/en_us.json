@@ -226,5 +226,12 @@
   "invumusicplayer.menu.position": "Menu player position",
   "invumusicplayer.menu.reset": "Reset position",
   "invumusicplayer.menu.drag_hint": "Drag the card; size and position are saved.",
-  "invumusicplayer.library.play_all": "Play all liked"
+  "invumusicplayer.library.play_all": "Play all liked",
+  "invumusicplayer.tabs.visibility": "Visibility",
+  "invumusicplayer.visibility.game": "In game: %s",
+  "invumusicplayer.visibility.title": "Title menu: %s",
+  "invumusicplayer.visibility.pause": "Escape menu: %s",
+  "invumusicplayer.visibility.all": "Hide all: %s",
+  "invumusicplayer.visibility.all_hint": "Hide every ambient player without stopping music. Individual visibility choices are retained.",
+  "invumusicplayer.visibility.recovery": "Restore hidden players in Minecraft Options → Player settings."
 }

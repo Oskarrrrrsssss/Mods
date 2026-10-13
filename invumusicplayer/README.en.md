@@ -6,15 +6,25 @@ A client music player: Yandex Music, My Wave, local music and YouTube audio.
 Move and scale the in-game panel and customize its colors and opacity.
 The interface follows Minecraft's language: Russian or English.
 
-## Equalizer and navigation (0.2.5)
+## Player visibility and mouse wheel (0.2.6)
+
+**Player settings → Visibility** has separate switches for the in-game HUD, title-menu mini player and Escape-menu mini player. **Hide all** temporarily hides all three, including their controls, without stopping music or changing individual switches. The title menu contains only the mini player: no separate invumusic button.
+
+To restore hidden players, open **Minecraft Options → Player settings → Visibility**. This entry is available before entering a world. The full player remains available through the assigned hotkey in game.
+
+Scroll over the full player’s track list to change pages; scrolling outside the list leaves its page unchanged. Scrolling does not change playback.
+
+[Previous requirements and verification limits](FEATURES.en.md).
+
+## Equalizer and navigation (0.2.6)
 
 The FFT reads decoded audio **before output volume is applied**. Reducing the volume, including muting it with the slider, does not shrink the spectrum. Pause and silence in the source still stop/fade it. Volume controls continue to change the actual sound.
 
-General settings now contain only **Controls** and **Appearance**. My Wave preferences are available from their separate button in the main menu and full player. No duplicate wave tab or volume slider remains in general settings.
+General settings contain **Controls**, **Style** and **Visibility**. My Wave preferences are available from their separate button in the main menu and full player. No duplicate wave tab or volume slider remains in general settings.
 
 The current track is also highlighted in the full player; inactive page arrows are disabled. Restoring a wave restores the correct section and current/upcoming list. The menu editor supports all four corners and free dragging, and the Library icon is an open book. Opening Account from a paused player keeps singleplayer paused.
 
-## Compact menu player (0.2.5)
+## Compact menu player (0.2.6)
 
 The title and Escape menus show a compact album card. The default scale is 50%; the large top button is removed. The music-note icon below the card opens the full player. The other icons open Settings, My Wave preferences, Library and Menu player position. Music continues when leaving a world.
 
@@ -40,10 +50,10 @@ Shuffle, repeat, like/dislike toggles and configurable hotkeys are retained. A s
 ## Installation
 
 1. Download the Windows artifact from a successful [GitHub Actions](https://github.com/Oskarrrrrsssss/Mods/actions/workflows/invumusicplayer.yml) run. Sign in to GitHub to access the private repository.
-2. Extract the ZIP. Put **invumusicplayer-0.2.5-alpha.jar** in the selected Minecraft instance's `mods` folder.
+2. Extract the ZIP. Put **invumusicplayer-0.2.6-alpha.jar** in the selected Minecraft instance's `mods` folder.
 3. Install Fabric Loader and Fabric API for **26.3**, and use Java 25.
 4. Remove the previous Musicraft/invumusicplayer JAR from `mods` to avoid loading two copies. Settings, queue and authorization are retained.
-5. Open **Invu Player** on the title screen or press **M** in a world.
+5. Select the music-note icon in the title-screen mini player or press **M** in a world.
 
 The standard game folder is `%APPDATA%\.minecraft\`. Other launchers may use separate instance folders.
 Do not install `-sources.jar` or `-gametest.jar`.
@@ -60,9 +70,9 @@ Do not install `-sources.jar` or `-gametest.jar`.
 
 Like/dislike have buttons; their shortcuts are initially unbound.
 Configure all shortcuts under **Player Settings → Key bindings** or Minecraft Controls.
-The mod's screens do not pause gameplay.
+Opening the player during gameplay keeps the world running. Screens opened from Escape retain the existing singleplayer pause.
 
-**Settings → Appearance**: artwork, equalizer, opacity and RGB background/text/accent colors.
+**Settings → Style**: artwork, equalizer, opacity and RGB background/text/accent colors.
 **Move HUD**: drag the panel, choose a corner or change its scale. Volume uses a slider.
 **Settings → Controls → Retry artwork** retries the current artwork download.
 Hover over the player's status to read the full error and artwork status. Import errors also appear in Library.
@@ -128,7 +138,7 @@ JDK 25 and internet access are required. In the `invumusicplayer` folder:
 build-windows.cmd
 ```
 
-Alternatively, `gradlew.bat build`; on Linux, `bash ./gradlew build`. Output: `build/libs/invumusicplayer-0.2.5-alpha.jar`.
+Alternatively, `gradlew.bat build`; on Linux, `bash ./gradlew build`. Output: `build/libs/invumusicplayer-0.2.6-alpha.jar`.
 Gradle Wrapper 9.7.1, Loom 1.18.4, Fabric Loader 0.19.5, Fabric API 0.162.0+26.3. Minecraft 26.3 uses unobfuscated names; Yarn is unnecessary.
 Tests: `gradlew.bat test`. Actual-client verification: `gradlew.bat runProductionClientGameTest`; the test mod is excluded from the installable JAR.
 Windows helper verification without downloading a video: `gradlew.bat verifyYouTubeTools`.

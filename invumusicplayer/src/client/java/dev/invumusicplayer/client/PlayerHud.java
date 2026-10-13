@@ -11,7 +11,7 @@ public final class PlayerHud {
     public static void preview(GuiGraphicsExtractor g) { draw(g, true); }
     public static boolean isVisible() {
         var client=Minecraft.getInstance();var player=InvuMusicPlayerClient.player;
-        return player!=null && client.level!=null && player.settings.hud && player.current()!=null
+        return player!=null && client.level!=null && player.settings.playersVisible && player.settings.hud && player.current()!=null
             && client.gui.screen()==null && (!client.gui.hud.isHidden() || player.settings.hudWhileHidden);
     }
     private static void draw(GuiGraphicsExtractor g, boolean preview) {

@@ -226,5 +226,12 @@
   "invumusicplayer.menu.position": "Положение в меню",
   "invumusicplayer.menu.reset": "Сброс позиции",
   "invumusicplayer.menu.drag_hint": "Перетащи карточку. Размер и положение сохраняются.",
-  "invumusicplayer.library.play_all": "Играть понравившиеся"
+  "invumusicplayer.library.play_all": "Играть понравившиеся",
+  "invumusicplayer.tabs.visibility": "Видимость",
+  "invumusicplayer.visibility.game": "В игре: %s",
+  "invumusicplayer.visibility.title": "Главное меню: %s",
+  "invumusicplayer.visibility.pause": "Меню Escape: %s",
+  "invumusicplayer.visibility.all": "Скрыть все: %s",
+  "invumusicplayer.visibility.all_hint": "Скрывает все плееры, не останавливая музыку. Отдельные настройки видимости сохраняются.",
+  "invumusicplayer.visibility.recovery": "Вернуть скрытые плееры: Настройки Minecraft → Настройки плеера."
 }

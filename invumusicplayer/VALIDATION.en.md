@@ -2,9 +2,10 @@
 
 [Русский](VALIDATION.md) · **English**
 
-Release 0.2.5 checks queue, artwork and spectrum analyzer fixes.
+Release 0.2.6 checks queue, artwork and spectrum analyzer fixes.
 The installation ZIP prefixes this report with the particular CI run, test counts and JAR SHA-256.
 
+- Visibility persistence tests cover legacy settings, independent game/title/Escape flags and preserving individual choices when toggling Hide all. Native tests hide and restore title/Escape controls through Minecraft Options, verify uninterrupted music and the absence of a standalone title-menu button. Full-player wheel tests check both directions, page bounds and scrolling outside the list without changing playback.
 - Shuffle tests cover chosen-track preservation, unique traversal, explicit queue priority, restoring order and persisted mode. Rating tests verify that a second like only removes the like. Liked-list race protection, wave-list updates after each skip and playlist deletion with current playback retained are checked.
 - Native client navigation additionally opens My Wave settings from the title menu, toggles like/dislike/shuffle icons, pages through Liked, plays the full list, verifies active sections and separated volume controls, moves/scales the menu player, checks library artwork, cancels/confirms local playlist deletion and retains playing audio when leaving the world.
 - Client checks also ensure that the wave tab is absent from general settings, all menu corners work and opening Account from Escape retains pause. Restored wave section/list are covered by core tests.

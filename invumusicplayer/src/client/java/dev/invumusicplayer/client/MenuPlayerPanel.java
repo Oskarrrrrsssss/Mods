@@ -23,7 +23,9 @@ final class MenuPlayerPanel {
         int y=s.menuPositioned?8+Math.round(s.menuY*Math.max(0,h-ph-16)):defaultTop;
         return new Layout(Math.max(0,Math.min(x,w-pw)),Math.max(0,Math.min(y,h-ph)),scale);
     }
+    static boolean isVisible(Screen screen){var s=InvuMusicPlayerClient.player.settings;return s.playersVisible&&(screen instanceof net.minecraft.client.gui.screens.TitleScreen?s.titlePlayer:screen instanceof net.minecraft.client.gui.screens.PauseScreen&&s.pausePlayer);}
     static void install(Screen screen,int w,int h){
+        if(!isVisible(screen))return;
         Layout l=layout(w,h,screen instanceof net.minecraft.client.gui.screens.TitleScreen);
         row(screen,l,206,new String[]{"menu.previous","player.pause","menu.next"},new PlayerMenuButton.Icon[]{PlayerMenuButton.Icon.PREVIOUS,PlayerMenuButton.Icon.PAUSE,PlayerMenuButton.Icon.NEXT},new Runnable[]{()->InvuMusicPlayerClient.player.previous(),()->InvuMusicPlayerClient.player.togglePause(),()->InvuMusicPlayerClient.player.next()});
         row(screen,l,230,new String[]{"player.like","player.shuffle","player.dislike"},new PlayerMenuButton.Icon[]{PlayerMenuButton.Icon.LIKE,PlayerMenuButton.Icon.SHUFFLE,PlayerMenuButton.Icon.DISLIKE},new Runnable[]{()->InvuMusicPlayerClient.player.rate(true),()->InvuMusicPlayerClient.player.toggleShuffle(),()->InvuMusicPlayerClient.player.rate(false)});

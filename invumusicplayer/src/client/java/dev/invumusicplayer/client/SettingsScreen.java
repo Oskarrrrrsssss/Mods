@@ -14,8 +14,8 @@ public final class SettingsScreen extends Screen {
     private void toggle(String key,int x,int y,boolean enabled,Runnable action){addRenderableWidget(new ModernButton(x,y,150,20,Component.translatable(key,UiText.toggle(enabled)),b->{action.run();s.normalize();InvuMusicPlayerClient.player.saveSettings();rebuildWidgets();}));}
     private void slider(String key,int x,int y,double initial,double min,double max,java.util.function.DoubleConsumer action){addRenderableWidget(new ValueSlider(x,y,150,key,initial,min,max,action));}
     @Override protected void init(){
-        int x=width/2-155,y=62;String[] tabs={"audio","appearance"};
-        for(int i=0;i<tabs.length;i++){int selected=i;var b=new ModernButton(x+i*160,32,150,20,Component.translatable("invumusicplayer.tabs."+tabs[i]),v->{tab=selected;rebuildWidgets();});b.selected(()->tab==selected);addRenderableWidget(b);}
+        int x=width/2-155,y=62;String[] tabs={"audio","appearance","visibility"};
+        for(int i=0;i<tabs.length;i++){int selected=i;var b=new ModernButton(x+i*105,32,100,20,Component.translatable("invumusicplayer.tabs."+tabs[i]),v->{tab=selected;rebuildWidgets();});b.selected(()->tab==selected);addRenderableWidget(b);}
         if(tab==0){
             button("invumusicplayer.menu.position",x,y,150,()->minecraft.gui.setScreen(new MenuEditor(this)));
             toggle("invumusicplayer.settings.repeat",x+160,y,s.repeat,()->s.repeat=!s.repeat);
@@ -26,13 +26,19 @@ public final class SettingsScreen extends Screen {
             toggle("invumusicplayer.settings.shuffle",x,y+90,s.shuffle,()->InvuMusicPlayerClient.player.toggleShuffle());
             toggle("invumusicplayer.settings.cover_colors",x+160,y+90,s.menuCoverColors,()->s.menuCoverColors=!s.menuCoverColors);
         }else if(tab==1){
-            toggle("invumusicplayer.settings.hud",x,y,s.hud,()->s.hud=!s.hud);
+            toggle("invumusicplayer.settings.cover_colors",x,y,s.menuCoverColors,()->s.menuCoverColors=!s.menuCoverColors);
             toggle("invumusicplayer.settings.covers",x+160,y,s.covers,()->s.covers=!s.covers);
             toggle("invumusicplayer.settings.visualizer",x,y+25,s.visualizer,()->s.visualizer=!s.visualizer);
             slider("invumusicplayer.slider.opacity",x+160,y+25,s.opacity*100,20,100,v->s.opacity=(float)v/100);
             String[] names={"accent","background","text"};int[] colors={s.accent,s.background,s.textColor};
             for(int i=0;i<3;i++){final int row=i;for(int c=0;c<3;c++){final int shift=16-c*8;final int column=c;int xx=x+c*105;
                 addRenderableWidget(new ValueSlider(xx,y+55+i*27,100,"invumusicplayer.color."+names[i]+"_"+new String[]{"r","g","b"}[c],(colors[i]>>shift)&255,0,255,v->{int value=(int)Math.round(v);if(row==0)s.accent=(s.accent&~(255<<shift))|(value<<shift);else if(row==1)s.background=(s.background&~(255<<shift))|(value<<shift);else s.textColor=(s.textColor&~(255<<shift))|(value<<shift);}));}}
+        }else if(tab==2){
+            toggle("invumusicplayer.visibility.game",x,y,s.hud,()->s.hud=!s.hud);
+            toggle("invumusicplayer.visibility.title",x,y+30,s.titlePlayer,()->s.titlePlayer=!s.titlePlayer);
+            toggle("invumusicplayer.visibility.pause",x,y+60,s.pausePlayer,()->s.pausePlayer=!s.pausePlayer);
+            toggle("invumusicplayer.visibility.all",x+160,y,!s.playersVisible,()->s.playersVisible=!s.playersVisible);
+            var hide=children().get(children().size()-1);if(hide instanceof net.minecraft.client.gui.components.AbstractWidget w)w.setTooltip(net.minecraft.client.gui.components.Tooltip.create(Component.translatable("invumusicplayer.visibility.all_hint")));
         }
         button("invumusicplayer.settings.back",x+80,height-30,150,this::onClose);
     }

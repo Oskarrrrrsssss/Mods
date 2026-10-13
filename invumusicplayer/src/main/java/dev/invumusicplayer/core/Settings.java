@@ -7,6 +7,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 
 public final class Settings {
+    public boolean playersVisible=true, titlePlayer=true, pausePlayer=true;
     public boolean hud = true, covers = true;
     public boolean hudWhileHidden = true, shuffle = false, menuCoverColors = true;
     public boolean menuPositioned=false;

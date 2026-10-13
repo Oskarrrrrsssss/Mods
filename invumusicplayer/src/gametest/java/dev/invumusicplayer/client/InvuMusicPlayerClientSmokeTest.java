@@ -59,6 +59,7 @@ public final class InvuMusicPlayerClientSmokeTest implements FabricClientGameTes
             context.waitForScreen(net.minecraft.client.gui.screens.TitleScreen.class);
             context.waitFor(client->InvuMusicPlayerClient.cover.ready());
             context.takeScreenshot("invu-en-title-screen-entry");
+            checkVisibility(context,fixture);
             context.runOnClient(client->{client.options.guiScale().set(2);client.resizeGui();});context.waitTicks(4);
             context.takeScreenshot("invu-en-title-card-large");
             context.runOnClient(client->{client.options.guiScale().set(3);client.resizeGui();});context.waitTicks(4);
@@ -68,6 +69,7 @@ public final class InvuMusicPlayerClientSmokeTest implements FabricClientGameTes
                     context.clickScreenButton("invumusicplayer.menu.open");context.waitForScreen(PlayerScreen.class);
             context.clickScreenButton("invumusicplayer.player.settings");context.waitForScreen(SettingsScreen.class);
             context.takeScreenshot("invu-en-settings-without-world");context.clickScreenButton("invumusicplayer.settings.back");
+            checkPlayerWheel(context,fixture);
             context.clickScreenButton("invumusicplayer.player.done");context.waitForScreen(net.minecraft.client.gui.screens.TitleScreen.class);
             try (TestSingleplayerContext world = context.worldBuilder().create()) {
                 world.getConnection().waitForChunksRender();
@@ -155,6 +157,8 @@ public final class InvuMusicPlayerClientSmokeTest implements FabricClientGameTes
                 context.takeScreenshot("invu-ru-escape-player");
                 context.clickScreenButton("invumusicplayer.menu.settings");context.waitForScreen(SettingsScreen.class);
                 context.takeScreenshot("invu-ru-escape-settings");
+                context.clickScreenButton("invumusicplayer.tabs.visibility");checkSelected(context,"invumusicplayer.tabs.visibility");
+                checkTranslation(context,"invumusicplayer.tabs.visibility","Видимость");context.takeScreenshot("invu-ru-player-visibility");
                 context.clickScreenButton("invumusicplayer.settings.back");context.waitForScreen(PauseScreen.class);
                 context.getInput().pressKey(SDLScancode.SDL_SCANCODE_ESCAPE);context.waitForScreen(null);
                 openPlayerWithHotkey(context);
@@ -197,6 +201,45 @@ public final class InvuMusicPlayerClientSmokeTest implements FabricClientGameTes
             });
             selectLanguage(context, originalLanguage);
         }
+    }
+
+    private static void checkVisibility(ClientGameTestContext context,Player fixture) {
+        context.runOnClient(client->{
+            var widgets=Screens.getWidgets(client.gui.screen());
+            check(widgets.stream().filter(PlayerMenuButton.class::isInstance).allMatch(w->w.getHeight()<=10),"Title menu still contains a standalone branded player button");
+        });
+        context.clickScreenButton("invumusicplayer.menu.settings");context.waitForScreen(SettingsScreen.class);
+        context.clickScreenButton("invumusicplayer.tabs.visibility");checkSelected(context,"invumusicplayer.tabs.visibility");
+        clickToggle(context,"invumusicplayer.visibility.game",true);
+        clickToggle(context,"invumusicplayer.visibility.title",true);
+        check(!fixture.settings.hud&&!fixture.settings.titlePlayer&&fixture.settings.pausePlayer,"Visibility controls are not independent");
+        clickToggle(context,"invumusicplayer.visibility.all",false);
+        check(!fixture.settings.playersVisible&&fixture.playing(),"Hiding all stopped the music");
+        context.takeScreenshot("invu-en-player-visibility");
+        context.clickScreenButton("invumusicplayer.settings.back");context.waitForScreen(net.minecraft.client.gui.screens.TitleScreen.class);
+        context.runOnClient(client->{check(!MenuPlayerPanel.isVisible(client.gui.screen()),"Hidden title card still visible");check(Screens.getWidgets(client.gui.screen()).stream().noneMatch(w->w instanceof PlayerMenuButton||w instanceof ValueSlider),"Hidden title player still has clickable controls");});
+        context.takeScreenshot("invu-en-title-all-players-hidden");
+        context.clickScreenButton("menu.options");context.waitForScreen(net.minecraft.client.gui.screens.options.OptionsScreen.class);
+        context.takeScreenshot("invu-en-hidden-player-recovery");
+        context.clickScreenButton("invumusicplayer.menu.settings");context.waitForScreen(SettingsScreen.class);
+        context.clickScreenButton("invumusicplayer.tabs.visibility");clickToggle(context,"invumusicplayer.visibility.all",true);
+        check(fixture.settings.playersVisible&&!fixture.settings.titlePlayer&&!fixture.settings.hud&&fixture.settings.pausePlayer,"Hide-all overwrote individual visibility preferences");
+        clickToggle(context,"invumusicplayer.visibility.game",false);clickToggle(context,"invumusicplayer.visibility.title",false);
+        context.clickScreenButton("invumusicplayer.settings.back");context.waitForScreen(net.minecraft.client.gui.screens.options.OptionsScreen.class);
+        context.getInput().pressKey(SDLScancode.SDL_SCANCODE_ESCAPE);context.waitForScreen(net.minecraft.client.gui.screens.TitleScreen.class);
+        check(context.computeOnClient(client->MenuPlayerPanel.isVisible(client.gui.screen())),"Could not restore hidden title player without a world");
+    }
+
+    private static void checkPlayerWheel(ClientGameTestContext context,Player fixture) {
+        var original=fixture.items();var first=fixture.current();long position=fixture.positionMillis();
+        var extended=new java.util.ArrayList<>(original);
+        for(var track:original)extended.add(new dev.invumusicplayer.core.Track("scroll:"+track.id(),"Scroll "+track.title(),track.artist(),track.durationMillis(),track.file(),track.coverFile(),track.coverUrl(),track.batchId()));
+        context.runOnClient(client->{fixture.choose(extended,0);fixture.savePlaylist("Wheel fixture");fixture.openSavedPlaylist("Wheel fixture");});
+        context.waitFor(client->fixture.items().size()==6&&((PlayerScreen)client.gui.screen()).pageCount()==2);
+        context.runOnClient(client->{var screen=(PlayerScreen)client.gui.screen();check(screen.mouseScrolled(50,100,0,-1),"Player track list ignored mouse wheel");check(screen.page()==1,"Wheel did not advance player list");screen.mouseScrolled(50,100,0,-1);check(screen.page()==1,"Wheel exceeded last page");screen.mouseScrolled(screen.width-30,100,0,1);check(screen.page()==1,"Wheel outside list changed track page");});
+        context.takeScreenshot("invu-en-player-wheel-second-page");
+        context.runOnClient(client->{var screen=(PlayerScreen)client.gui.screen();screen.mouseScrolled(50,100,0,1);check(screen.page()==0,"Wheel did not return to first page");screen.mouseScrolled(50,100,0,1);check(screen.page()==0,"Wheel exceeded first page");check(fixture.current().id().equals(first.id())&&fixture.positionMillis()==position&&fixture.playing(),"Scrolling changed playback");fixture.deleteSavedPlaylist("Wheel fixture");fixture.choose(original,0);fixture.refreshLocal();});
+        context.waitFor(client->fixture.items().size()==3&&fixture.playing());
     }
 
     private static void checkPauseAndHiddenHud(ClientGameTestContext context,Player fixture) {
@@ -242,6 +285,18 @@ public final class InvuMusicPlayerClientSmokeTest implements FabricClientGameTes
         check(context.computeOnClient(client->client.gui.screen().children().stream().noneMatch(ValueSlider.class::isInstance)),"Settings still contain volume");
         context.clickScreenButton("invumusicplayer.tabs.appearance");checkSelected(context,"invumusicplayer.tabs.appearance");
         context.clickScreenButton("invumusicplayer.tabs.audio");
+        context.clickScreenButton("invumusicplayer.tabs.visibility");
+        clickToggle(context,"invumusicplayer.visibility.pause",true);
+        check(fixture.settings.hud&&fixture.settings.titlePlayer&&!fixture.settings.pausePlayer,"Escape visibility changed other players");
+        context.clickScreenButton("invumusicplayer.settings.back");context.waitForScreen(PauseScreen.class);
+        check(context.computeOnClient(client->!MenuPlayerPanel.isVisible(client.gui.screen())&&Screens.getWidgets(client.gui.screen()).stream().noneMatch(w->w instanceof PlayerMenuButton||w instanceof ValueSlider)),"Escape player was not fully hidden");
+        context.takeScreenshot("invu-en-escape-player-hidden");
+        context.clickScreenButton("menu.options");context.waitForScreen(net.minecraft.client.gui.screens.options.OptionsScreen.class);
+        context.clickScreenButton("invumusicplayer.menu.settings");context.waitForScreen(SettingsScreen.class);
+        context.clickScreenButton("invumusicplayer.tabs.visibility");clickToggle(context,"invumusicplayer.visibility.pause",false);
+        context.clickScreenButton("invumusicplayer.settings.back");context.waitForScreen(net.minecraft.client.gui.screens.options.OptionsScreen.class);
+        context.getInput().pressKey(SDLScancode.SDL_SCANCODE_ESCAPE);context.waitForScreen(PauseScreen.class);
+        context.clickScreenButton("invumusicplayer.menu.settings");context.waitForScreen(SettingsScreen.class);
         context.takeScreenshot("invu-en-escape-settings");context.clickScreenButton("invumusicplayer.settings.back");context.waitForScreen(PauseScreen.class);
         context.clickScreenButton("invumusicplayer.menu.position");context.waitForScreen(MenuEditor.class);
         context.runOnClient(client->{var screen=client.gui.screen();var l=MenuPlayerPanel.layout(screen.width,screen.height,false);
@@ -263,6 +318,11 @@ public final class InvuMusicPlayerClientSmokeTest implements FabricClientGameTes
         context.getInput().pressKey(SDLScancode.SDL_SCANCODE_ESCAPE);context.waitForScreen(null);
         context.getInput().pressKey(SDLScancode.SDL_SCANCODE_F1);context.waitFor(client->client.gui.hud.isHidden());
         check(context.computeOnClient(client->PlayerHud.isVisible()),"F1 hid the music player with the option enabled");
+        context.runOnClient(client->fixture.settings.playersVisible=false);
+        check(context.computeOnClient(client->!PlayerHud.isVisible())&&fixture.playing(),"Hide-all does not hide gameplay HUD while retaining audio");
+        context.runOnClient(client->{fixture.settings.playersVisible=true;fixture.settings.hud=false;});
+        check(context.computeOnClient(client->!PlayerHud.isVisible()),"Individual in-game visibility switch was ignored");
+        context.runOnClient(client->fixture.settings.hud=true);
         context.waitTicks(8);context.takeScreenshot("invu-en-f1-player-visible");
         context.runOnClient(client->fixture.settings.hudWhileHidden=false);
         check(context.computeOnClient(client->!PlayerHud.isVisible()),"The F1 visibility opt-out was ignored");

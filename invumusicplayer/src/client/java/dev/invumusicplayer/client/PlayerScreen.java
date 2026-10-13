@@ -11,7 +11,7 @@ public final class PlayerScreen extends Screen {
     private final Player player = InvuMusicPlayerClient.player;
     private final Screen parent=net.minecraft.client.Minecraft.getInstance().gui.screen();
     private List<Track> seen = List.of();
-    private int page;
+    private int page,pages=1;
     private String query = "";
     private EditBox search;
     private int left, top, panelWidth, panelHeight, listWidth, rows;
@@ -29,7 +29,7 @@ public final class PlayerScreen extends Screen {
         search = new EditBox(font, left + 10, top + 58, listWidth - 44, 20, Component.translatable("invumusicplayer.player.search_hint"));
         search.setBordered(false);search.setHint(Component.translatable("invumusicplayer.player.search_hint"));search.setMaxLength(256); search.setValue(query); search.setResponder(value -> query = value); addRenderableWidget(search);
         button(Component.translatable("invumusicplayer.player.search"), left + listWidth - 30, top + 58, 40, () -> { page = 0; if (player.connected()) player.search(query); else minecraft.gui.setScreen(new AccountScreen(this)); });
-        seen = player.items(); int pages = Math.max(1, (seen.size() + rows - 1) / rows); page = Math.max(0, Math.min(page, pages - 1));
+        seen = player.items(); pages = Math.max(1, (seen.size() + rows - 1) / rows); page = Math.max(0, Math.min(page, pages - 1));
         for (int row = 0; row < rows; row++) {
             int index = page * rows + row; if (index >= seen.size()) break;
             Track t = seen.get(index); List<Track> selected = seen;
@@ -40,8 +40,8 @@ public final class PlayerScreen extends Screen {
             button(Component.literal("+"),left+listWidth-10,top+84+row*24,20,()->player.enqueue(t));
         }
         int bottom = top + panelHeight - 86;
-        button(Component.literal("<"), left + 10, top+panelHeight-26, 24, () -> { page--; rebuildWidgets(); }).active=page>0;
-        button(Component.literal(">"), left + 38, top+panelHeight-26, 24, () -> { page++; rebuildWidgets(); }).active=page+1<pages;
+        button(Component.literal("<"), left + 10, top+panelHeight-26, 24, () -> movePage(-1)).active=page>0;
+        button(Component.literal(">"), left + 38, top+panelHeight-26, 24, () -> movePage(1)).active=page+1<pages;
         int right = left + listWidth + 22, rightWidth = panelWidth - listWidth - 32;
         icon("invumusicplayer.menu.previous",right,bottom-4,36,PlayerMenuButton.Icon.PREVIOUS,player::previous);
         pause=icon("invumusicplayer.player.pause",right+40,bottom-4,rightWidth-80,PlayerMenuButton.Icon.PAUSE,player::togglePause);
@@ -108,6 +108,12 @@ public final class PlayerScreen extends Screen {
         }}
         super.extractRenderState(g, mouseX, mouseY, delta);
     }
+    private void movePage(int delta){int next=Math.max(0,Math.min(page+delta,pages-1));if(next!=page){page=next;rebuildWidgets();}}
+    @Override public boolean mouseScrolled(double mx,double my,double horizontal,double vertical){
+        if(vertical!=0&&mx>=left+10&&mx<left+10+listWidth&&my>=top+84&&my<top+84+rows*24){movePage(vertical>0?-1:1);return true;}
+        return super.mouseScrolled(mx,my,horizontal,vertical);
+    }
+    public int page(){return page;}public int pageCount(){return pages;}
     public long readyArtworkCount() { return artwork.values().stream().filter(CoverTexture::ready).count(); }
     @Override public void onClose(){minecraft.gui.setScreen(parent);}
     @Override public void removed(){artwork.values().forEach(CoverTexture::close);artwork.clear();player.saveSettings();super.removed();}

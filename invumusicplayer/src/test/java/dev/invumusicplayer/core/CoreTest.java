@@ -48,6 +48,17 @@ final class CoreTest {
         assertTrue(Settings.load(config).hud);
         try (var files = Files.list(temp)) { assertTrue(files.anyMatch(p -> p.getFileName().toString().startsWith("invumusicplayer.json.invalid-"))); }
     }
+    @Test void playerVisibilityPersistsIndependentlyAndOldConfigsKeepMenuPlayers() throws Exception {
+        Path path=temp.resolve("visibility.json");
+        Files.writeString(path,"{\"hud\":false}");
+        Settings old=Settings.load(path);
+        assertFalse(old.hud);assertTrue(old.playersVisible);assertTrue(old.titlePlayer);assertTrue(old.pausePlayer);
+        old.playersVisible=false;old.titlePlayer=false;old.pausePlayer=true;old.save(path);
+        Settings loaded=Settings.load(path);
+        assertFalse(loaded.playersVisible);assertFalse(loaded.hud);assertFalse(loaded.titlePlayer);assertTrue(loaded.pausePlayer);
+        loaded.playersVisible=true;loaded.save(path);loaded=Settings.load(path);
+        assertTrue(loaded.playersVisible);assertFalse(loaded.hud);assertFalse(loaded.titlePlayer);assertTrue(loaded.pausePlayer);
+    }
     @Test void pcmVolumePreservesSignAndSilencesExactly() {
         byte[] bytes = {0, (byte) 0x80, (byte) 0xff, 0x7f};
         AudioEngine.applyVolume(bytes, bytes.length, .5f);
