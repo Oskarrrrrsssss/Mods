@@ -11,6 +11,7 @@ public final class Settings {
     public boolean playersVisible=true, titlePlayer=true, pausePlayer=true;
     public boolean hud = true, covers = true, showTime = true;
     public float equalizerWidth=1f,equalizerHeight=1f;
+    public boolean albumBackground=true,artworkAnimation=true;
     public boolean hudWhileHidden = true, shuffle = false, menuCoverColors = true;
     public boolean menuPositioned=false;
     public float menuScale=.5f, menuX=0, menuY=0;

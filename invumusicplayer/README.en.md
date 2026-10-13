@@ -10,6 +10,10 @@ The interface follows Minecraft's language: Russian or English.
 
 ## Changes in 0.2.9
 
+The main player centers a larger cover in its right column, places title/artist below it, and gives volume its own row below transport. Small screens use a compact layout. Player/library surfaces and their buttons follow the current cover; settings retain their fixed palette.
+
+The main player's **Album background** icon toggles the adaptive backdrop. **Settings → Style** provides the same switch and a separate **Artwork motion** switch: a subtle moving color halo behind covers in the full/mini player. It rests on pause and disappears when album background is disabled.
+
 - Library + buttons show **Add to queue**; queue × buttons show **Remove from queue**.
 - Pause is back between Previous and Next on the main player. Stop and ±10 remain removed; use the seek slider.
 - Mini-player shuffle also reorders the forward continuation after Previous. One click changes distinct upcoming tracks without restarting the current song; another disables shuffle and restores their order. Selected state and the tooltip indicate whether shuffle is enabled.
@@ -69,7 +73,7 @@ Scroll over the full player’s track list to change pages; scrolling outside th
 
 The FFT reads decoded audio **before output volume is applied**. Reducing the volume, including muting it with the slider, does not shrink the spectrum. Pause and silence in the source still stop/fade it. Volume controls continue to change the actual sound.
 
-General settings contain **Controls**, **Style** and **Visibility**. My Wave preferences are available from their separate button in the main menu and full player. No duplicate wave tab or volume slider remains in general settings.
+General settings contain **Controls**, **Style** and **Mini player**. My Wave preferences are available from their separate button in the main menu and full player. No duplicate wave tab or volume slider remains in general settings.
 
 The current track is also highlighted in the full player; inactive page arrows are disabled. Restoring a wave restores the correct section and current/upcoming list. The menu editor supports all four corners and free dragging, and the Library icon is an open book. Opening Account from a paused player keeps singleplayer paused.
 

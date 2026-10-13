@@ -72,6 +72,7 @@ public final class InvuMusicPlayerClientSmokeTest implements FabricClientGameTes
             checkPlayerWheel(context,fixture);
             checkSeekSlider(context,fixture);
             checkMainPause(context,fixture);
+            checkAlbumLayout(context,fixture);
             context.clickScreenButton("invumusicplayer.player.done");context.waitForScreen(net.minecraft.client.gui.screens.TitleScreen.class);
             try (TestSingleplayerContext world = context.worldBuilder().create()) {
                 world.getConnection().waitForChunksRender();
@@ -82,7 +83,7 @@ public final class InvuMusicPlayerClientSmokeTest implements FabricClientGameTes
                 checkPreviousInput(context,fixture);
                 context.waitFor(client -> InvuMusicPlayerClient.cover.ready() && ((PlayerScreen)client.gui.screen()).readyArtworkCount() == 2);
                 context.runOnClient(client->{var widgets=client.gui.screen().children();var volume=widgets.stream().filter(ValueSlider.class::isInstance).map(ValueSlider.class::cast).findFirst().orElseThrow();
-                    for(var w:widgets)if(w instanceof net.minecraft.client.gui.components.Button button){int distance=button.getY()>=volume.getY()?button.getY()-(volume.getY()+volume.getHeight()):volume.getY()-(button.getY()+button.getHeight());check(distance>=10,"Full-player volume is adjacent to clickable buttons");}
+                    for(var w:widgets)if(w instanceof net.minecraft.client.gui.components.Button button){int distance=button.getY()>=volume.getY()?button.getY()-(volume.getY()+volume.getHeight()):volume.getY()-(button.getY()+button.getHeight());if(button.getX()<volume.getX()+volume.getWidth()&&button.getX()+button.getWidth()>volume.getX())check(distance>=10,"Full-player volume is adjacent to clickable buttons");}
                 });
                 context.takeScreenshot("invumusicplayer-en-player-with-cover");
                 context.clickScreenButton("invumusicplayer.player.library");context.waitForScreen(LibraryScreen.class);
@@ -162,7 +163,7 @@ public final class InvuMusicPlayerClientSmokeTest implements FabricClientGameTes
                 context.clickScreenButton("invumusicplayer.menu.settings");context.waitForScreen(SettingsScreen.class);
                 context.takeScreenshot("invu-ru-escape-settings");
                 context.clickScreenButton("invumusicplayer.tabs.visibility");checkSelected(context,"invumusicplayer.tabs.visibility");
-                checkTranslation(context,"invumusicplayer.tabs.visibility","Видимость");context.takeScreenshot("invu-ru-player-visibility");
+                checkTranslation(context,"invumusicplayer.tabs.visibility","Мини-плеер");context.takeScreenshot("invu-ru-player-visibility");
                 context.clickScreenButton("invumusicplayer.settings.back");context.waitForScreen(PauseScreen.class);
                 context.getInput().pressKey(SDLScancode.SDL_SCANCODE_ESCAPE);context.waitForScreen(null);
                 openPlayerWithHotkey(context);
@@ -269,6 +270,14 @@ public final class InvuMusicPlayerClientSmokeTest implements FabricClientGameTes
     });}
 
     private static void clickNative(ClientGameTestContext context,String key){context.runOnClient(client->{var screen=client.gui.screen();var w=Screens.getWidgets(screen).stream().filter(b->b.getMessage().equals(Component.translatable(key))).findFirst().orElseThrow();var event=new net.minecraft.client.input.MouseButtonEvent(w.getX()+w.getWidth()/2.0,w.getY()+w.getHeight()/2.0,new net.minecraft.client.input.MouseButtonInfo(com.mojang.blaze3d.platform.InputConstants.MOUSE_BUTTON_LEFT,0));check(screen.mouseClicked(event,false),"Native control click was ignored: "+key);screen.mouseReleased(event);});}
+    private static void checkAlbumLayout(ClientGameTestContext context,Player fixture){
+        int settingsColor=context.computeOnClient(client->UiTheme.background(new SettingsScreen(client.gui.screen())));
+        int themed=context.computeOnClient(client->UiTheme.background(client.gui.screen()));clickNative(context,"invumusicplayer.player.album_background");check(!fixture.settings.albumBackground,"Album-background button did not disable it");
+        check(context.computeOnClient(client->UiTheme.background(client.gui.screen()))!=themed,"Main panel background ignored the cover-color opt-out");check(context.computeOnClient(client->UiTheme.background(new SettingsScreen(client.gui.screen())))==settingsColor,"Album background changed settings colors");context.takeScreenshot("invu-en-player-fixed-background");
+        clickNative(context,"invumusicplayer.player.album_background");check(fixture.settings.albumBackground,"Album-background button did not restore it");
+        context.runOnClient(client->{client.options.guiScale().set(2);client.resizeGui();});context.waitTicks(5);context.takeScreenshot("invu-en-player-centered-cover-and-volume");
+        context.runOnClient(client->{client.options.guiScale().set(3);client.resizeGui();});context.waitTicks(4);
+    }
     private static void checkMainPause(ClientGameTestContext context,Player fixture){clickNative(context,"invumusicplayer.player.pause");context.waitFor(client->!fixture.playing());clickNative(context,"invumusicplayer.player.play");context.waitFor(client->fixture.playing());}
 
     private static void checkSeekSlider(ClientGameTestContext context,Player fixture){
@@ -323,7 +332,7 @@ public final class InvuMusicPlayerClientSmokeTest implements FabricClientGameTes
         context.waitTicks(3);check(context.computeOnClient(client->Screens.getWidgets(client.gui.screen()).stream().anyMatch(w->w instanceof PlayerMenuButton b&&b.getMessage().equals(Component.translatable("invumusicplayer.player.shuffle"))&&b.isSelected())),"Mini-player shuffle has no selected state");
         clickNative(context,"invumusicplayer.player.shuffle");check(!fixture.settings.shuffle,"Native mini-player shuffle did not toggle off");check(fixture.queue().equals(beforeShuffle),"Mini-player shuffle did not restore future order");
         int normalHeight=context.computeOnClient(client->MenuPlayerPanel.layout(client.gui.screen().width,client.gui.screen().height,false).height());
-        clickNative(context,"invumusicplayer.player.time");check(!fixture.settings.showTime,"Mini-player time button did not hide time");context.waitTicks(3);check(context.computeOnClient(client->MenuPlayerPanel.layout(client.gui.screen().width,client.gui.screen().height,false).height())<normalHeight,"Hidden time left its layout gap");context.takeScreenshot("invu-en-mini-player-time-hidden");
+        clickNative(context,"invumusicplayer.player.time");check(!fixture.settings.showTime,"Mini-player time button did not hide time");context.waitTicks(3);check(context.computeOnClient(client->MenuPlayerPanel.layout(client.gui.screen().width,client.gui.screen().height,false).height())<normalHeight,"Hidden time left its layout gap");context.runOnClient(client->{var screen=client.gui.screen();var l=MenuPlayerPanel.layout(screen.width,screen.height,false);var pause=Screens.getWidgets(screen).stream().filter(w->w.getMessage().equals(Component.translatable("invumusicplayer.player.pause"))).findFirst().orElseThrow();check(pause.getY()==l.controlY(228),"Time toggle moved artwork but did not rebuild its controls");});context.takeScreenshot("invu-en-mini-player-time-hidden");
         clickNative(context,"invumusicplayer.player.time");check(fixture.settings.showTime,"Mini-player time button did not restore time");
         context.runOnClient(client->{
             var slider=Screens.getWidgets(client.gui.screen()).stream().filter(ValueSlider.class::isInstance).map(ValueSlider.class::cast).findFirst().orElseThrow();

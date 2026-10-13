@@ -27,9 +27,11 @@ public final class SettingsScreen extends Screen {
             toggle("invumusicplayer.settings.covers",x+160,y,s.covers,()->s.covers=!s.covers);
             toggle("invumusicplayer.settings.visualizer",x,y+25,s.visualizer,()->s.visualizer=!s.visualizer);
             slider("invumusicplayer.slider.opacity",x+160,y+25,s.opacity*100,20,100,v->s.opacity=(float)v/100);
+            toggle("invumusicplayer.settings.album_background",x,y+50,s.albumBackground,()->s.albumBackground=!s.albumBackground);
+            toggle("invumusicplayer.settings.artwork_animation",x+160,y+50,s.artworkAnimation,()->s.artworkAnimation=!s.artworkAnimation);
             String[] names={"accent","background","text"};int[] colors={s.accent,s.background,s.textColor};
             for(int i=0;i<3;i++){final int row=i;for(int c=0;c<3;c++){final int shift=16-c*8;final int column=c;int xx=x+c*105;
-                addRenderableWidget(new ValueSlider(xx,y+55+i*27,100,"invumusicplayer.color."+names[i]+"_"+new String[]{"r","g","b"}[c],(colors[i]>>shift)&255,0,255,v->{int value=(int)Math.round(v);if(row==0)s.accent=(s.accent&~(255<<shift))|(value<<shift);else if(row==1)s.background=(s.background&~(255<<shift))|(value<<shift);else s.textColor=(s.textColor&~(255<<shift))|(value<<shift);}));}}
+                addRenderableWidget(new ValueSlider(xx,y+76+i*24,100,"invumusicplayer.color."+names[i]+"_"+new String[]{"r","g","b"}[c],(colors[i]>>shift)&255,0,255,v->{int value=(int)Math.round(v);if(row==0)s.accent=(s.accent&~(255<<shift))|(value<<shift);else if(row==1)s.background=(s.background&~(255<<shift))|(value<<shift);else s.textColor=(s.textColor&~(255<<shift))|(value<<shift);}));}}
         }else if(tab==2){
             toggle("invumusicplayer.visibility.game",x,y,s.hud,()->s.hud=!s.hud);
             toggle("invumusicplayer.visibility.title",x,y+30,s.titlePlayer,()->s.titlePlayer=!s.titlePlayer);

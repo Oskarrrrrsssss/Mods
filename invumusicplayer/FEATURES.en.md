@@ -35,3 +35,5 @@ Verification limits: physical audio on the user's computer, particular YouTube v
 Added in 0.2.8: main-screen queue, library search, seek committed once on release; removed Stop and ±10, restored main-screen Pause; manual-queue shuffle and embedded/local artwork. Details and Spotify setup: [README](README.en.md).
 
 0.2.9: queue tooltips, main-player pause, mini-player shuffle including forward history, hide-time button, FFT width/height, Mini player tab and removal of the two settings move buttons. F1 is checked using actual geometry-submission counts and a screenshot, not only the visibility predicate.
+
+0.2.9 design: album-adaptive main/library surfaces and buttons, fixed settings palette, separate background opt-out, larger centered cover, right-column volume below transport and optional subtle halo. Client checks toggle the backdrop, verify that settings colors stay fixed, and capture another GUI scale.

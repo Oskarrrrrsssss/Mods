@@ -42,12 +42,13 @@ final class MenuPlayerPanel {
         button.setTooltip(Tooltip.create(Component.translatable(key)));Screens.getWidgets(s).add(button);
     }}
     private static void actionsFor(Runnable[] actions,int i){actions[i].run();}
+    private static final AlbumBackdrop backdrop=new AlbumBackdrop();
     private static final AudioVisualizer visualizer=new AudioVisualizer();
     static void draw(GuiGraphicsExtractor g,Layout l){
         var p=InvuMusicPlayerClient.player;var s=p.settings;var t=p.current();
         g.pose().pushMatrix();g.pose().translate((float)l.x(),(float)l.y());g.pose().scale(l.scale());
         PlayerMenuButton.rounded(g,0,0,180,208+detailShift(),0xff000000|PlayerMenuButton.themeColor());
-        boolean art=s.covers&&t!=null&&!t.youtube();if(art)InvuMusicPlayerClient.cover.draw(g,16,6,148,s.accent);
+        boolean art=s.covers&&t!=null&&!t.youtube();if(art){g.enableScissor(0,0,180,208+detailShift());backdrop.draw(g,16,6,148);g.disableScissor();InvuMusicPlayerClient.cover.draw(g,16,6,148,s.accent);}
         int ty=art?160:12;center(g,t==null?UiText.text("invumusicplayer.player.choose_track"):t.title(),ty,0xff000000|s.textColor);
         center(g,t==null?UiText.text("invumusicplayer.menu.empty"):t.artist(),ty+12,0xad000000|s.textColor);
         if(s.showTime)center(g,PlayerHud.time(p.positionMillis())+" / "+PlayerHud.time(p.durationMillis()),184,0xad000000|s.textColor);

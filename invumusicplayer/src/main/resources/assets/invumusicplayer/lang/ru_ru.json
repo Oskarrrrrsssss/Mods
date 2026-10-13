@@ -291,5 +291,8 @@
   "invumusicplayer.slider.seek_hint": "Перемотка трека",
   "invumusicplayer.player.shuffle_state": "Перемешивание: %s",
   "invumusicplayer.slider.equalizer_width": "Ширина эквалайзера: %s%%",
-  "invumusicplayer.slider.equalizer_height": "Высота эквалайзера: %s%%"
+  "invumusicplayer.slider.equalizer_height": "Высота эквалайзера: %s%%",
+  "invumusicplayer.player.album_background": "Фон по обложке",
+  "invumusicplayer.settings.album_background": "Фон по обложке: %s",
+  "invumusicplayer.settings.artwork_animation": "Анимация обложки: %s"
 }

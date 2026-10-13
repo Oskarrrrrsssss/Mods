@@ -22,9 +22,9 @@ public final class ValueSlider extends AbstractSliderButton {
     @Override public void extractWidgetRenderState(GuiGraphicsExtractor g,int mx,int my,float delta) {
         if(key.equals("invumusicplayer.slider.volume")){value=InvuMusicPlayerClient.player.settings.volume;updateMessage();}
         g.pose().pushMatrix();g.pose().translate((float)getX(),(float)getY());g.pose().scale(scale);
-        int x=0,y=0,w=Math.round(getWidth()/scale),h=20;g.fill(x,y,x+w,y+h,0xff000000|PlayerMenuButton.themeColor());
+        int x=0,y=0,w=Math.round(getWidth()/scale),h=20;g.fill(x,y,x+w,y+h,0xff000000|UiTheme.control());
         g.fill(x+4,y+h-4,x+w-4,y+h-2,0xff44516a);
-        int handle=x+4+(int)((w-8)*value);g.fill(x+4,y+h-4,handle,y+h-2,0xff000000|PlayerMenuButton.themeAccent());
+        int handle=x+4+(int)((w-8)*value);g.fill(x+4,y+h-4,handle,y+h-2,0xff000000|UiTheme.accent());
         g.fill(handle-2,y+h-7,handle+2,y+h,0xffe4ecff);
         g.text(Minecraft.getInstance().font,getMessage().getString(),x+6,y+4,0xffedf2fb,false);
         g.pose().popMatrix();
