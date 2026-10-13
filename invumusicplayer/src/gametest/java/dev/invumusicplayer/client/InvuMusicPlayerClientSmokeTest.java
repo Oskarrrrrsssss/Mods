@@ -71,6 +71,7 @@ public final class InvuMusicPlayerClientSmokeTest implements FabricClientGameTes
             context.takeScreenshot("invu-en-settings-without-world");context.clickScreenButton("invumusicplayer.settings.back");
             checkPlayerWheel(context,fixture);
             checkSeekSlider(context,fixture);
+            checkMainPause(context,fixture);
             context.clickScreenButton("invumusicplayer.player.done");context.waitForScreen(net.minecraft.client.gui.screens.TitleScreen.class);
             try (TestSingleplayerContext world = context.worldBuilder().create()) {
                 world.getConnection().waitForChunksRender();
@@ -267,9 +268,12 @@ public final class InvuMusicPlayerClientSmokeTest implements FabricClientGameTes
         check(client.gui.screen().mouseClicked(click,false),"Previous did not receive a native mouse click");client.gui.screen().mouseReleased(click);
     });}
 
+    private static void clickNative(ClientGameTestContext context,String key){context.runOnClient(client->{var screen=client.gui.screen();var w=Screens.getWidgets(screen).stream().filter(b->b.getMessage().equals(Component.translatable(key))).findFirst().orElseThrow();var event=new net.minecraft.client.input.MouseButtonEvent(w.getX()+w.getWidth()/2.0,w.getY()+w.getHeight()/2.0,new net.minecraft.client.input.MouseButtonInfo(com.mojang.blaze3d.platform.InputConstants.MOUSE_BUTTON_LEFT,0));check(screen.mouseClicked(event,false),"Native control click was ignored: "+key);screen.mouseReleased(event);});}
+    private static void checkMainPause(ClientGameTestContext context,Player fixture){clickNative(context,"invumusicplayer.player.pause");context.waitFor(client->!fixture.playing());clickNative(context,"invumusicplayer.player.play");context.waitFor(client->fixture.playing());}
+
     private static void checkSeekSlider(ClientGameTestContext context,Player fixture){
         context.runOnClient(client->{var screen=client.gui.screen();check(screen.children().stream().filter(EditBox.class::isInstance).count()==0,"Search input remained on main queue screen");
-            for(String key:new String[]{"stop","seek_back","seek_forward","pause"})check(Screens.getWidgets(screen).stream().noneMatch(w->w.getMessage().equals(Component.translatable("invumusicplayer.player."+key))),"Obsolete transport control remained: "+key);
+            for(String key:new String[]{"stop","seek_back","seek_forward"})check(Screens.getWidgets(screen).stream().noneMatch(w->w.getMessage().equals(Component.translatable("invumusicplayer.player."+key))),"Obsolete transport control remained: "+key);
             var slider=screen.children().stream().filter(SeekSlider.class::isInstance).map(SeekSlider.class::cast).findFirst().orElseThrow();long position=fixture.positionMillis(),revision=fixture.playbackRevision();
             var event=new net.minecraft.client.input.MouseButtonEvent(slider.getX()+4+(slider.getWidth()-8)*.75,slider.getY()+slider.getHeight()/2.0,new net.minecraft.client.input.MouseButtonInfo(com.mojang.blaze3d.platform.InputConstants.MOUSE_BUTTON_LEFT,0));
             slider.onClick(event,false);check(slider.dragging()&&fixture.positionMillis()==position&&fixture.playbackRevision()==revision,"Seek preview restarted audio before release");slider.onRelease(event);check(fixture.playbackRevision()==revision+1,"Seek release did not commit exactly once");
@@ -314,8 +318,13 @@ public final class InvuMusicPlayerClientSmokeTest implements FabricClientGameTes
         context.clickScreenButton("invumusicplayer.player.dislike");context.waitFor(client->fixture.rating()==-1);
         check(fixture.current().title().equals("First"),"Ordinary playlist dislike skipped the song");
         context.clickScreenButton("invumusicplayer.player.dislike");context.waitFor(client->fixture.rating()==0);
-        context.clickScreenButton("invumusicplayer.player.shuffle");check(fixture.settings.shuffle,"Shuffle menu control failed");
-        context.clickScreenButton("invumusicplayer.player.shuffle");check(!fixture.settings.shuffle,"Shuffle menu control did not toggle off");
+        var beforeShuffle=context.computeOnClient(client->fixture.queue());long beforePosition=fixture.positionMillis();
+        clickNative(context,"invumusicplayer.player.shuffle");check(fixture.settings.shuffle,"Native mini-player shuffle click failed");check(!fixture.queue().equals(beforeShuffle),"Mini-player shuffle did not reorder actual upcoming tracks");check(fixture.playing()&&fixture.positionMillis()==beforePosition,"Mini-player shuffle restarted current audio");
+        context.waitTicks(3);check(context.computeOnClient(client->Screens.getWidgets(client.gui.screen()).stream().anyMatch(w->w instanceof PlayerMenuButton b&&b.getMessage().equals(Component.translatable("invumusicplayer.player.shuffle"))&&b.isSelected())),"Mini-player shuffle has no selected state");
+        clickNative(context,"invumusicplayer.player.shuffle");check(!fixture.settings.shuffle,"Native mini-player shuffle did not toggle off");check(fixture.queue().equals(beforeShuffle),"Mini-player shuffle did not restore future order");
+        int normalHeight=context.computeOnClient(client->MenuPlayerPanel.layout(client.gui.screen().width,client.gui.screen().height,false).height());
+        clickNative(context,"invumusicplayer.player.time");check(!fixture.settings.showTime,"Mini-player time button did not hide time");context.waitTicks(3);check(context.computeOnClient(client->MenuPlayerPanel.layout(client.gui.screen().width,client.gui.screen().height,false).height())<normalHeight,"Hidden time left its layout gap");context.takeScreenshot("invu-en-mini-player-time-hidden");
+        clickNative(context,"invumusicplayer.player.time");check(fixture.settings.showTime,"Mini-player time button did not restore time");
         context.runOnClient(client->{
             var slider=Screens.getWidgets(client.gui.screen()).stream().filter(ValueSlider.class::isInstance).map(ValueSlider.class::cast).findFirst().orElseThrow();
             var click=new net.minecraft.client.input.MouseButtonEvent(slider.getX()+4+(slider.getWidth()-8)*.25,slider.getY()+slider.getHeight()/2.0,new net.minecraft.client.input.MouseButtonInfo(com.mojang.blaze3d.platform.InputConstants.MOUSE_BUTTON_LEFT,0));
@@ -331,10 +340,13 @@ public final class InvuMusicPlayerClientSmokeTest implements FabricClientGameTes
         check(context.computeOnClient(client->client.gui.screen().isPauseScreen()),"Settings opened from Escape resumed the singleplayer world");
         checkSelected(context,"invumusicplayer.tabs.audio");
         check(context.computeOnClient(client->client.gui.screen().children().stream().filter(net.minecraft.client.gui.components.Button.class::isInstance).map(net.minecraft.client.gui.components.Button.class::cast).noneMatch(b->b.getMessage().equals(Component.translatable("invumusicplayer.tabs.wave")))),"My Wave is still duplicated in general settings");
-        check(context.computeOnClient(client->client.gui.screen().children().stream().noneMatch(ValueSlider.class::isInstance)),"Settings still contain volume");
+        check(context.computeOnClient(client->client.gui.screen().children().stream().noneMatch(ValueSlider.class::isInstance)),"Controls still contain volume");
+        context.runOnClient(client->{for(String key:new String[]{"invumusicplayer.menu.position","invumusicplayer.settings.hud_position"})check(Screens.getWidgets(client.gui.screen()).stream().noneMatch(w->w.getMessage().equals(Component.translatable(key))),"Removed settings position button remained: "+key);});
         context.clickScreenButton("invumusicplayer.tabs.appearance");checkSelected(context,"invumusicplayer.tabs.appearance");
         context.clickScreenButton("invumusicplayer.tabs.audio");
         context.clickScreenButton("invumusicplayer.tabs.visibility");
+        check(context.computeOnClient(client->Screens.getWidgets(client.gui.screen()).stream().filter(ValueSlider.class::isInstance).count())==2,"Mini player is missing equalizer size sliders");
+        context.runOnClient(client->{fixture.settings.equalizerHeight=2;fixture.settings.equalizerWidth=.5f;});context.takeScreenshot("invu-en-mini-player-size-settings");
         clickToggle(context,"invumusicplayer.visibility.pause",true);
         check(fixture.settings.hud&&fixture.settings.titlePlayer&&!fixture.settings.pausePlayer,"Escape visibility changed other players");
         context.clickScreenButton("invumusicplayer.settings.back");context.waitForScreen(PauseScreen.class);
@@ -372,11 +384,11 @@ public final class InvuMusicPlayerClientSmokeTest implements FabricClientGameTes
         context.runOnClient(client->{fixture.settings.playersVisible=true;fixture.settings.hud=false;});
         check(context.computeOnClient(client->!PlayerHud.isVisible()),"Individual in-game visibility switch was ignored");
         context.runOnClient(client->fixture.settings.hud=true);
-        context.waitTicks(8);context.takeScreenshot("invu-en-f1-player-visible");
+        long visibleDraws=context.computeOnClient(client->PlayerHud.drawCount());context.waitTicks(8);check(context.computeOnClient(client->PlayerHud.drawCount())>visibleDraws,"F1 player visibility was true but no HUD geometry was submitted");context.takeScreenshot("invu-en-f1-player-visible");
         context.runOnClient(client->fixture.settings.hudWhileHidden=false);
         check(context.computeOnClient(client->!PlayerHud.isVisible()),"The F1 visibility opt-out was ignored");
-        context.waitTicks(8);context.takeScreenshot("invu-en-f1-player-hidden");
-        context.runOnClient(client->fixture.settings.hudWhileHidden=true);
+        long hiddenDraws=context.computeOnClient(client->PlayerHud.drawCount());context.waitTicks(8);check(context.computeOnClient(client->PlayerHud.drawCount())==hiddenDraws,"F1 opt-out still submitted player geometry");context.takeScreenshot("invu-en-f1-player-hidden");
+        context.runOnClient(client->{fixture.settings.hudWhileHidden=true;fixture.settings.equalizerHeight=1;fixture.settings.equalizerWidth=1;});
         context.getInput().pressKey(SDLScancode.SDL_SCANCODE_F1);context.waitFor(client->!client.gui.hud.isHidden());
     }
 

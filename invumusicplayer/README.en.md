@@ -7,11 +7,23 @@ Move and scale the in-game panel and customize its colors and opacity.
 The interface follows Minecraft's language: Russian or English.
 
 
+
+## Changes in 0.2.9
+
+- Library + buttons show **Add to queue**; queue × buttons show **Remove from queue**.
+- Pause is back between Previous and Next on the main player. Stop and ±10 remain removed; use the seek slider.
+- Mini-player shuffle also reorders the forward continuation after Previous. One click changes distinct upcoming tracks without restarting the current song; another disables shuffle and restores their order. Selected state and the tooltip indicate whether shuffle is enabled.
+- The mini-player **clock** button hides/restores time in all players. Seeking remains available, while numeric time and its tooltip are hidden. The choice persists.
+- **Settings → Mini player** (formerly Visibility) contains time, F1 behavior, independent visibility switches and equalizer width **25–100%** / height **50–200%** sliders. These change graphics, not output gain; the full player limits height to available space on small screens.
+- Menu position and Move panel buttons are removed from general settings. Editors remain accessible through move icons on the players themselves.
+- F1 rendering is fixed: the music layer attaches to an interface layer invoked while the HUD is hidden. Hide all and the individual in-game switch retain priority.
+
+
 ## Changes in 0.2.8
 
 The **queue is on the main player screen**. Search is in **Library → Search**; **Local** searches files in `music`. Scroll over a queue/library list to page through tracks. Click a queued title to play it, or × to remove it.
 
-The position slider shows elapsed and total time. Dragging previews the position; release seeks once. Switching tracks during a drag cancels that seek. Seeking preserves pause. Stop, ±10-second buttons and the separate Pause button are removed from the full screen; pause remains in the mini player and assigned hotkey. Time and the enabled equalizer appear together in the HUD, menus and full player.
+The position slider shows elapsed and total time. Dragging previews the position; release seeks once. Switching tracks during a drag cancels that seek. Seeking preserves pause. Stop and ±10-second buttons are removed; pause is available in the main/mini player and assigned hotkey. Time and the enabled equalizer appear together in the HUD, menus and full player.
 
 Shuffle changes upcoming tracks, including manually queued tracks, without restarting the current audio. With multiple distinct tracks the order always changes. Manual additions retain priority over the playlist. Turning shuffle off restores the remaining order while preserving Previous history.
 
@@ -45,9 +57,9 @@ Next retraces forward before resuming the playlist/Wave; this continuation also 
 
 ## Player visibility and mouse wheel (0.2.6)
 
-**Player settings → Visibility** has separate switches for the in-game HUD, title-menu mini player and Escape-menu mini player. **Hide all** temporarily hides all three, including their controls, without stopping music or changing individual switches. The title menu contains only the mini player: no separate invumusic button.
+**Player settings → Mini player** has separate switches for the in-game HUD, title-menu mini player and Escape-menu mini player. **Hide all** temporarily hides all three, including their controls, without stopping music or changing individual switches. The title menu contains only the mini player: no separate invumusic button.
 
-To restore hidden players, open **Minecraft Options → Player settings → Visibility**. This entry is available before entering a world. The full player remains available through the assigned hotkey in game.
+To restore hidden players, open **Minecraft Options → Player settings → Mini player**. This entry is available before entering a world. The full player remains available through the assigned hotkey in game.
 
 Scroll over the full player’s track list to change pages; scrolling outside the list leaves its page unchanged. Scrolling does not change playback.
 
@@ -87,7 +99,7 @@ Shuffle, repeat, like/dislike toggles and configurable hotkeys are retained. A s
 ## Installation
 
 1. Download the Windows artifact from a successful [GitHub Actions](https://github.com/Oskarrrrrsssss/Mods/actions/workflows/invumusicplayer.yml) run. Sign in to GitHub to access the private repository.
-2. Extract the ZIP. Put **invumusicplayer-0.2.8-alpha.jar** in the selected Minecraft instance's `mods` folder.
+2. Extract the ZIP. Put **invumusicplayer-0.2.9-alpha.jar** in the selected Minecraft instance's `mods` folder.
 3. Install Fabric Loader and Fabric API for **26.3**, and use Java 25.
 4. Remove the previous Musicraft/invumusicplayer JAR from `mods` to avoid loading two copies. Settings, queue and authorization are retained.
 5. Select the music-note icon in the title-screen mini player or press **M** in a world.
@@ -175,7 +187,7 @@ JDK 25, Rust/Cargo, Python 3 and internet access are required. In the `invumusic
 build-windows.cmd
 ```
 
-Alternatively, `gradlew.bat build`; on Linux, `bash ./gradlew build`. Output: `build/libs/invumusicplayer-0.2.8-alpha.jar`.
+Alternatively, `gradlew.bat build`; on Linux, `bash ./gradlew build`. Output: `build/libs/invumusicplayer-0.2.9-alpha.jar`.
 Gradle Wrapper 9.7.1, Loom 1.18.4, Fabric Loader 0.19.5, Fabric API 0.162.0+26.3. Minecraft 26.3 uses unobfuscated names; Yarn is unnecessary.
 Tests: `gradlew.bat test`. Actual-client verification: `gradlew.bat runProductionClientGameTest`; the test mod is excluded from the installable JAR.
 Windows helper verification without downloading a video: `gradlew.bat verifyYouTubeTools`.

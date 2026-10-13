@@ -12,19 +12,16 @@ public final class SettingsScreen extends Screen {
         addRenderableWidget(button);
     }
     private void toggle(String key,int x,int y,boolean enabled,Runnable action){addRenderableWidget(new ModernButton(x,y,150,20,Component.translatable(key,UiText.toggle(enabled)),b->{action.run();s.normalize();InvuMusicPlayerClient.player.saveSettings();rebuildWidgets();}));}
-    private void slider(String key,int x,int y,double initial,double min,double max,java.util.function.DoubleConsumer action){addRenderableWidget(new ValueSlider(x,y,150,key,initial,min,max,action));}
+    private void slider(String key,int x,int y,double initial,double min,double max,java.util.function.DoubleConsumer action){addRenderableWidget(new ValueSlider(x,y,150,key,initial,min,max,key.contains("equalizer_")?.8f:1f,action));}
     @Override protected void init(){
         int x=width/2-155,y=62;String[] tabs={"audio","appearance","visibility"};
         for(int i=0;i<tabs.length;i++){int selected=i;var b=new ModernButton(x+i*105,32,100,20,Component.translatable("invumusicplayer.tabs."+tabs[i]),v->{tab=selected;rebuildWidgets();});b.selected(()->tab==selected);addRenderableWidget(b);}
         if(tab==0){
-            button("invumusicplayer.menu.position",x,y,150,()->minecraft.gui.setScreen(new MenuEditor(this)));
             toggle("invumusicplayer.settings.repeat",x+160,y,s.repeat,()->s.repeat=!s.repeat);
-            button("invumusicplayer.settings.hotkeys",x,y+30,150,()->minecraft.gui.setScreen(new net.minecraft.client.gui.screens.options.controls.KeyBindsScreen(this,minecraft.options)));
-            button("invumusicplayer.settings.hud_position",x+160,y+30,150,()->minecraft.gui.setScreen(new HudEditor(this)));
+            button("invumusicplayer.settings.hotkeys",x,y,150,()->minecraft.gui.setScreen(new net.minecraft.client.gui.screens.options.controls.KeyBindsScreen(this,minecraft.options)));
             button("invumusicplayer.cover.retry",x,y+60,150,()->InvuMusicPlayerClient.player.retryArtwork());
-            toggle("invumusicplayer.settings.hud_f1",x+160,y+60,s.hudWhileHidden,()->s.hudWhileHidden=!s.hudWhileHidden);
-            toggle("invumusicplayer.settings.shuffle",x,y+90,s.shuffle,()->InvuMusicPlayerClient.player.toggleShuffle());
-            button("invumusicplayer.service.choose",x+160,y+90,150,()->minecraft.gui.setScreen(AccountScreen.open(this)));
+            toggle("invumusicplayer.settings.shuffle",x,y+30,s.shuffle,()->InvuMusicPlayerClient.player.toggleShuffle());
+            button("invumusicplayer.service.choose",x+160,y+30,150,()->minecraft.gui.setScreen(AccountScreen.open(this)));
         }else if(tab==1){
             toggle("invumusicplayer.settings.cover_colors",x,y,s.menuCoverColors,()->s.menuCoverColors=!s.menuCoverColors);
             toggle("invumusicplayer.settings.covers",x+160,y,s.covers,()->s.covers=!s.covers);
@@ -39,6 +36,10 @@ public final class SettingsScreen extends Screen {
             toggle("invumusicplayer.visibility.pause",x,y+60,s.pausePlayer,()->s.pausePlayer=!s.pausePlayer);
             toggle("invumusicplayer.visibility.all",x+160,y,!s.playersVisible,()->s.playersVisible=!s.playersVisible);
             var hide=children().get(children().size()-1);if(hide instanceof net.minecraft.client.gui.components.AbstractWidget w)w.setTooltip(net.minecraft.client.gui.components.Tooltip.create(Component.translatable("invumusicplayer.visibility.all_hint")));
+            toggle("invumusicplayer.settings.time",x+160,y+30,s.showTime,()->s.showTime=!s.showTime);
+            toggle("invumusicplayer.settings.hud_f1",x+160,y+60,s.hudWhileHidden,()->s.hudWhileHidden=!s.hudWhileHidden);
+            slider("invumusicplayer.slider.equalizer_width",x,y+90,s.equalizerWidth*100,25,100,v->s.equalizerWidth=(float)v/100);
+            slider("invumusicplayer.slider.equalizer_height",x+160,y+90,s.equalizerHeight*100,50,200,v->s.equalizerHeight=(float)v/100);
         }
         button("invumusicplayer.settings.back",x+80,height-30,150,this::onClose);
     }

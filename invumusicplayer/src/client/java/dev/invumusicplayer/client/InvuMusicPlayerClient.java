@@ -55,8 +55,8 @@ public final class InvuMusicPlayerClient implements ClientModInitializer {
             while(like.consumeClick())player.rate(true);
             while(dislike.consumeClick())player.rate(false);
         });
-        HudElementRegistry.addLast(
-            Identifier.fromNamespaceAndPath("invumusicplayer", "player"), (graphics, delta) -> PlayerHud.draw(graphics));
+        HudElementRegistry.attachElementAfter(
+            net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements.SLEEP, Identifier.fromNamespaceAndPath("invumusicplayer", "player"), (graphics, delta) -> PlayerHud.draw(graphics));
         ClientLifecycleEvents.CLIENT_STOPPING.register(client -> { player.close(); cover.close(); });
     }
     private static KeyMapping key(String name, int code, KeyMapping.Category category) {

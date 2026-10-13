@@ -2,7 +2,7 @@
 
 [Русский](VALIDATION.md) · **English**
 
-Release 0.2.8 checks queue, artwork and spectrum analyzer fixes.
+Release 0.2.9 checks queue, artwork and spectrum analyzer fixes.
 The installation ZIP prefixes this report with the particular CI run, test counts and JAR SHA-256.
 
 - Previous-track regression tests reproduce list-neighbour jumps, explicit-queue skipping, first-track wrapping and skipped loading selections in Wave. They verify one-step history traversal, retracing across Wave batches without extra requests, queue removal/selection and saved continuation. Native Minecraft checks use actual mouse-button events for full/Escape Previous controls and the registered hotkey.
@@ -25,3 +25,5 @@ No actual OAuth token is used in automated tests. Changed integration with a rea
 [CI runs and artifacts](https://github.com/Oskarrrrrsssss/Mods/actions/workflows/invumusicplayer.yml).
 
 0.2.8 checks: PKCE/state/loopback OAuth, Spotify catalogue JSON variants, pagination, likes/library removal, secret-safe errors and separate logins. The native decoder builds on Windows/Linux; a synthetic tone passes through the production IPC/JavaSound pipe with position, FFT and 100/10/0% volume checks. This does not verify real Spotify playback. Minecraft checks RU/EN service selection, search/queue and seek preview/release, stale-drag cancellation and pause preservation. Local tests cover MP3 ID3v2.2/2.3/2.4, Unicode descriptions, Ogg picture comments, malformed tags and adjacent-artwork priority.
+
+0.2.9: real mouse clicks verify full-player pause, mini-player shuffle and clock. Shuffle checks actual queue order and unchanged playback position. F1 checks require geometry count to increase when enabled and remain unchanged when opted out. Time/FFT preferences cover persistence, legacy defaults and size bounds; forward-history reorder has a regression test.

@@ -227,7 +227,7 @@
   "invumusicplayer.menu.reset": "Reset position",
   "invumusicplayer.menu.drag_hint": "Drag the card; size and position are saved.",
   "invumusicplayer.library.play_all": "Play all liked",
-  "invumusicplayer.tabs.visibility": "Visibility",
+  "invumusicplayer.tabs.visibility": "Mini player",
   "invumusicplayer.visibility.game": "In game: %s",
   "invumusicplayer.visibility.title": "Title menu: %s",
   "invumusicplayer.visibility.pause": "Escape menu: %s",
@@ -283,5 +283,13 @@
   "invumusicplayer.queue.empty": "Add tracks from the library",
   "invumusicplayer.slider.seek": "%s / %s",
   "invumusicplayer.spotify.help": "Spotify connection help",
-  "invumusicplayer.library.delete_spotify": "Remove from your Spotify library?"
+  "invumusicplayer.library.delete_spotify": "Remove from your Spotify library?",
+  "invumusicplayer.queue.add_hint": "Add to queue",
+  "invumusicplayer.queue.remove_hint": "Remove from queue",
+  "invumusicplayer.settings.time": "Track time: %s",
+  "invumusicplayer.player.time": "Track time",
+  "invumusicplayer.slider.seek_hint": "Seek track",
+  "invumusicplayer.player.shuffle_state": "Shuffle: %s",
+  "invumusicplayer.slider.equalizer_width": "Equalizer width: %s%%",
+  "invumusicplayer.slider.equalizer_height": "Equalizer height: %s%%"
 }

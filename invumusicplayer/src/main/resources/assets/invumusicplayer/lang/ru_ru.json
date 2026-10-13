@@ -227,7 +227,7 @@
   "invumusicplayer.menu.reset": "Сброс позиции",
   "invumusicplayer.menu.drag_hint": "Перетащи карточку. Размер и положение сохраняются.",
   "invumusicplayer.library.play_all": "Играть понравившиеся",
-  "invumusicplayer.tabs.visibility": "Видимость",
+  "invumusicplayer.tabs.visibility": "Мини-плеер",
   "invumusicplayer.visibility.game": "В игре: %s",
   "invumusicplayer.visibility.title": "Главное меню: %s",
   "invumusicplayer.visibility.pause": "Меню Escape: %s",
@@ -283,5 +283,13 @@
   "invumusicplayer.queue.empty": "Добавь треки через библиотеку",
   "invumusicplayer.slider.seek": "%s / %s",
   "invumusicplayer.spotify.help": "Помощь с подключением Spotify",
-  "invumusicplayer.library.delete_spotify": "Убрать из твоей библиотеки Spotify?"
+  "invumusicplayer.library.delete_spotify": "Убрать из твоей библиотеки Spotify?",
+  "invumusicplayer.queue.add_hint": "Добавить в очередь",
+  "invumusicplayer.queue.remove_hint": "Удалить из очереди",
+  "invumusicplayer.settings.time": "Время трека: %s",
+  "invumusicplayer.player.time": "Время трека",
+  "invumusicplayer.slider.seek_hint": "Перемотка трека",
+  "invumusicplayer.player.shuffle_state": "Перемешивание: %s",
+  "invumusicplayer.slider.equalizer_width": "Ширина эквалайзера: %s%%",
+  "invumusicplayer.slider.equalizer_height": "Высота эквалайзера: %s%%"
 }

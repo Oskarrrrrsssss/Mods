@@ -43,6 +43,10 @@ final class CoreTest {
         assertEquals(23, loaded.hudX); assertEquals(47, loaded.hudY);
         assertFalse(loaded.covers); assertFalse(loaded.hudWhileHidden); assertEquals(.7f, loaded.volume); assertEquals(2f, loaded.hudScale);
     }
+    @Test void timeAndEqualizerPreferencesPersistAndLegacyConfigsKeepTime()throws Exception{
+        Path path=temp.resolve("mini-player.json");Files.writeString(path,"{\"hudWhileHidden\":false}");Settings s=Settings.load(path);assertTrue(s.showTime);assertEquals(1f,s.equalizerWidth);assertEquals(1f,s.equalizerHeight);s.showTime=false;s.equalizerWidth=.4f;s.equalizerHeight=1.75f;s.save(path);s=Settings.load(path);assertFalse(s.showTime);assertEquals(.4f,s.equalizerWidth);assertEquals(1.75f,s.equalizerHeight);assertFalse(s.hudWhileHidden);
+    }
+    @Test void invalidEqualizerSizesAreClampedWithoutChangingAudioVolume(){Settings s=new Settings();s.volume=.35f;s.equalizerWidth=Float.NaN;s.equalizerHeight=Float.POSITIVE_INFINITY;s.normalize();assertEquals(1f,s.equalizerWidth);assertEquals(1f,s.equalizerHeight);s.equalizerWidth=-9;s.equalizerHeight=99;s.normalize();assertEquals(.25f,s.equalizerWidth);assertEquals(2f,s.equalizerHeight);assertEquals(.35f,s.volume);}
     @Test void corruptedSettingsAreBackedUp() throws Exception {
         Path config = temp.resolve("invumusicplayer.json"); Files.writeString(config, "broken");
         assertTrue(Settings.load(config).hud);

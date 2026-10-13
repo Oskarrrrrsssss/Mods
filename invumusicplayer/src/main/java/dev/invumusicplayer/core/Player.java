@@ -63,7 +63,7 @@ public final class Player implements AutoCloseable {
     private final Object authLock = new Object();
     private volatile String token = "";
     private volatile List<Track> items = List.of();
-    private List<Track> queue = List.of(), originalQueue = List.of(), originalExplicit = List.of();
+    private List<Track> queue = List.of(), originalQueue = List.of(), originalExplicit = List.of(), originalForward=List.of();
     private volatile List<Track> likedCache = List.of();
     private volatile String listingSection="local";
     public String listingSection(){return listingSection;}
@@ -483,7 +483,7 @@ public final class Player implements AutoCloseable {
         submitStorage(() -> { try { session.save(snapshot); } catch (IOException e) { error = Messages.text("invumusicplayer.error.session_save"); } });
     }
     public synchronized void toggleShuffle() {
-        if(closed)return;settings.shuffle=!settings.shuffle;reorderUpcoming(settings.shuffle);List<Track> explicit=new ArrayList<>(upNext);if(settings.shuffle){originalExplicit=List.copyOf(explicit);shuffleChanged(explicit);}else explicit=restoreOrder(explicit,originalExplicit);upNext.clear();upNext.addAll(explicit);publishWaveList();saveSettings();persist();
+        if(closed)return;settings.shuffle=!settings.shuffle;reorderUpcoming(settings.shuffle);List<Track> explicit=new ArrayList<>(upNext);if(settings.shuffle){originalExplicit=List.copyOf(explicit);shuffleChanged(explicit);}else explicit=restoreOrder(explicit,originalExplicit);upNext.clear();upNext.addAll(explicit);List<Track> retrace=new ArrayList<>(forward);if(settings.shuffle){originalForward=List.copyOf(retrace);shuffleChanged(retrace);}else retrace=restoreOrder(retrace,originalForward);forward.clear();forward.addAll(retrace);publishWaveList();saveSettings();persist();
     }
     private static List<Track> restoreOrder(List<Track> future,List<Track> original){Map<Track,Integer> remaining=new HashMap<>();for(Track t:future)remaining.merge(t,1,Integer::sum);List<Track> ordered=new ArrayList<>();for(Track t:original)if(remaining.getOrDefault(t,0)>0){ordered.add(t);remaining.merge(t,-1,Integer::sum);}for(Track t:future)if(remaining.getOrDefault(t,0)>0){ordered.add(t);remaining.merge(t,-1,Integer::sum);}return ordered;}
     private static void shuffleChanged(List<Track> tracks){List<Track> before=List.copyOf(tracks);Collections.shuffle(tracks);if(tracks.equals(before))for(int i=1;i<tracks.size();i++)if(!tracks.get(i).equals(tracks.getFirst())){Collections.swap(tracks,0,i);break;}}

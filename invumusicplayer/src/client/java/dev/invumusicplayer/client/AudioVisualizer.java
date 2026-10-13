@@ -7,6 +7,7 @@ final class AudioVisualizer {
     private final float[] bars = new float[24], peaks = new float[24];
     private long previous;
     void draw(GuiGraphicsExtractor g,float[] spectrum,int x,int y,int width,int height,int color) {
+        int fullWidth=width;width=Math.max(1,Math.round(width*InvuMusicPlayerClient.player.settings.equalizerWidth));x+=(fullWidth-width)/2;
         long now=System.nanoTime();double dt=previous==0?1.0/60:Math.min(.1,(now-previous)/1e9);previous=now;
         for(int i=0;i<bars.length;i++) {
             float target=i<spectrum.length&&Float.isFinite(spectrum[i])?Math.max(0,Math.min(1,spectrum[i])):0;

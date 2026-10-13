@@ -13,7 +13,7 @@ public final class PlayerScreen extends Screen {
     private List<Track> seen = List.of();
     private int page,pages=1;
     private int left, top, panelWidth, panelHeight, listWidth, rows;
-    private Button serviceStatus,likeButton,dislikeButton,waveButton;
+    private Button pause, serviceStatus,likeButton,dislikeButton,waveButton;
     private final AudioVisualizer visualizer = new AudioVisualizer();
     private final Map<String,CoverTexture> artwork = new HashMap<>();
     public PlayerScreen() { super(Component.translatable("invumusicplayer.player.title")); }
@@ -33,13 +33,14 @@ public final class PlayerScreen extends Screen {
                 listWidth - 44, () -> player.playQueued(index));
             ((ModernButton)entry).selected(()->player.current()!=null&&player.current().id().equals(t.id()));
             entry.setTooltip(Tooltip.create(Component.literal(t.display())));
-            button(Component.translatable("invumusicplayer.library.remove"),left+listWidth-10,top+84+row*24,20,()->player.removeQueued(index));
+            Button remove=button(Component.translatable("invumusicplayer.library.remove"),left+listWidth-10,top+84+row*24,20,()->player.removeQueued(index));remove.setTooltip(Tooltip.create(Component.translatable("invumusicplayer.queue.remove_hint")));
         }
         int bottom = top + panelHeight - 86;
         button(Component.literal("<"), left + 10, top+panelHeight-26, 24, () -> movePage(-1)).active=page>0;
         button(Component.literal(">"), left + 38, top+panelHeight-26, 24, () -> movePage(1)).active=page+1<pages;
         int right = left + listWidth + 22, rightWidth = panelWidth - listWidth - 32;
         icon("invumusicplayer.menu.previous",right,bottom-4,36,PlayerMenuButton.Icon.PREVIOUS,player::previous);
+        pause=icon("invumusicplayer.player.pause",right+40,bottom-4,rightWidth-80,PlayerMenuButton.Icon.PAUSE,player::togglePause);
         icon("invumusicplayer.menu.next",right+rightWidth-36,bottom-4,36,PlayerMenuButton.Icon.NEXT,player::next);
         addRenderableWidget(new SeekSlider(right,top+panelHeight-114,rightWidth,1,true));
         int footer = top + panelHeight - 26;
@@ -62,6 +63,7 @@ public final class PlayerScreen extends Screen {
     @Override public void tick() {
         if (!seen.equals(player.queue())){page=Math.min(page,Math.max(0,(player.queue().size()+rows-1)/rows-1));rebuildWidgets();}
         updateServiceStatus();
+        if(pause!=null)pause.setMessage(Component.translatable(player.playing()?"invumusicplayer.player.pause":"invumusicplayer.player.play"));
         if(waveButton!=null)waveButton.active=!player.spotifySelected();
         if(likeButton!=null){boolean enabled=player.current()!=null&&!player.current().youtube();likeButton.active=enabled;dislikeButton.active=enabled&&!player.current().spotify();
 }
@@ -86,7 +88,7 @@ public final class PlayerScreen extends Screen {
         Track track = player.current();
         g.text(font, font.plainSubstrByWidth(track == null ? UiText.text("invumusicplayer.player.choose_track") : track.title(), rightWidth), right, y, PlayerHud.TEXT, false);
         g.text(font, font.plainSubstrByWidth(track == null ? UiText.text("invumusicplayer.player.tagline") : track.artist(), rightWidth), right, y + 14, PlayerHud.MUTED, false);
-        if(player.settings.visualizer)visualizer.draw(g,player.spectrum(),right,y+29,rightWidth,Math.max(4,Math.min(20,top+panelHeight-120-y-29)),player.settings.accent);
+        if(player.settings.visualizer)visualizer.draw(g,player.spectrum(),right,y+29,rightWidth,Math.max(4,Math.min(Math.round(20*player.settings.equalizerHeight),top+panelHeight-120-y-29)),player.settings.accent);
         g.text(font,UiText.text("invumusicplayer.library.queue"),left+12,top+64,PlayerHud.TEXT,false);
         if (seen.isEmpty()) g.text(font, font.plainSubstrByWidth(UiText.text("invumusicplayer.queue.empty"), listWidth - 4), left + 12, top + 88, PlayerHud.MUTED, false);
         g.text(font, (page + 1) + " / " + Math.max(1, (seen.size() + rows - 1) / rows), left + 156, top + panelHeight - 20, PlayerHud.MUTED, false);

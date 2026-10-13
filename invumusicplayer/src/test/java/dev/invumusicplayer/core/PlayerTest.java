@@ -461,6 +461,9 @@ final class PlayerTest {
             audio.ended.run();assertFalse(player.playing());assertEquals(1,remote.waveCalls.get());
         }
     }
+    @Test void shuffleAfterPreviousReordersForwardContinuationAndRestoresIt()throws Exception{
+        Audio audio=new Audio();try(Player p=new Player(temp,new Remote(),audio)){var tracks=List.of(track("a"),track("b"),track("c"));p.choose(tracks,0);await(p::playing);p.next();await(()->p.playing()&&p.current().id().equals("b"));p.next();await(()->p.playing()&&p.current().id().equals("c"));p.previous();await(()->p.playing()&&p.current().id().equals("b"));p.previous();await(()->p.playing()&&p.current().id().equals("a"));var before=p.queue();int starts=audio.played.size();assertEquals(List.of("b","c"),before.stream().map(Track::id).toList());p.toggleShuffle();assertEquals(List.of("c","b"),p.queue().stream().map(Track::id).toList());assertEquals(starts,audio.played.size());assertEquals("a",p.current().id());p.toggleShuffle();assertEquals(before,p.queue());}
+    }
     @Test void shuffleKeepsCurrentAndExplicitQueueAndRestoresUpcomingOrder() throws Exception {
         Audio audio=new Audio();List<Track> tracks=List.of(track("a"),track("b"),track("c"),track("d"));
         try(Player p=new Player(temp,new Remote(),audio)){

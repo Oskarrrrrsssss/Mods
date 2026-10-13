@@ -36,7 +36,7 @@ public final class LibraryScreen extends Screen {
             else {if(index>=tracks.size())break;Track track=tracks.get(index);
                 var entry=new ModernButton(x+22,y+row*24,260,20,Component.literal(font.plainSubstrByWidth(track.display(),244)),b->{player.choose(tracks,index);});
                 entry.selected(()->player.current()!=null&&player.current().id().equals(track.id()));entry.setTooltip(Tooltip.create(Component.literal(track.display())));addRenderableWidget(entry);
-                button("invumusicplayer.library.add",x+286,y+row*24,24,()->player.enqueue(track));
+                button("invumusicplayer.library.add",x+286,y+row*24,24,()->player.enqueue(track)).setTooltip(Tooltip.create(Component.translatable("invumusicplayer.queue.add_hint")));
             }
         }
         button("invumusicplayer.library.prev",x,height-128,40,()->movePage(-1)).active=page>0;

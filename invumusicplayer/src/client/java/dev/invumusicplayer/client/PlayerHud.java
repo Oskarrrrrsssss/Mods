@@ -7,7 +7,9 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 public final class PlayerHud {
     private static final AudioVisualizer visualizer = new AudioVisualizer();
     static final int TEXT = 0xffe6eee5, MUTED = 0xff9bad9f;
-    static int panelHeight(){return InvuMusicPlayerClient.player.settings.visualizer?70:54;}
+    private static long draws;
+    static long drawCount(){return draws;}
+    static int panelHeight(){var s=InvuMusicPlayerClient.player.settings;return Math.max(46,(s.showTime?54:36)+(s.visualizer?Math.round(15*s.equalizerHeight)+1:0));}
     public static void draw(GuiGraphicsExtractor g) { draw(g, false); }
     public static void preview(GuiGraphicsExtractor g) { draw(g, true); }
     public static boolean isVisible() {
@@ -18,6 +20,7 @@ public final class PlayerHud {
     private static void draw(GuiGraphicsExtractor g, boolean preview) {
         Player player = InvuMusicPlayerClient.player; Settings s = player.settings; Track track = player.current();
         if (!preview && !isVisible()) return;
+        if(!preview)++draws;
         if (track == null) track = new Track("preview", UiText.text("invumusicplayer.hud.preview_title"), UiText.text("invumusicplayer.hud.preview_artist"), 180000, null, null, "", "");
         boolean showCover=s.covers && !track.youtube();
         int width = showCover ? 244 : 196, height = panelHeight();
@@ -33,11 +36,12 @@ public final class PlayerHud {
         var font = Minecraft.getInstance().font;
         g.text(font, font.plainSubstrByWidth(track.title(), width - (tx - x) - 8), tx, y + 8, 0xff000000|s.textColor, false);
         g.text(font, font.plainSubstrByWidth(track.artist().isBlank() ? UiText.text("invumusicplayer.hud.local_music") : track.artist(), width - (tx - x) - 8), tx, y + 20, 0xb0000000|s.textColor, false);
-        String clock=(player.loading()?UiText.text("invumusicplayer.hud.loading"):player.playing()?"> ":"|| ")+time(player.positionMillis())+" / "+time(player.durationMillis());
-        g.text(font,clock,tx,y+33,0xb0000000|s.textColor,false);
-        int bar=width-(tx-x)-8;g.fill(tx,y+46,tx+bar,y+48,0xff324036);
-        if(player.durationMillis()>0)g.fill(tx,y+46,tx+(int)(bar*Math.min(1,(double)player.positionMillis()/player.durationMillis())),y+48,0xff000000|accent);
-        if(s.visualizer)visualizer.draw(g,player.spectrum(),tx,y+51,bar,15,accent);
+        int bar=width-(tx-x)-8;
+        if(s.showTime){String clock=(player.loading()?UiText.text("invumusicplayer.hud.loading"):player.playing()?"> ":"|| ")+time(player.positionMillis())+" / "+time(player.durationMillis());
+            g.text(font,clock,tx,y+33,0xb0000000|s.textColor,false);g.fill(tx,y+46,tx+bar,y+48,0xff324036);
+            if(player.durationMillis()>0)g.fill(tx,y+46,tx+(int)(bar*Math.min(1,(double)player.positionMillis()/player.durationMillis())),y+48,0xff000000|accent);
+        }
+        if(s.visualizer)visualizer.draw(g,player.spectrum(),tx,y+(s.showTime?51:33),bar,Math.round(15*s.equalizerHeight),accent);
         g.pose().popMatrix();
     }
     static int backgroundColor(){return PlayerMenuButton.themeColor();}
