@@ -233,5 +233,6 @@
   "invumusicplayer.visibility.pause": "Меню Escape: %s",
   "invumusicplayer.visibility.all": "Скрыть все: %s",
   "invumusicplayer.visibility.all_hint": "Скрывает все плееры, не останавливая музыку. Отдельные настройки видимости сохраняются.",
-  "invumusicplayer.visibility.recovery": "Вернуть скрытые плееры: Настройки Minecraft → Настройки плеера."
+  "invumusicplayer.visibility.recovery": "Вернуть скрытые плееры: Настройки Minecraft → Настройки плеера.",
+  "invumusicplayer.visibility.open_settings": "Настройки плеера"
 }

@@ -221,7 +221,7 @@ public final class InvuMusicPlayerClientSmokeTest implements FabricClientGameTes
         context.takeScreenshot("invu-en-title-all-players-hidden");
         context.clickScreenButton("menu.options");context.waitForScreen(net.minecraft.client.gui.screens.options.OptionsScreen.class);
         context.takeScreenshot("invu-en-hidden-player-recovery");
-        context.clickScreenButton("invumusicplayer.menu.settings");context.waitForScreen(SettingsScreen.class);
+        context.clickScreenButton("invumusicplayer.visibility.open_settings");context.waitForScreen(SettingsScreen.class);
         context.clickScreenButton("invumusicplayer.tabs.visibility");clickToggle(context,"invumusicplayer.visibility.all",true);
         check(fixture.settings.playersVisible&&!fixture.settings.titlePlayer&&!fixture.settings.hud&&fixture.settings.pausePlayer,"Hide-all overwrote individual visibility preferences");
         clickToggle(context,"invumusicplayer.visibility.game",false);clickToggle(context,"invumusicplayer.visibility.title",false);
@@ -292,7 +292,7 @@ public final class InvuMusicPlayerClientSmokeTest implements FabricClientGameTes
         check(context.computeOnClient(client->!MenuPlayerPanel.isVisible(client.gui.screen())&&Screens.getWidgets(client.gui.screen()).stream().noneMatch(w->w instanceof PlayerMenuButton||w instanceof ValueSlider)),"Escape player was not fully hidden");
         context.takeScreenshot("invu-en-escape-player-hidden");
         context.clickScreenButton("menu.options");context.waitForScreen(net.minecraft.client.gui.screens.options.OptionsScreen.class);
-        context.clickScreenButton("invumusicplayer.menu.settings");context.waitForScreen(SettingsScreen.class);
+        context.clickScreenButton("invumusicplayer.visibility.open_settings");context.waitForScreen(SettingsScreen.class);
         context.clickScreenButton("invumusicplayer.tabs.visibility");clickToggle(context,"invumusicplayer.visibility.pause",false);
         context.clickScreenButton("invumusicplayer.settings.back");context.waitForScreen(net.minecraft.client.gui.screens.options.OptionsScreen.class);
         context.getInput().pressKey(SDLScancode.SDL_SCANCODE_ESCAPE);context.waitForScreen(PauseScreen.class);

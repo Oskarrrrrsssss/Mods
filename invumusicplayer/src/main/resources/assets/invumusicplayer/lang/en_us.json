@@ -233,5 +233,6 @@
   "invumusicplayer.visibility.pause": "Escape menu: %s",
   "invumusicplayer.visibility.all": "Hide all: %s",
   "invumusicplayer.visibility.all_hint": "Hide every ambient player without stopping music. Individual visibility choices are retained.",
-  "invumusicplayer.visibility.recovery": "Restore hidden players in Minecraft Options → Player settings."
+  "invumusicplayer.visibility.recovery": "Restore hidden players in Minecraft Options → Player settings.",
+  "invumusicplayer.visibility.open_settings": "Player settings"
 }
