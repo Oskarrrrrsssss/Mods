@@ -36,16 +36,16 @@ public final class HudEditor extends Screen {
     }
     private void clamp() {
         s.normalize(); s.hudX = Math.max(0, Math.min(s.hudX, (int) (width / s.hudScale) - panelWidth()));
-        s.hudY = Math.max(0, Math.min(s.hudY, (int) (height / s.hudScale) - 54));
+        s.hudY = Math.max(0, Math.min(s.hudY, (int) (height / s.hudScale) - PlayerHud.panelHeight()));
     }
     private void corner(boolean right, boolean bottom) {
         s.hudX = right ? (int) (width / s.hudScale) - panelWidth() - 8 : 8;
-        s.hudY = bottom ? (int) (height / s.hudScale) - 62 : 8; clamp();
+        s.hudY = bottom ? (int) (height / s.hudScale) - PlayerHud.panelHeight()-8 : 8; clamp();
     }
     @Override public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
         if (super.mouseClicked(event, doubleClick)) return true;
         double x = event.x() / s.hudScale, y = event.y() / s.hudScale;
-        if (x >= s.hudX && x <= s.hudX + panelWidth() && y >= s.hudY && y <= s.hudY + 54) {
+        if (x >= s.hudX && x <= s.hudX + panelWidth() && y >= s.hudY && y <= s.hudY + PlayerHud.panelHeight()) {
             dragging = true; offsetX = x - s.hudX; offsetY = y - s.hudY; return true;
         }
         return false;

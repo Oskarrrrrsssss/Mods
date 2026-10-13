@@ -12,6 +12,7 @@ import net.minecraft.network.chat.Component;
 /** Credentials are entered on the user's PC and never echoed on screen. */
 public final class AccountScreen extends Screen {
     private static final String HELP = "https://github.com/Oskarrrrrsssss/Mods/tree/codex/musicraft-playback/invumusicplayer#readme";
+    public static Screen open(Screen parent){return InvuMusicPlayerClient.player.spotifySelected()?new SpotifyAccountScreen(parent):new AccountScreen(parent);}
     private final Screen parent;
     private EditBox token;
     private Button connect, disconnect;
@@ -21,7 +22,9 @@ public final class AccountScreen extends Screen {
 
     @Override protected void init() {
         int x = width / 2 - 155, y = Math.max(24, height / 2 - 106);
-        token = new EditBox(font, x, y + 72, 310, 20, Component.translatable("invumusicplayer.account.token_field")) {
+        var yandex=addRenderableWidget(new ModernButton(x,y+18,151,20,Component.translatable("invumusicplayer.service.yandex"),b->{}));yandex.selected(()->true);
+        addRenderableWidget(new ModernButton(x+159,y+18,151,20,Component.translatable("invumusicplayer.service.spotify"),b->{InvuMusicPlayerClient.player.setMusicService("spotify");minecraft.gui.setScreen(new SpotifyAccountScreen(parent));}));
+        token = new EditBox(font, x, y + 98, 310, 20, Component.translatable("invumusicplayer.account.token_field")) {
             @Override protected net.minecraft.network.chat.MutableComponent createNarrationMessage() {
                 return Component.translatable("invumusicplayer.account.token_narration");
             }
@@ -30,11 +33,11 @@ public final class AccountScreen extends Screen {
         token.addFormatter((value, cursor) -> Component.literal("*".repeat(value.length())).getVisualOrderText());
         token.setResponder(value -> invalidInput = false);
         addRenderableWidget(token);
-        connect = addRenderableWidget(new ModernButton(x, y + 100, 151, 20, Component.translatable("invumusicplayer.account.connect"), b -> connect()));
-        disconnect = addRenderableWidget(new ModernButton(x + 159, y + 100, 151, 20, Component.translatable("invumusicplayer.account.disconnect"), b -> {
+        connect = addRenderableWidget(new ModernButton(x, y + 122, 151, 20, Component.translatable("invumusicplayer.account.connect"), b -> connect()));
+        disconnect = addRenderableWidget(new ModernButton(x + 159, y + 122, 151, 20, Component.translatable("invumusicplayer.account.disconnect"), b -> {
             token.setValue(""); invalidInput = false; InvuMusicPlayerClient.player.disconnect();
         }));
-        addRenderableWidget(new ModernButton(x,y+128,310,20,Component.translatable("invumusicplayer.account.help"),b->Blaze3D.openUri(URI.create(HELP))));
+        addRenderableWidget(new ModernButton(x,y+148,310,20,Component.translatable("invumusicplayer.account.help"),b->Blaze3D.openUri(URI.create(HELP))));
         addRenderableWidget(new ModernButton(x, y + 196, 310, 20, Component.translatable("invumusicplayer.account.back"), b -> onClose()));
         setInitialFocus(token);
         updateButtons();
@@ -66,14 +69,14 @@ public final class AccountScreen extends Screen {
         g.fill(0, 0, width, height, 0xf00c1220);
         int x = width / 2 - 155, y = Math.max(24, height / 2 - 106);
         g.text(font, UiText.text("invumusicplayer.account.title"), x, y, PlayerHud.TEXT, false);
-        g.text(font, UiText.text("invumusicplayer.account.playback_hint"), x, y + 18, PlayerHud.MUTED, false);
-        g.text(font, UiText.text("invumusicplayer.account.token_hint"), x, y + 32, PlayerHud.MUTED, false);
-        g.text(font, UiText.text("invumusicplayer.account.storage_hint"), x, y + 46, PlayerHud.MUTED, false);
-        g.text(font, UiText.text("invumusicplayer.account.token_prompt"), x, y + 60, PlayerHud.TEXT, false);
+        g.text(font, UiText.text("invumusicplayer.account.playback_hint"), x, y + 44, PlayerHud.MUTED, false);
+        g.text(font, UiText.text("invumusicplayer.account.token_hint"), x, y + 58, PlayerHud.MUTED, false);
+        g.text(font, UiText.text("invumusicplayer.account.storage_hint"), x, y + 72, PlayerHud.MUTED, false);
+        g.text(font, UiText.text("invumusicplayer.account.token_prompt"), x, y + 86, PlayerHud.TEXT, false);
         String error = invalidInput ? UiText.text("invumusicplayer.error.token_invalid") : InvuMusicPlayerClient.player.accountError();
         String status = error.isBlank() ? InvuMusicPlayerClient.player.accountStatus() : error;
         int color = error.isBlank() ? PlayerHud.MUTED : 0xfff28b82;
-        drawWrapped(g, status, x, y + 158, 310, color);
+        drawWrapped(g, status, x, y + 168, 310, color);
         super.extractRenderState(g, mx, my, delta);
     }
 

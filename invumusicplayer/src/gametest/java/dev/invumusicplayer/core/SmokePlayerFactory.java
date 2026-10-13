@@ -19,6 +19,8 @@ public final class SmokePlayerFactory {
 
     /** Runs inside Knot's production mod classloader to catch missing nested JavaSound SPI providers. */
     public static void verifyBundledCodecs() {
+        try(var nativePlayer=new NativeSpotifyPlayback(net.fabricmc.loader.api.FabricLoader.getInstance().getGameDir())){nativePlayer.verifyInstallation();}
+        catch(Exception e){throw new AssertionError("Bundled Spotify native engine is unavailable",e);}
         ImageIO.scanForPlugins();
         try(var webp=SmokePlayerFactory.class.getResourceAsStream("/invumusicplayer-smoke/cover.webp")) {
             var image=ImageIO.read(webp);if(image==null||image.getWidth()!=3)throw new IOException("WebP reader unavailable");

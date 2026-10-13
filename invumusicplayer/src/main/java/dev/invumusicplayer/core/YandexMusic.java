@@ -190,11 +190,11 @@ public final class YandexMusic {
         }
         return List.copyOf(result);
     }
-    public record Playlist(String owner, String kind, String title) {}
-    public List<Playlist> playlists() throws Exception {
-        JsonElement response = api("/users/" + user() + "/playlists/list", null); List<Playlist> result = new ArrayList<>();
+    
+    public List<MusicPlaylist> playlists() throws Exception {
+        JsonElement response = api("/users/" + user() + "/playlists/list", null); List<MusicPlaylist> result = new ArrayList<>();
         if (response.isJsonArray()) for (JsonElement e : response.getAsJsonArray()) if (e.isJsonObject()) {
-            JsonObject p = e.getAsJsonObject(); result.add(new Playlist(Long.toString(user()), str(p, "kind", ""), str(p, "title", "")));
+            JsonObject p = e.getAsJsonObject(); result.add(new MusicPlaylist(Long.toString(user()), str(p, "kind", ""), str(p, "title", "")));
         }
         return List.copyOf(result);
     }

@@ -20,7 +20,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest]
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 25
+    timeout-minutes: 40
     defaults:
       run:
         working-directory: invumusicplayer
@@ -33,6 +33,19 @@ jobs:
         with:
           distribution: temurin
           java-version: '25'
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: invumusicplayer/native-spotify
+      - name: Spotify decoder tests / Проверка декодера Spotify
+        run: cargo test --release --manifest-path native-spotify/Cargo.toml
+      - name: Decoder dependency lock / Версии зависимостей декодера
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: spotify-native-lock-${{ matrix.os }}
+          path: invumusicplayer/native-spotify/Cargo.lock
+          retention-days: 7
       - name: Build and tests / Сборка и тесты
         run: bash ./gradlew inspectClientApi build --no-daemon --stacktrace
       - name: YouTube Windows helpers / Инструменты YouTube Windows

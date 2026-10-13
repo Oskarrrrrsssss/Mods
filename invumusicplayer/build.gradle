@@ -27,13 +27,24 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter:5.13.4'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
+tasks.register('buildNativeSpotify', Exec) {
+    inputs.dir('native-spotify/src'); inputs.file('native-spotify/Cargo.toml')
+    outputs.file('native-spotify/target/release/invumusicplayer-spotify' + (System.getProperty('os.name').startsWith('Windows') ? '.exe' : ''))
+    commandLine 'cargo', 'build', '--release', '--manifest-path', 'native-spotify/Cargo.toml'
+}
+tasks.register('stageNativeSpotify', Exec) {
+    dependsOn 'buildNativeSpotify'
+    commandLine 'python', 'scripts/package-spotify-native.py'
+}
 processResources {
+    dependsOn 'stageNativeSpotify'
+    from('build/generated/spotify-native') { into 'spotify-native' }
     inputs.property 'version', project.version
     filesMatching('fabric.mod.json') { expand version: project.version }
 }
 java { toolchain { languageVersion = JavaLanguageVersion.of(25) }; withSourcesJar() }
 tasks.withType(JavaCompile).configureEach { options.release = 25; options.encoding = 'UTF-8' }
-test { useJUnitPlatform() }
+test { useJUnitPlatform(); systemProperty 'invu.spotify.native.check', 'true'; systemProperty 'invu.spotify.oauth.check', 'true' }
 tasks.register('verifyYouTubeTools', JavaExec) {
     dependsOn classes
     classpath = sourceSets.main.runtimeClasspath

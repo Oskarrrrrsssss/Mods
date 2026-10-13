@@ -11,7 +11,7 @@ public final class WaveSettingsScreen extends Screen {
         String[] moods={"all","fun","sad","calm","active"};for(int i=0;i<moods.length;i++){String v=moods[i];choice(x+i%3*105,y+i/3*25,100,"invumusicplayer.mood."+v,()->s.waveMood.equals(v),()->s.waveMood=v);}
         String[] diversity={"default","favorite","popular","discover"};for(int i=0;i<diversity.length;i++){String v=diversity[i];choice(x+i%2*160,y+60+i/2*25,150,"invumusicplayer.diversity."+v,()->s.waveDiversity.equals(v),()->s.waveDiversity=v);}
         String[] language={"any","russian","not-russian"};for(int i=0;i<language.length;i++){String v=language[i];choice(x+i*105,y+115,100,"invumusicplayer.wave_language."+v,()->s.waveLanguage.equals(v),()->s.waveLanguage=v);}
-        addRenderableWidget(new ModernButton(x,height-30,150,20,Component.translatable("invumusicplayer.wave.apply"),b->{s.waveCustom=true;p.saveSettings();if(p.connected()){p.startWave();onClose();}else minecraft.gui.setScreen(new AccountScreen(this));}));
+        addRenderableWidget(new ModernButton(x,height-30,150,20,Component.translatable("invumusicplayer.wave.apply"),b->{s.waveCustom=true;p.saveSettings();if(!p.spotifySelected()&&p.connected()){p.startWave();onClose();}else minecraft.gui.setScreen(AccountScreen.open(this));}));
         addRenderableWidget(new ModernButton(x+160,height-30,150,20,Component.translatable("invumusicplayer.settings.back"),b->onClose()));
     }
     private void choice(int x,int y,int w,String key,java.util.function.BooleanSupplier selected,Runnable action){var b=new ModernButton(x,y,w,20,Component.translatable(key),v->{action.run();var p=InvuMusicPlayerClient.player;p.settings.waveCustom=true;p.saveSettings();});b.selected(selected);addRenderableWidget(b);}

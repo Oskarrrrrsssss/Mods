@@ -24,7 +24,7 @@ public final class SettingsScreen extends Screen {
             button("invumusicplayer.cover.retry",x,y+60,150,()->InvuMusicPlayerClient.player.retryArtwork());
             toggle("invumusicplayer.settings.hud_f1",x+160,y+60,s.hudWhileHidden,()->s.hudWhileHidden=!s.hudWhileHidden);
             toggle("invumusicplayer.settings.shuffle",x,y+90,s.shuffle,()->InvuMusicPlayerClient.player.toggleShuffle());
-            toggle("invumusicplayer.settings.cover_colors",x+160,y+90,s.menuCoverColors,()->s.menuCoverColors=!s.menuCoverColors);
+            button("invumusicplayer.service.choose",x+160,y+90,150,()->minecraft.gui.setScreen(AccountScreen.open(this)));
         }else if(tab==1){
             toggle("invumusicplayer.settings.cover_colors",x,y,s.menuCoverColors,()->s.menuCoverColors=!s.menuCoverColors);
             toggle("invumusicplayer.settings.covers",x+160,y,s.covers,()->s.covers=!s.covers);

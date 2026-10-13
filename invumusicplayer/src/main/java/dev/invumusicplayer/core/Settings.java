@@ -7,6 +7,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 
 public final class Settings {
+    public String musicService="yandex", spotifyClientId="";
     public boolean playersVisible=true, titlePlayer=true, pausePlayer=true;
     public boolean hud = true, covers = true;
     public boolean hudWhileHidden = true, shuffle = false, menuCoverColors = true;
@@ -21,6 +22,8 @@ public final class Settings {
     private static final Gson JSON = new GsonBuilder().setPrettyPrinting().create();
     public void normalize() {
         visualizerVersion = 1;
+        if(!java.util.Set.of("yandex","spotify").contains(musicService==null?"":musicService))musicService="yandex";
+        if(spotifyClientId==null||!spotifyClientId.matches("[a-fA-F0-9]{32}"))spotifyClientId="";
         menuScale=finiteClamp(menuScale,.35f,1.25f,.5f);menuX=finiteClamp(menuX,0,1,0);menuY=finiteClamp(menuY,0,1,0);
         volume = finiteClamp(volume, 0, 1, .7f);
         hudScale = finiteClamp(hudScale, .5f, 2f, 1f);

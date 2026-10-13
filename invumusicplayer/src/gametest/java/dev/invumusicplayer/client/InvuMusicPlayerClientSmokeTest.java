@@ -78,14 +78,14 @@ public final class InvuMusicPlayerClientSmokeTest implements FabricClientGameTes
                 checkPauseAndHiddenHud(context,fixture);
                 openPlayerWithHotkey(context);
                 checkPreviousInput(context,fixture);
-                context.waitFor(client -> InvuMusicPlayerClient.cover.ready() && ((PlayerScreen)client.gui.screen()).readyArtworkCount() == 3);
+                context.waitFor(client -> InvuMusicPlayerClient.cover.ready() && ((PlayerScreen)client.gui.screen()).readyArtworkCount() == 2);
                 context.runOnClient(client->{var widgets=client.gui.screen().children();var volume=widgets.stream().filter(ValueSlider.class::isInstance).map(ValueSlider.class::cast).findFirst().orElseThrow();
                     for(var w:widgets)if(w instanceof net.minecraft.client.gui.components.Button button){int distance=button.getY()>=volume.getY()?button.getY()-(volume.getY()+volume.getHeight()):volume.getY()-(button.getY()+button.getHeight());check(distance>=10,"Full-player volume is adjacent to clickable buttons");}
                 });
                 context.takeScreenshot("invumusicplayer-en-player-with-cover");
                 context.clickScreenButton("invumusicplayer.player.library");context.waitForScreen(LibraryScreen.class);
-                context.waitFor(client->((LibraryScreen)client.gui.screen()).readyArtworkCount()==2);
-                context.takeScreenshot("invu-en-queue-library");
+                context.waitFor(client->((LibraryScreen)client.gui.screen()).readyArtworkCount()==1);
+                context.takeScreenshot("invu-en-library-search");
                 var all=context.computeOnClient(client->fixture.items());
                 for(int index=0;index<all.size();index++){int item=index;context.runOnClient(client->fixture.choose(all,item));context.waitFor(client->fixture.playing()&&!fixture.loading());context.runOnClient(client->fixture.rate(true));context.waitFor(client->fixture.rating()==1);}
                 context.runOnClient(client->fixture.choose(all,0));context.waitFor(client->fixture.playing()&&!fixture.loading());
@@ -110,6 +110,7 @@ public final class InvuMusicPlayerClientSmokeTest implements FabricClientGameTes
                 context.waitForScreen(AccountScreen.class);
                 EditBox englishTokenInput = enterSyntheticToken(context);
                 context.takeScreenshot("invumusicplayer-en-account-disconnected");
+                checkSpotifyAccount(context,fixture,"en");
                 context.clickScreenButton("invumusicplayer.account.back");
                 context.waitForScreen(PlayerScreen.class);
                 check(context.computeOnClient(client -> englishTokenInput.getValue().isEmpty()),
@@ -168,6 +169,7 @@ public final class InvuMusicPlayerClientSmokeTest implements FabricClientGameTes
                 context.waitForScreen(AccountScreen.class);
                 EditBox russianTokenInput = enterSyntheticToken(context);
                 context.takeScreenshot("invumusicplayer-ru-account-disconnected");
+                checkSpotifyAccount(context,fixture,"ru");
                 context.clickScreenButton("invumusicplayer.account.back");
                 context.waitForScreen(PlayerScreen.class);
                 check(context.computeOnClient(client -> russianTokenInput.getValue().isEmpty()),
@@ -202,6 +204,18 @@ public final class InvuMusicPlayerClientSmokeTest implements FabricClientGameTes
             });
             selectLanguage(context, originalLanguage);
         }
+    }
+
+    private static void checkSpotifyAccount(ClientGameTestContext context,Player fixture,String language){
+        var retained=context.computeOnClient(client->fixture.queue());
+        context.clickScreenButton("invumusicplayer.service.spotify");context.waitForScreen(SpotifyAccountScreen.class);
+        check(fixture.spotifySelected(),"Spotify choice did not change the service");check(!fixture.playing(),"Service switch did not stop the prior audio");
+        check(fixture.queue().equals(retained),"Service switch erased the prior queue");checkSelected(context,"invumusicplayer.service.spotify");
+        check(context.computeOnClient(client->client.gui.screen().children().stream().filter(EditBox.class::isInstance).count())==1,"Spotify must ask for Client ID, not a password/token");
+        context.takeScreenshot("invu-"+language+"-spotify-native-account");
+        context.clickScreenButton("invumusicplayer.service.yandex");context.waitForScreen(AccountScreen.class);check(!fixture.spotifySelected(),"Could not return to Yandex");checkSelected(context,"invumusicplayer.service.yandex");
+        context.runOnClient(client->fixture.refreshLocal());context.waitFor(client->fixture.items().size()==3);
+        context.runOnClient(client->fixture.choose(fixture.items(),0));context.waitFor(client->fixture.playing()&&!fixture.loading());
     }
 
     private static void checkVisibility(ClientGameTestContext context,Player fixture) {

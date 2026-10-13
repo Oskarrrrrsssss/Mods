@@ -28,9 +28,11 @@ public final class LocalLibrary {
                         if (data.has("artist")) artist = data.get("artist").getAsString();
                     } catch (RuntimeException ignored) { /* Broken sidecar must not hide the audio. */ }
                 }
-                Path cover = sibling(file, ".png");
-                if (!Files.isRegularFile(cover)) cover = sibling(file, ".jpg");
-                if (!Files.isRegularFile(cover) || !cover.toRealPath().startsWith(directory.toRealPath())) cover = null;
+                Path cover = null;
+                for(String candidate:List.of(stem(file)+".png",stem(file)+".jpg",stem(file)+".jpeg",stem(file)+".webp","cover.png","cover.jpg","cover.jpeg","cover.webp","folder.jpg")){
+                    Path image=file.resolveSibling(candidate);
+                    if(Files.isRegularFile(image)&&image.toRealPath().startsWith(directory.toRealPath())){cover=image;break;}
+                }
                 long duration = 0;
                 try {
                     AudioFileFormat audio = AudioSystem.getAudioFileFormat(file.toFile());

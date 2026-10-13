@@ -30,7 +30,7 @@ final class PlayerMenuButton extends Button {
         int px=0,py=0,pw=Math.round(getWidth()/scale),ph=20;
         g.pose().pushMatrix();g.pose().translate((float)getX(),(float)getY());g.pose().scale(scale);
         boolean highlighted=isHoveredOrFocused(), selected=isSelected();
-        active=(icon!=Icon.LIKE&&icon!=Icon.DISLIKE)||(player.current()!=null&&!player.current().youtube());
+        active=switch(icon){case WAVE->!player.spotifySelected();case LIKE->player.current()!=null&&!player.current().youtube();case DISLIKE->player.current()!=null&&!player.current().youtube()&&!player.current().spotify();default->true;};
         int base=themeColor();int background=0xff000000|tint(base,highlighted||selected?32:16);
         rounded(g,px,py+1,pw,ph,0x48000000);
         rounded(g,px,py,pw,ph,background);
