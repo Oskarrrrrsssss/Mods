@@ -13,13 +13,13 @@ import net.minecraft.network.chat.Component;
 import java.nio.file.*;
 
 public final class PortSmoke implements ClientModInitializer {
- private int stage,ticks,wait;private Player fixture;private Screen title;private long normalDraws,hiddenDraws;
+ private int stage,ticks,wait;private Player fixture;private Screen title;private long normalDraws,hiddenDraws;private int loggedStage=-1;
  @Override public void onInitializeClient(){if(!Boolean.getBoolean("invu.smoke"))return;ClientTickEvents.END_CLIENT_TICK.register(this::tick);}
  private void check(boolean value,String message){if(!value)throw new AssertionError(message);}
  private void capture(Minecraft mc,String name)throws Exception{Path folder=FabricLoader.getInstance().getGameDir().resolve("screenshots");Files.createDirectories(folder);try(var image=Screenshot.takeScreenshot(mc.getMainRenderTarget())){image.writeToFile(folder.resolve(name+".png"));}}
  private void click(Minecraft mc,String key){var widget=Screens.getButtons(mc.screen).stream().filter(b->b.getMessage().equals(Component.translatable(key))).findFirst().orElseThrow();check(mc.screen.mouseClicked(widget.getX()+widget.getWidth()/2.0,widget.getY()+widget.getHeight()/2.0,0),"Click ignored: "+key);mc.screen.mouseReleased(widget.getX()+widget.getWidth()/2.0,widget.getY()+widget.getHeight()/2.0,0);}
  private void tick(Minecraft mc){
-  try{if(++ticks>3600)throw new AssertionError("Client verification timed out at stage "+stage);if(mc.getOverlay()!=null)return;if(wait++<15)return;wait=0;
+  try{if(loggedStage!=stage){System.out.println("INVU_SMOKE_STAGE "+stage+" screen="+(mc.screen==null?"world":mc.screen.getClass().getSimpleName()));loggedStage=stage;}if(stage==0&&mc.screen!=null&&mc.screen.getClass().getSimpleName().equals("AccessibilityOnboardingScreen")){mc.setScreen(new TitleScreen());return;}if(++ticks>3600)throw new AssertionError("Client verification timed out at stage "+stage);if(mc.getOverlay()!=null)return;if(wait++<15)return;wait=0;
    switch(stage){
     case 0->{if(!(mc.screen instanceof TitleScreen)||InvuMusicPlayerClient.player==null)return;if(!mc.getLanguageManager().getSelected().equals("en_us")){mc.getLanguageManager().setSelected("en_us");mc.options.languageCode="en_us";mc.reloadResourcePacks();return;}title=mc.screen;mc.options.pauseOnLostFocus=false;mc.options.renderDistance().set(2);mc.options.simulationDistance().set(5);mc.options.enableVsync().set(false);SmokePlayerFactory.verifyBundledCodecs();fixture=SmokePlayerFactory.create(FabricLoader.getInstance().getGameDir());InvuMusicPlayerClient.player.close();InvuMusicPlayerClient.player=fixture;fixture.refreshLocal();stage++;}
     case 1->{if(fixture.items().size()!=3)return;fixture.choose(fixture.items(),0);stage++;}

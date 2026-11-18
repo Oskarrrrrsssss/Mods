@@ -74,3 +74,5 @@ tasks.register('smoketestJar',Jar) { from sourceSets.smoketest.output; archiveCl
 
 
 loom.runs.smoke.vmArg('-Dinvu.referenceCover=' + file('build/reference-cover.jpg').absolutePath)
+
+tasks.withType(JavaExec).configureEach { jvmArgs '-Dfile.encoding=UTF-8' }

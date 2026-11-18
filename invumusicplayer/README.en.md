@@ -167,7 +167,7 @@ yt-dlp and Deno versions are pinned; the FFmpeg LGPL build uses a verified SHA-2
 Helpers receive neither the Yandex token nor browser cookies.
 
 You can provide your own `yt-dlp.exe`, `deno.exe`, `ffmpeg.exe` and `ffprobe.exe` directly in `tools`: a complete set takes priority over auto-install. On Linux/macOS, install yt-dlp, Deno and FFmpeg in PATH or `tools`; automatic installation targets Windows x64.
-Sources: [yt-dlp](https://github.com/yt-dlp/yt-dlp), [Deno](https://github.com/denoland/deno), [FFmpeg](https://github.com/BtbN/FFmpeg-Builds).
+Sources: [yt-dlp](https://github.com/yt-dlp/yt-dlp), [Deno](https://github.com/denoland/deno), [FFmpeg](https://github.com/FFmpeg-Builds/FFmpeg-Builds).
 
 Private videos, sign-in/bot checks, live streams and regional restrictions are not bypassed. YouTube access failures show their category. Playback of a particular video depends on YouTube and network access.
 Audio loads fully before playback: up to **128 MiB** per YouTube track and **64 MiB** per Yandex track. YouTube temporary files are removed after download or cancellation.

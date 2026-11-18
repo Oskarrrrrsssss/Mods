@@ -33,7 +33,7 @@ No third-party music, artwork, lyrics, reference mod files, or account data are 
 
 ## Separately downloaded YouTube helpers
 
-On Windows x64 the mod prepares official yt-dlp (Unlicense; executable components have separate licenses), Deno (MIT), and LGPL FFmpeg/ffprobe from BtbN/FFmpeg-Builds. Binaries are not bundled inside the JAR. Sources, license terms and build scripts are available at https://github.com/yt-dlp/yt-dlp, https://github.com/denoland/deno and https://github.com/BtbN/FFmpeg-Builds. Information is saved alongside helpers in NOTICE.txt.
+On Windows x64 the mod prepares official yt-dlp (Unlicense; executable components have separate licenses), Deno (MIT), and LGPL FFmpeg/ffprobe from FFmpeg-Builds/FFmpeg-Builds. Binaries are not bundled inside the JAR. Sources, license terms and build scripts are available at https://github.com/yt-dlp/yt-dlp, https://github.com/denoland/deno and https://github.com/FFmpeg-Builds/FFmpeg-Builds. Information is saved alongside helpers in NOTICE.txt.
 
 ## Bundled Spotify engine
 

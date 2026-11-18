@@ -167,7 +167,7 @@ yt-dlp и Deno имеют закреплённые версии; для сбор
 Инструменты не получают токен Яндекса или cookies браузера.
 
 Можно положить собственные `yt-dlp.exe`, `deno.exe`, `ffmpeg.exe` и `ffprobe.exe` прямо в `tools`: полный набор используется вместо автоматической установки. На Linux/macOS установи yt-dlp, Deno и FFmpeg в PATH либо `tools`; автоустановка рассчитана на Windows x64.
-Источники: [yt-dlp](https://github.com/yt-dlp/yt-dlp), [Deno](https://github.com/denoland/deno), [FFmpeg](https://github.com/BtbN/FFmpeg-Builds).
+Источники: [yt-dlp](https://github.com/yt-dlp/yt-dlp), [Deno](https://github.com/denoland/deno), [FFmpeg](https://github.com/FFmpeg-Builds/FFmpeg-Builds).
 
 Закрытые видео, требование входа/проверки бота, трансляции и ограничения региона не обходятся. Если YouTube запрещает запрос, показывается причина. Работа с конкретным видео зависит от YouTube и сети.
 Звук полностью загружается перед воспроизведением: до **128 МиБ** на YouTube-трек, до **64 МиБ** на трек Яндекса. Временные файлы YouTube удаляются после загрузки или отмены.

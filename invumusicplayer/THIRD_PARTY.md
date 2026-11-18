@@ -33,7 +33,7 @@ Minecraft — проприетарное ПО; игра не включена в
 
 ## Отдельно загружаемые инструменты YouTube
 
-Мод автоматически подготавливает на Windows x64 официальные yt-dlp (Unlicense; компоненты исполняемого файла имеют отдельные лицензии), Deno (MIT), FFmpeg/ffprobe LGPL из BtbN/FFmpeg-Builds. Исполняемые файлы не встроены в JAR. Их источники, условия и сборочные скрипты доступны в https://github.com/yt-dlp/yt-dlp, https://github.com/denoland/deno и https://github.com/BtbN/FFmpeg-Builds. Информация сохраняется рядом с инструментами в NOTICE.txt.
+Мод автоматически подготавливает на Windows x64 официальные yt-dlp (Unlicense; компоненты исполняемого файла имеют отдельные лицензии), Deno (MIT), FFmpeg/ffprobe LGPL из FFmpeg-Builds/FFmpeg-Builds. Исполняемые файлы не встроены в JAR. Их источники, условия и сборочные скрипты доступны в https://github.com/yt-dlp/yt-dlp, https://github.com/denoland/deno и https://github.com/FFmpeg-Builds/FFmpeg-Builds. Информация сохраняется рядом с инструментами в NOTICE.txt.
 
 ## Встроенный движок Spotify
 
