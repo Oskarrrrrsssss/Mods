@@ -308,7 +308,7 @@ public final class YandexMusic {
         }
         // Radio responses and restored queues can carry incomplete or obsolete artwork metadata.
         List<Track> full = tracks(List.of(track.id()));
-        String refreshed = full.isEmpty() ? "" : coverUrl(full.getFirst().coverUrl());
+        String refreshed = full.isEmpty() ? "" : coverUrl(full.get(0).coverUrl());
         if (!refreshed.isBlank() && (first == null || !refreshed.equals(url))) return asset(resourceUri(refreshed), 8_000_000);
         if (first != null) throw first;
         return new byte[0];

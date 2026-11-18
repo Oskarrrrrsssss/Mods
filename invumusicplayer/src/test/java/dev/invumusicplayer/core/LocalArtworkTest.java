@@ -40,7 +40,7 @@ final class LocalArtworkTest{
     }
     @Test void adjacentArtworkOverridesSharedAlbumCoverAndExternalSymlinksAreIgnored()throws Exception{
         Path music=temp.resolve("music");Files.createDirectories(music);Files.write(music.resolve("Song.mp3"),new byte[0]);Files.write(music.resolve("cover.jpg"),image());
-        var lib=new LocalLibrary(music);assertEquals(music.resolve("cover.jpg"),lib.scan().getFirst().coverFile());Files.write(music.resolve("Song.webp"),image());assertEquals(music.resolve("Song.webp"),lib.scan().getFirst().coverFile());
-        Files.delete(music.resolve("Song.webp"));Path outside=temp.resolve("outside.png");Files.write(outside,image());try{Files.createSymbolicLink(music.resolve("Song.png"),outside);}catch(IOException|UnsupportedOperationException e){return;}assertEquals(music.resolve("cover.jpg"),lib.scan().getFirst().coverFile());
+        var lib=new LocalLibrary(music);assertEquals(music.resolve("cover.jpg"),lib.scan().get(0).coverFile());Files.write(music.resolve("Song.webp"),image());assertEquals(music.resolve("Song.webp"),lib.scan().get(0).coverFile());
+        Files.delete(music.resolve("Song.webp"));Path outside=temp.resolve("outside.png");Files.write(outside,image());try{Files.createSymbolicLink(music.resolve("Song.png"),outside);}catch(IOException|UnsupportedOperationException e){return;}assertEquals(music.resolve("cover.jpg"),lib.scan().get(0).coverFile());
     }
 }

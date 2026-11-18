@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   build:
-    name: Fabric 26.3 / ${{ matrix.os }}
+    name: Fabric 1.20.4 / ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
@@ -32,7 +32,7 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '25'
+          java-version: '17'
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
         with:
@@ -48,7 +48,7 @@ jobs:
           path: invumusicplayer/native-spotify/Cargo.lock
           retention-days: 7
       - name: Build and tests / Сборка и тесты
-        run: bash ./gradlew inspectClientApi build --no-daemon --stacktrace
+        run: bash ./gradlew inspectClientApi build smoketestJar --no-daemon --stacktrace
       - name: YouTube Windows helpers / Инструменты YouTube Windows
         if: runner.os == 'Windows'
         run: bash ./gradlew verifyYouTubeTools --no-daemon --stacktrace
@@ -65,16 +65,20 @@ jobs:
           GALLIUM_DRIVER: llvmpipe
           SDL_VIDEODRIVER: x11
         run: |
-          xvfb-run -a -s '-screen 0 1280x720x24 +extension GLX +render -noreset' bash -c 'glxinfo -B && timeout 6m bash ./gradlew runProductionClientGameTest --no-daemon --stacktrace'
+          xvfb-run -a -s '-screen 0 1280x720x24 +extension GLX +render -noreset' bash -c 'glxinfo -B && timeout 6m bash ./gradlew runSmoke --no-daemon --stacktrace'
+      - name: Check client result / Проверить результат клиента
+        if: runner.os == 'Linux'
+        run: test -f build/run/smoke/smoke-success.txt
       - name: Screenshots and logs / Скриншоты и логи
         if: always() && runner.os == 'Linux'
         uses: actions/upload-artifact@v4
         with:
           name: minecraft-client-smoke
           path: |
-            invumusicplayer/build/run/clientGameTest/screenshots/
-            invumusicplayer/build/run/clientGameTest/logs/
-            invumusicplayer/build/run/clientGameTest/crash-reports/
+            invumusicplayer/build/run/smoke/screenshots/
+            invumusicplayer/build/run/smoke/logs/
+            invumusicplayer/build/run/smoke/crash-reports/
+            invumusicplayer/build/run/smoke/smoke-*.txt
           if-no-files-found: ignore
           retention-days: 7
       - name: Test reports / Результаты тестов
@@ -90,7 +94,7 @@ jobs:
       - name: Downloadable mod and guides / Мод и инструкции
         uses: actions/upload-artifact@v4
         with:
-          name: invumusicplayer-fabric-26.3-${{ matrix.os }}
+          name: invumusicplayer-fabric-1.20.4-${{ matrix.os }}
           path: invumusicplayer/build/distribution/
           if-no-files-found: error
           retention-days: 14

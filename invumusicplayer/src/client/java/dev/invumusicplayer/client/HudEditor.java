@@ -1,10 +1,9 @@
 package dev.invumusicplayer.client;
 
 import dev.invumusicplayer.core.Settings;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 
 public final class HudEditor extends Screen {
@@ -42,31 +41,31 @@ public final class HudEditor extends Screen {
         s.hudX = right ? (int) (width / s.hudScale) - panelWidth() - 8 : 8;
         s.hudY = bottom ? (int) (height / s.hudScale) - PlayerHud.panelHeight()-8 : 8; clamp();
     }
-    @Override public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
-        if (super.mouseClicked(event, doubleClick)) return true;
-        double x = event.x() / s.hudScale, y = event.y() / s.hudScale;
+    @Override public boolean mouseClicked(double mouseX,double mouseY,int button) {
+        if (super.mouseClicked(mouseX,mouseY,button)) return true;
+        double x = mouseX / s.hudScale, y = mouseY / s.hudScale;
         if (x >= s.hudX && x <= s.hudX + panelWidth() && y >= s.hudY && y <= s.hudY + PlayerHud.panelHeight()) {
             dragging = true; offsetX = x - s.hudX; offsetY = y - s.hudY; return true;
         }
         return false;
     }
-    @Override public boolean mouseDragged(MouseButtonEvent event, double dx, double dy) {
+    @Override public boolean mouseDragged(double mouseX,double mouseY,int button,double dx,double dy) {
         if (dragging) {
-            s.hudX = (int) (event.x() / s.hudScale - offsetX); s.hudY = (int) (event.y() / s.hudScale - offsetY); clamp(); return true;
+            s.hudX = (int) (mouseX / s.hudScale - offsetX); s.hudY = (int) (mouseY / s.hudScale - offsetY); clamp(); return true;
         }
-        return super.mouseDragged(event, dx, dy);
+        return super.mouseDragged(mouseX,mouseY,button,dx,dy);
     }
-    @Override public boolean mouseReleased(MouseButtonEvent event) {
+    @Override public boolean mouseReleased(double mouseX,double mouseY,int button) {
         if (dragging) { dragging = false; InvuMusicPlayerClient.player.saveSettings(); return true; }
-        return super.mouseReleased(event);
+        return super.mouseReleased(mouseX,mouseY,button);
     }
-    @Override public void extractRenderState(GuiGraphicsExtractor g, int mx, int my, float delta) {
+    @Override public void render(GuiGraphics g, int mx, int my, float delta) {
         g.fill(0, 0, width, height, 0x8008100a);
-        g.text(font, UiText.text("invumusicplayer.hud_editor.hint"), 8, 12, PlayerHud.TEXT, false);
+        g.drawString(font, UiText.text("invumusicplayer.hud_editor.hint"), 8, 12, PlayerHud.TEXT, false);
         PlayerHud.preview(g);
-        g.text(font, UiText.text("invumusicplayer.hud_editor.scale", Math.round(s.hudScale * 100)), width / 2 - 140, height - 86, PlayerHud.MUTED, false);
-        super.extractRenderState(g, mx, my, delta);
+        g.drawString(font, UiText.text("invumusicplayer.hud_editor.scale", Math.round(s.hudScale * 100)), width / 2 - 140, height - 86, PlayerHud.MUTED, false);
+        super.render(g, mx, my, delta);
     }
-    @Override public void onClose() { dragging = false; InvuMusicPlayerClient.player.saveSettings(); minecraft.gui.setScreen(parent); }
+    @Override public void onClose() { dragging = false; InvuMusicPlayerClient.player.saveSettings(); minecraft.setScreen(parent); }
     @Override public boolean isPauseScreen() { return parent!=null && parent.isPauseScreen(); }
 }

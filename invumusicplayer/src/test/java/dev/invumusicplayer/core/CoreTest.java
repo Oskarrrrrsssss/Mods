@@ -18,13 +18,13 @@ final class CoreTest {
         Files.write(dir.resolve("album/Artist - Song.png"), new byte[0]);
         Files.write(dir.resolve("ignore.exe"), new byte[0]);
         LocalLibrary library = new LocalLibrary(dir); List<Track> tracks = library.scan();
-        assertEquals(1, tracks.size()); assertEquals("Custom title", tracks.getFirst().title());
-        assertEquals("Custom artist", tracks.getFirst().artist()); assertNotNull(tracks.getFirst().coverFile());
+        assertEquals(1, tracks.size()); assertEquals("Custom title", tracks.get(0).title());
+        assertEquals("Custom artist", tracks.get(0).artist()); assertNotNull(tracks.get(0).coverFile());
     }
     @Test void badSidecarDoesNotHideTrackAndFilenameFallbackWorks() throws Exception {
         Files.write(temp.resolve("Artist - Track.wav"), new byte[0]);
         Files.writeString(temp.resolve("Artist - Track.json"), "bad-json");
-        Track track = new LocalLibrary(temp).scan().getFirst();
+        Track track = new LocalLibrary(temp).scan().get(0);
         assertEquals("Artist", track.artist()); assertEquals("Track", track.title());
     }
     @Test void libraryDoesNotFollowTracksOutsideItsDirectory() throws Exception {

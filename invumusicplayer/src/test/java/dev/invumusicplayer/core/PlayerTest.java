@@ -94,9 +94,9 @@ final class PlayerTest {
             player.choose(List.of(track("a"), track("b"), track("c")), 0);
             await(() -> remote.fetched.contains("a"));
             player.next(); player.next(); await(() -> player.playing() && player.current().id().equals("c"));
-            assertEquals("c", audio.played.getLast());
+            assertEquals("c", audio.played.get(audio.played.size()-1));
             player.previous(); await(() -> player.playing() && player.current().id().equals("b"));
-            assertEquals("b", audio.played.getLast());
+            assertEquals("b", audio.played.get(audio.played.size()-1));
         } finally { remote.blockAudio.countDown(); }
     }
     @Test void previousReturnsToTheSelectedTrackRatherThanAnUnplayedListNeighbour() throws Exception {
@@ -275,11 +275,11 @@ final class PlayerTest {
         Remote remote = new Remote(); Audio audio = new Audio();
         try (Player player = new Player(temp, remote, audio)) {
             player.startWave(); await(player::playing);
-            player.search("search-result"); await(() -> player.items().size() == 1 && player.items().getFirst().id().equals("search-result"));
+            player.search("search-result"); await(() -> player.items().size() == 1 && player.items().get(0).id().equals("search-result"));
             player.next(); await(() -> player.playing() && player.current().id().equals("b"));
             player.next(); await(() -> player.playing() && player.current().id().equals("c"));
             player.next(); await(() -> player.playing() && player.current().id().equals("d"));
-            assertEquals("search-result", player.items().getFirst().id());
+            assertEquals("search-result", player.items().get(0).id());
         }
     }
     @Test void disconnectCancelsPendingAuthorizationAndPreventsCredentialWrite() throws Exception {
@@ -370,7 +370,7 @@ final class PlayerTest {
             player.startWave();await(player::playing);
             player.choose(player.items(),2);await(()->player.playing()&&player.current().id().equals("c"));
             assertTrue(player.isWave());audio.ended.run();await(()->player.playing()&&player.current().id().equals("d"));
-            assertEquals(List.of("new","c"),remote.waveRequests);assertEquals("d",player.items().getFirst().id());
+            assertEquals(List.of("new","c"),remote.waveRequests);assertEquals("d",player.items().get(0).id());
             player.previous();await(()->player.playing()&&player.current().id().equals("c"));assertTrue(player.isWave());
             player.next();await(()->player.playing()&&player.current().id().equals("d"));assertEquals(2,remote.waveCalls.get());
         }
@@ -468,14 +468,14 @@ final class PlayerTest {
         Audio audio=new Audio();List<Track> tracks=List.of(track("a"),track("b"),track("c"),track("d"));
         try(Player p=new Player(temp,new Remote(),audio)){
             p.choose(tracks,0);await(p::playing);p.enqueue(track("x"));int starts=audio.played.size();p.toggleShuffle();
-            assertEquals("a",p.current().id());assertEquals(starts,audio.played.size());assertEquals("x",p.queue().getFirst().id());
+            assertEquals("a",p.current().id());assertEquals(starts,audio.played.size());assertEquals("x",p.queue().get(0).id());
             assertEquals(Set.of("x","b","c","d"),new HashSet<>(p.queue().stream().map(Track::id).toList()));
             p.toggleShuffle();assertEquals(List.of("x","b","c","d"),p.queue().stream().map(Track::id).toList());
             p.next();await(()->p.playing()&&p.current().id().equals("x"));p.next();await(()->p.playing()&&p.current().id().equals("b"));
         }
     }
     @Test void shuffleChangesManualQueueWithoutRestartingAndRestoresItsRemainder()throws Exception{
-        Audio audio=new Audio();try(Player p=new Player(temp,new Remote(),audio)){p.choose(List.of(track("a"),track("b"),track("c")),0);await(p::playing);p.enqueue(track("x"));p.enqueue(track("y"));p.enqueue(track("z"));var before=p.queue();int count=audio.played.size();p.toggleShuffle();assertNotEquals(before.subList(0,3),p.queue().subList(0,3));assertNotEquals(before.subList(3,5),p.queue().subList(3,5));assertEquals(count,audio.played.size());p.toggleShuffle();assertEquals(before,p.queue());p.toggleShuffle();Track consumed=p.queue().getFirst();p.next();await(()->p.playing()&&p.current().equals(consumed));p.toggleShuffle();assertEquals(before.stream().filter(t->!t.equals(consumed)).toList(),p.queue());}
+        Audio audio=new Audio();try(Player p=new Player(temp,new Remote(),audio)){p.choose(List.of(track("a"),track("b"),track("c")),0);await(p::playing);p.enqueue(track("x"));p.enqueue(track("y"));p.enqueue(track("z"));var before=p.queue();int count=audio.played.size();p.toggleShuffle();assertNotEquals(before.subList(0,3),p.queue().subList(0,3));assertNotEquals(before.subList(3,5),p.queue().subList(3,5));assertEquals(count,audio.played.size());p.toggleShuffle();assertEquals(before,p.queue());p.toggleShuffle();Track consumed=p.queue().get(0);p.next();await(()->p.playing()&&p.current().equals(consumed));p.toggleShuffle();assertEquals(before.stream().filter(t->!t.equals(consumed)).toList(),p.queue());}
     }
     @Test void shuffledSelectionPlaysChosenSongAndConsumesEverySongExactlyOnce() throws Exception {
         Audio audio=new Audio();List<Track> tracks=List.of(track("a"),track("b"),track("c"),track("d"));
@@ -502,7 +502,7 @@ final class PlayerTest {
     @Test void likedListHasNoManualMoodFilterAndDoesNotOverwriteLaterSearch() throws Exception {
         CountDownLatch gate=new CountDownLatch(1);Remote remote=new Remote(){public List<Track> liked(){waitForGate(gate);return List.of(track("123"),track("456"));}};
         try(Player p=new Player(temp,remote,new Audio(),testStore())){
-            p.connect("test-token");await(p::connected);p.showLiked();p.search("other");gate.countDown();await(()->p.items().size()==1&&p.items().getFirst().id().equals("other"));
+            p.connect("test-token");await(p::connected);p.showLiked();p.search("other");gate.countDown();await(()->p.items().size()==1&&p.items().get(0).id().equals("other"));
             p.showLiked();await(()->p.items().size()==2);assertEquals("liked",p.listingSection());assertEquals(List.of("123","456"),p.items().stream().map(Track::id).toList());
         }finally{gate.countDown();}
     }
@@ -511,16 +511,16 @@ final class PlayerTest {
             p.startWave();await(p::playing);assertEquals(List.of("a","b","c"),p.items().stream().map(Track::id).toList());
             p.next();await(()->p.playing()&&p.current().id().equals("b"));assertEquals(List.of("b","c"),p.items().stream().map(Track::id).toList());
             p.next();await(()->p.playing()&&p.current().id().equals("c"));assertEquals(List.of("c"),p.items().stream().map(Track::id).toList());
-            p.search("other");await(()->p.items().getFirst().id().equals("other"));p.next();await(()->p.playing()&&p.current().id().equals("d"));assertEquals("other",p.items().getFirst().id());
+            p.search("other");await(()->p.items().get(0).id().equals("other"));p.next();await(()->p.playing()&&p.current().id().equals("d"));assertEquals("other",p.items().get(0).id());
             p.showWave();assertEquals(List.of("d","e"),p.items().stream().map(Track::id).toList());assertEquals("wave",p.listingSection());
         }
     }
     @Test void deletingLocalPlaylistKeepsCurrentAudioAndQueueAndPersistsDeletion() throws Exception {
         try(Player p=new Player(temp,new Remote(),new Audio())){
             p.choose(List.of(track("a"),track("b")),0);await(p::playing);p.savePlaylist("Example");assertTrue(p.savedPlaylists().contains("Example"));
-            p.deleteSavedPlaylist("Example");assertFalse(p.savedPlaylists().contains("Example"));assertTrue(p.playing());assertEquals("a",p.current().id());assertEquals("b",p.queue().getFirst().id());
+            p.deleteSavedPlaylist("Example");assertFalse(p.savedPlaylists().contains("Example"));assertTrue(p.playing());assertEquals("a",p.current().id());assertEquals("b",p.queue().get(0).id());
         }
-        try(Player p=new Player(temp,new Remote(),new Audio())){assertFalse(p.savedPlaylists().contains("Example"));assertEquals("b",p.queue().getFirst().id());}
+        try(Player p=new Player(temp,new Remote(),new Audio())){assertFalse(p.savedPlaylists().contains("Example"));assertEquals("b",p.queue().get(0).id());}
     }
 
     @Test void restoredWaveUsesCorrectSectionAndVisibleCurrentTrack() throws Exception {

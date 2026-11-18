@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "id": "invumusicplayer-smoke",
+  "version": "1.0.0",
+  "name": "InvuMusicPlayer 1.20.4 verification",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "dev.invumusicplayer.client.PortSmoke"
+    ]
+  },
+  "depends": {
+    "invumusicplayer": "*"
+  }
+}

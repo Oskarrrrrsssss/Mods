@@ -294,5 +294,6 @@
   "invumusicplayer.slider.equalizer_height": "Высота эквалайзера: %s%%",
   "invumusicplayer.player.album_background": "Фон по обложке",
   "invumusicplayer.settings.album_background": "Фон по обложке: %s",
-  "invumusicplayer.settings.artwork_animation": "Анимация обложки: %s"
+  "invumusicplayer.settings.artwork_animation": "Анимация обложки: %s",
+  "key.categories.invumusicplayer": "InvuMusicPlayer"
 }
