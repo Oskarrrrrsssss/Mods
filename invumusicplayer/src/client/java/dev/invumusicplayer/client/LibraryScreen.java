@@ -50,7 +50,7 @@ public final class LibraryScreen extends Screen {
         button("invumusicplayer.player.done",x+80,height-28,150,this::onClose);
     }
     private void movePage(int direction){page=Math.max(0,Math.min(page+direction,pages-1));rebuildWidgets();}
-    @Override public boolean mouseScrolled(double mx,double my,double vertical){if(my>=listTop()&&my<height-136&&mx>=width/2-155&&mx<=width/2+155&&vertical!=0){movePage(vertical>0?-1:1);return true;}return super.mouseScrolled(mx,my,vertical);}
+    @Override public boolean mouseScrolled(double mx,double my,double horizontal,double vertical){if(my>=listTop()&&my<height-136&&mx>=width/2-155&&mx<=width/2+155&&vertical!=0){movePage(vertical>0?-1:1);return true;}return super.mouseScrolled(mx,my,horizontal,vertical);}
     @Override public void tick(){super.tick();List<?> current=tab!=2?player.items():player.playlists();if(!seen.equals(current)||!seenSaved.equals(player.savedPlaylists()))rebuildWidgets();if(status!=null){String text=player.error().isBlank()?player.status():player.error();status.setMessage(Component.literal(font.plainSubstrByWidth(text,298)));status.setTooltip(Tooltip.create(Component.literal(text)));}}
     @Override public void render(GuiGraphics g,int mx,int my,float d){g.fill(0,0,width,height,0xf0000000|UiTheme.background(this));int x=width/2-155;g.drawString(font,title.getString()+" / "+UiText.text("invumusicplayer.library."+new String[]{"search","liked","playlists","tracks"}[tab]),x,13,0xffedf2fb,false);
         g.drawString(font,(page+1)+" / "+pages,x+96,height-122,0xffbdc6d5,false);super.render(g,mx,my,d);

@@ -107,9 +107,9 @@ public final class PlayerScreen extends Screen {
     }
     private void centered(GuiGraphics g,String text,int x,int y,int width,int color){String clipped=font.plainSubstrByWidth(text,width-12);g.drawString(font,clipped,x+(width-font.width(clipped))/2,y,color,false);}
     private void movePage(int delta){int next=Math.max(0,Math.min(page+delta,pages-1));if(next!=page){page=next;rebuildWidgets();}}
-    @Override public boolean mouseScrolled(double mx,double my,double vertical){
+    @Override public boolean mouseScrolled(double mx,double my,double horizontal,double vertical){
         if(vertical!=0&&mx>=left+10&&mx<left+10+listWidth&&my>=top+84&&my<top+84+rows*24){movePage(vertical>0?-1:1);return true;}
-        return super.mouseScrolled(mx,my,vertical);
+        return super.mouseScrolled(mx,my,horizontal,vertical);
     }
     public int page(){return page;}public int pageCount(){return pages;}
     public long readyArtworkCount() {return seen.stream().skip((long)page*rows).limit(rows).map(track->artwork.get(track.id())).filter(Objects::nonNull).filter(CoverTexture::ready).count();}

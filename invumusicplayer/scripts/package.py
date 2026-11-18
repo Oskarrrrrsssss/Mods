@@ -5,7 +5,20 @@ if hasattr(sys.stdout,"reconfigure"):sys.stdout.reconfigure(encoding="utf-8")
 root=Path(__file__).resolve().parents[1];dest=root/'build/distribution';dest.mkdir(parents=True,exist_ok=True)
 jars=[p for p in (root/'build/libs').glob('invumusicplayer-*.jar') if not p.name.endswith(('-sources.jar','-gametest.jar','-smoketest.jar','-dev.jar'))]
 if len(jars)!=1:raise RuntimeError('Expected exactly one production JAR / Нужен один основной JAR')
-jar=jars[0];shutil.copyfile(jar,dest/jar.name)
+jar=jars[0]
+import zipfile
+with zipfile.ZipFile(jar) as archive:
+    metadata=json.loads(archive.read('fabric.mod.json'))
+    if metadata.get('depends',{}).get('minecraft')!='1.20.4' or metadata['environment']!='client':raise RuntimeError('Wrong Minecraft target / Неверная версия Minecraft')
+    classes=[n for n in archive.namelist() if n.startswith('dev/invumusicplayer/') and n.endswith('.class')]
+    if not classes or any(int.from_bytes(archive.read(n)[6:8],'big')!=61 for n in classes):raise RuntimeError('Java 17 bytecode required / Нужен байткод Java 17')
+    if any('PortSmoke' in n or 'SmokePlayerFactory' in n for n in archive.namelist()):raise RuntimeError('Test code leaked into mod / Проверочный код попал в мод')
+    if b'net/minecraft/class_310' not in archive.read('dev/invumusicplayer/client/InvuMusicPlayerClient.class'):raise RuntimeError('Production remap missing / Нет remap для Fabric')
+    nested=[n for n in archive.namelist() if n.startswith('META-INF/jars/') and n.endswith('.jar')]
+    if len(nested)!=11:raise RuntimeError('Bundled codec count changed / Изменился состав декодеров')
+    lang=[json.loads(archive.read('assets/invumusicplayer/lang/'+code+'.json')) for code in ['ru_ru','en_us']]
+    if lang[0].keys()!=lang[1].keys():raise RuntimeError('Translations differ / Набор переводов не совпадает')
+shutil.copyfile(jar,dest/jar.name)
 for name in ['README.md','README.en.md','VALIDATION.md','VALIDATION.en.md','THIRD_PARTY.md','THIRD_PARTY.en.md','LICENSE','FEATURES.md','FEATURES.en.md']:shutil.copyfile(root/name,dest/name)
 shutil.copytree(root/'native-spotify/licenses',dest/'spotify-licenses',dirs_exist_ok=True)
 shutil.copytree(root/'native-spotify/src',dest/'spotify-source/src',dirs_exist_ok=True)
