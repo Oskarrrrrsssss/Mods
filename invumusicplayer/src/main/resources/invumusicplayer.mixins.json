@@ -1,0 +1,13 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "dev.invumusicplayer.client.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "refmap": "invumusicplayer.refmap.json",
+  "client": [
+    "GameRendererMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
