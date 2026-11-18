@@ -18,7 +18,7 @@ public final class SettingsScreen extends Screen {
         for(int i=0;i<tabs.length;i++){int selected=i;var b=new ModernButton(x+i*105,32,100,20,Component.translatable("invumusicplayer.tabs."+tabs[i]),v->{tab=selected;rebuildWidgets();});b.selected(()->tab==selected);addRenderableWidget(b);}
         if(tab==0){
             toggle("invumusicplayer.settings.repeat",x+160,y,s.repeat,()->s.repeat=!s.repeat);
-            button("invumusicplayer.settings.hotkeys",x,y,150,()->minecraft.setScreen(new net.minecraft.client.gui.screens.options.controls.KeyBindsScreen(this,minecraft.options)));
+            button("invumusicplayer.settings.hotkeys",x,y,150,()->minecraft.setScreen(new net.minecraft.client.gui.screens.controls.KeyBindsScreen(this,minecraft.options)));
             button("invumusicplayer.cover.retry",x,y+60,150,()->InvuMusicPlayerClient.player.retryArtwork());
             toggle("invumusicplayer.settings.shuffle",x,y+30,s.shuffle,()->InvuMusicPlayerClient.player.toggleShuffle());
             button("invumusicplayer.service.choose",x+160,y+30,150,()->minecraft.setScreen(AccountScreen.open(this)));

@@ -70,4 +70,6 @@ loom {
 }
 tasks.register('smoketestJar',Jar) { from sourceSets.smoketest.output; archiveClassifier='smoketest' }
 
-processSmoketestResources { from('src/gametest/resources') { exclude 'fabric.mod.json' } }
+
+
+loom.runs.smoke.vmArg('-Dinvu.referenceCover=' + file('build/reference-cover.jpg').absolutePath)

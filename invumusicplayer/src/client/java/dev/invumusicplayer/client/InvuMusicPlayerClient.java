@@ -38,7 +38,7 @@ public final class InvuMusicPlayerClient implements ClientModInitializer {
         KeyMapping dislike=key("dislike",GLFW.GLFW_KEY_UNKNOWN,category);
         net.fabricmc.fabric.api.client.screen.v1.ScreenEvents.AFTER_INIT.register((client,screen,w,h)->{
             if(screen instanceof net.minecraft.client.gui.screens.TitleScreen||screen instanceof net.minecraft.client.gui.screens.PauseScreen) MenuPlayerPanel.install(screen,w,h);
-            if(screen instanceof net.minecraft.client.gui.screens.options.OptionsScreen){
+            if(screen instanceof net.minecraft.client.gui.screens.OptionsScreen){
                 var entry=new PlayerMenuButton(8,8,Math.min(150,w/2-20),Component.translatable("invumusicplayer.visibility.open_settings"),PlayerMenuButton.Icon.SETTINGS,true,b->client.setScreen(new SettingsScreen(screen)));
                 entry.setTooltip(net.minecraft.client.gui.components.Tooltip.create(Component.translatable("invumusicplayer.visibility.recovery")));
                 net.fabricmc.fabric.api.client.screen.v1.Screens.getButtons(screen).add(entry);

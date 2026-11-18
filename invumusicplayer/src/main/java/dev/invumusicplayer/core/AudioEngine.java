@@ -37,8 +37,8 @@ public final class AudioEngine implements Player.Playback {
         synchronized (lock) {
             stopLocked();
             Session session = active = new Session(seekMillis, initiallyPaused);
-            session.worker = Thread.ofPlatform().daemon().name("invumusicplayer-audio").unstarted(
-                () -> decode(session, input, ready, ended, failed));
+            session.worker = new Thread(() -> decode(session, input, ready, ended, failed), "invumusicplayer-audio");
+            session.worker.setDaemon(true);
             session.worker.start();
         }
     }

@@ -11,7 +11,7 @@ import net.minecraft.network.chat.Component;
 
 /** Credentials are entered on the user's PC and never echoed on screen. */
 public final class AccountScreen extends Screen {
-    private static final String HELP = "https://github.com/Oskarrrrrsssss/Mods/tree/codex/musicraft-playback/invumusicplayer#readme";
+    private static final String HELP = "https://github.com/Oskarrrrrsssss/Mods/tree/codex/invumusicplayer-1.20.4/invumusicplayer#readme";
     public static Screen open(Screen parent){return InvuMusicPlayerClient.player.spotifySelected()?new SpotifyAccountScreen(parent):new AccountScreen(parent);}
     private final Screen parent;
     private EditBox token;
@@ -30,7 +30,7 @@ public final class AccountScreen extends Screen {
             }
         };
         token.setMaxLength(TokenInput.MAX_LENGTH + 2048);
-        token.addFormatter((value, cursor) -> Component.literal("*".repeat(value.length())).getVisualOrderText());
+        token.setFormatter((value, cursor) -> Component.literal("*".repeat(value.length())).getVisualOrderText());
         token.setResponder(value -> invalidInput = false);
         addRenderableWidget(token);
         connect = addRenderableWidget(new ModernButton(x, y + 122, 151, 20, Component.translatable("invumusicplayer.account.connect"), b -> connect()));

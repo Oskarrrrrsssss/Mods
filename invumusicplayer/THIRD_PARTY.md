@@ -8,10 +8,10 @@
 
 | Компонент | Версия | Лицензия / исходный код |
 |---|---|---|
-| Fabric Loader | 0.19.5 | Apache-2.0; https://github.com/FabricMC/fabric-loader |
-| Fabric API | 0.162.0+26.3 | Apache-2.0; https://github.com/FabricMC/fabric-api |
+| Fabric Loader | 0.16.14 | Apache-2.0; https://github.com/FabricMC/fabric-loader |
+| Fabric API | 0.97.3+1.20.4 | Apache-2.0; https://github.com/FabricMC/fabric-api |
 | Fabric Loom | 1.18.4 | MIT; https://github.com/FabricMC/fabric-loom |
-| Gradle Wrapper | 9.7.1 | Apache-2.0; https://github.com/gradle/gradle |
+| Gradle Wrapper | 8.6 | Apache-2.0; https://github.com/gradle/gradle |
 | Gson | поставляется Minecraft | Apache-2.0; https://github.com/google/gson |
 | javasound-mp3 | 1.9.8 | LGPL-2.0; https://github.com/Tianscar/javasound-mp3 |
 | javasound-vorbis | 2.1.0 | LGPL-2.0 и Xiph BSD; https://github.com/Tianscar/javasound-vorbis |
