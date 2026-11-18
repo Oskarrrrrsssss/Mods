@@ -62,8 +62,8 @@ tasks.register('inspectClientApi', Exec) {
  'net.minecraft.client.gui.components.Button','net.minecraft.client.Screenshot','net.minecraft.client.gui.screens.worldselection.CreateWorldScreen',
  'net.minecraft.client.gui.screens.worldselection.WorldOpenFlows','net.fabricmc.fabric.api.client.screen.v1.ScreenEvents' }
 }
-sourceSets { smoketest { compileClasspath += sourceSets.client.compileClasspath + sourceSets.main.output + sourceSets.client.output; runtimeClasspath += output + compileClasspath + sourceSets.client.runtimeClasspath } }
-configurations { smoketestImplementation.extendsFrom implementation, modImplementation, clientImplementation; smoketestRuntimeOnly.extendsFrom runtimeOnly, modRuntimeOnly }
+sourceSets { smoketest { compileClasspath = sourceSets.client.compileClasspath + sourceSets.main.output + sourceSets.client.output; runtimeClasspath = output + sourceSets.client.runtimeClasspath + sourceSets.main.output + sourceSets.client.output } }
+configurations { smoketestImplementation.extendsFrom implementation; smoketestRuntimeOnly.extendsFrom runtimeOnly }
 loom {
  mods { 'invumusicplayer-smoke' { sourceSet sourceSets.smoketest } }
  runs { smoke { client(); name 'InvuMusicPlayer 1.20.4 smoke'; source sourceSets.smoketest; runDir 'build/run/smoke'; vmArg '-Dinvu.smoke=true' } }
