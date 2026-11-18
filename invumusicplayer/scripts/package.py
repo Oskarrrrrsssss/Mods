@@ -14,6 +14,10 @@ with zipfile.ZipFile(jar) as archive:
     if not classes or any(int.from_bytes(archive.read(n)[6:8],'big')!=61 for n in classes):raise RuntimeError('Java 17 bytecode required / Нужен байткод Java 17')
     if any('PortSmoke' in n or 'SmokePlayerFactory' in n for n in archive.namelist()):raise RuntimeError('Test code leaked into mod / Проверочный код попал в мод')
     if b'net/minecraft/class_310' not in archive.read('dev/invumusicplayer/client/InvuMusicPlayerClient.class'):raise RuntimeError('Production remap missing / Нет remap для Fabric')
+    mixins=json.loads(archive.read('invumusicplayer.mixins.json'))
+    refmap=json.loads(archive.read(mixins['refmap']))
+    mapped=json.dumps(refmap.get('mappings',{}))
+    if 'GameRendererMixin' not in mapped or 'class_757' not in mapped or 'class_332' not in mapped:raise RuntimeError('Mixin remap missing / Нет remap отрисовки F1')
     nested=[n for n in archive.namelist() if n.startswith('META-INF/jars/') and n.endswith('.jar')]
     if len(nested)!=11:raise RuntimeError('Bundled codec count changed / Изменился состав декодеров')
     lang=[json.loads(archive.read('assets/invumusicplayer/lang/'+code+'.json')) for code in ['ru_ru','en_us']]
