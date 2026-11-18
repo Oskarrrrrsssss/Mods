@@ -2,10 +2,9 @@ package dev.invumusicplayer.client;
 
 import com.mojang.blaze3d.platform.NativeImage;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.texture.DynamicTexture;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.*;
@@ -13,7 +12,7 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 
 public final class CoverTexture implements AutoCloseable {
-    private final Identifier ID = Identifier.fromNamespaceAndPath("invumusicplayer", "cover_" + java.util.UUID.randomUUID().toString().replace("-", ""));
+    private final ResourceLocation ID = new ResourceLocation("invumusicplayer", "cover_" + java.util.UUID.randomUUID().toString().replace("-", ""));
     private static final ExecutorService decode = Executors.newFixedThreadPool(2, r -> {
         Thread t = new Thread(r, "invumusicplayer-cover"); t.setDaemon(true); return t;
     });
@@ -55,7 +54,7 @@ public final class CoverTexture implements AutoCloseable {
                 Minecraft.getInstance().execute(() -> {
                     if (closed || request != serial.get()) return;
                     try {
-                        DynamicTexture texture = new DynamicTexture(() -> "InvuMusicPlayer album art", NativeImage.read(new ByteArrayInputStream(png)));
+                        DynamicTexture texture = new DynamicTexture(NativeImage.read(new ByteArrayInputStream(png)));
                         Minecraft.getInstance().getTextureManager().register(ID, texture); palette=background;accent=foreground; ready = true;
                     } catch (IOException e) { failed(request); }
                 });
@@ -67,8 +66,8 @@ public final class CoverTexture implements AutoCloseable {
         decodeFailed = true;
         org.slf4j.LoggerFactory.getLogger("invumusicplayer").warn("Artwork decode failed / Не удалось прочитать изображение обложки");
     }
-    public void draw(GuiGraphicsExtractor graphics, int x, int y, int size, int accent) {
-        if (ready) graphics.blit(RenderPipelines.GUI_TEXTURED, ID, x, y, 0f, 0f, size, size, 256, 256, 256, 256);
+    public void draw(GuiGraphics graphics, int x, int y, int size, int accent) {
+        if(ready){graphics.pose().pushPose();graphics.pose().translate(x,y,0);graphics.pose().scale(size/256f,size/256f,1);graphics.blit(ID,0,0,0f,0f,256,256,256,256);graphics.pose().popPose();}
         else {
             graphics.fill(x, y, x + size, y + size, 0xff202d25);
             graphics.fill(x + size / 4, y + size / 4, x + size * 3 / 4, y + size * 3 / 4, 0xff000000 | accent);

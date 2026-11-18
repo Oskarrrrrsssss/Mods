@@ -1,7 +1,7 @@
 package dev.invumusicplayer.client;
 
 import dev.invumusicplayer.core.*;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
@@ -21,14 +21,14 @@ public final class LibraryScreen extends Screen {
         int x=width/2-155,y=62;String[] tabs={"search","liked","playlists","tracks"};
         for(int i=0;i<4;i++){int index=i;button("invumusicplayer.library."+tabs[i],x+i*80,32,74,()->{tab=index;page=0;if(index==1)player.showLiked();if(index==2)player.loadPlaylists();rebuildWidgets();}).selected(()->tab==index);}
         if(tab==0){search=new EditBox(font,x,62,180,20,Component.translatable("invumusicplayer.player.search_hint"));search.setHint(Component.translatable("invumusicplayer.player.search_hint"));search.setMaxLength(256);search.setValue(query);search.setResponder(v->query=v);addRenderableWidget(search);
-            button("invumusicplayer.player.search",x+186,62,54,()->{page=0;if(localOnly)player.searchLocal(query);else if(player.connected())player.search(query);else minecraft.gui.setScreen(AccountScreen.open(this));});
+            button("invumusicplayer.player.search",x+186,62,54,()->{page=0;if(localOnly)player.searchLocal(query);else if(player.connected())player.search(query);else minecraft.setScreen(AccountScreen.open(this));});
             button("invumusicplayer.library.local",x+246,62,64,()->{localOnly=!localOnly;if(localOnly)player.searchLocal(query);rebuildWidgets();}).selected(()->localOnly);
         }
         y=listTop();List<Track> tracks=tab!=2?player.items():List.of();seen=tab==2?player.playlists():tracks;seenSaved=player.savedPlaylists();
         List<String> labels=new ArrayList<>();List<Runnable> actions=new ArrayList<>(),deletions=new ArrayList<>();
         if(tab==2){
-            for(String title:new TreeSet<>(seenSaved)){labels.add(title);actions.add(()->player.openSavedPlaylist(title));deletions.add(()->minecraft.gui.setScreen(new DeletePlaylistScreen(this,title,false,()->player.deleteSavedPlaylist(title))));}
-            for(MusicPlaylist p:player.playlists()){labels.add(p.title());actions.add(()->player.openPlaylist(p));deletions.add(()->minecraft.gui.setScreen(new DeletePlaylistScreen(this,p.title(),p.spotify()?"invumusicplayer.library.delete_spotify":"invumusicplayer.library.delete_remote",()->player.deletePlaylist(p))));}
+            for(String title:new TreeSet<>(seenSaved)){labels.add(title);actions.add(()->player.openSavedPlaylist(title));deletions.add(()->minecraft.setScreen(new DeletePlaylistScreen(this,title,false,()->player.deleteSavedPlaylist(title))));}
+            for(MusicPlaylist p:player.playlists()){labels.add(p.title());actions.add(()->player.openPlaylist(p));deletions.add(()->minecraft.setScreen(new DeletePlaylistScreen(this,p.title(),p.spotify()?"invumusicplayer.library.delete_spotify":"invumusicplayer.library.delete_remote",()->player.deletePlaylist(p))));}
         }
         pages=Math.max(1,((tab==2?labels.size():tracks.size())+rows()-1)/rows());page=Math.max(0,Math.min(page,pages-1));
         for(int row=0;row<rows();row++){int index=page*rows()+row;
@@ -52,8 +52,8 @@ public final class LibraryScreen extends Screen {
     private void movePage(int direction){page=Math.max(0,Math.min(page+direction,pages-1));rebuildWidgets();}
     @Override public boolean mouseScrolled(double mx,double my,double horizontal,double vertical){if(my>=listTop()&&my<height-136&&mx>=width/2-155&&mx<=width/2+155&&vertical!=0){movePage(vertical>0?-1:1);return true;}return super.mouseScrolled(mx,my,horizontal,vertical);}
     @Override public void tick(){super.tick();List<?> current=tab!=2?player.items():player.playlists();if(!seen.equals(current)||!seenSaved.equals(player.savedPlaylists()))rebuildWidgets();if(status!=null){String text=player.error().isBlank()?player.status():player.error();status.setMessage(Component.literal(font.plainSubstrByWidth(text,298)));status.setTooltip(Tooltip.create(Component.literal(text)));}}
-    @Override public void extractRenderState(GuiGraphicsExtractor g,int mx,int my,float d){g.fill(0,0,width,height,0xf0000000|UiTheme.background(this));int x=width/2-155;g.text(font,title.getString()+" / "+UiText.text("invumusicplayer.library."+new String[]{"search","liked","playlists","tracks"}[tab]),x,13,0xffedf2fb,false);
-        g.text(font,(page+1)+" / "+pages,x+96,height-122,0xffbdc6d5,false);super.extractRenderState(g,mx,my,d);
+    @Override public void render(GuiGraphics g,int mx,int my,float d){g.fill(0,0,width,height,0xf0000000|UiTheme.background(this));int x=width/2-155;g.drawString(font,title.getString()+" / "+UiText.text("invumusicplayer.library."+new String[]{"search","liked","playlists","tracks"}[tab]),x,13,0xffedf2fb,false);
+        g.drawString(font,(page+1)+" / "+pages,x+96,height-122,0xffbdc6d5,false);super.render(g,mx,my,d);
         if(tab!=2&&player.settings.covers)for(int row=0;row<rows();row++){int index=page*rows()+row;if(index>=seen.size())break;Track t=(Track)seen.get(index);if(t.youtube())continue;
             if(!artwork.containsKey(t.id())&&artwork.size()>=64){String old=artwork.keySet().iterator().next();artwork.remove(old).close();}
             CoverTexture texture=artwork.computeIfAbsent(t.id(),id->new CoverTexture());texture.update(player.coverFor(t));texture.draw(g,x,listTop()+1+row*24,18,player.settings.accent);
@@ -63,6 +63,6 @@ public final class LibraryScreen extends Screen {
     public int page(){return page;}public int pageCount(){return pages;}
     public long readyArtworkCount(){if(tab==2||!player.settings.covers)return 0;return seen.stream().skip((long)page*rows()).limit(rows()).filter(Track.class::isInstance).map(Track.class::cast).map(t->artwork.get(t.id())).filter(Objects::nonNull).filter(CoverTexture::ready).count();}
     @Override public void removed(){artwork.values().forEach(CoverTexture::close);artwork.clear();super.removed();}
-    @Override public void onClose(){minecraft.gui.setScreen(parent);}
+    @Override public void onClose(){minecraft.setScreen(parent);}
     @Override public boolean isPauseScreen(){return parent!=null&&parent.isPauseScreen();}
 }

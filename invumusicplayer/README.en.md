@@ -1,4 +1,4 @@
-# invumusicplayer — Minecraft Java 26.3 / Fabric / Windows
+# invumusicplayer — Minecraft Java 1.20.4 / Fabric / Windows
 
 [Русский](README.md) · **English**
 
@@ -7,6 +7,14 @@ Move and scale the in-game panel and customize its colors and opacity.
 The interface follows Minecraft's language: Russian or English.
 
 
+
+## Minecraft 1.20.4 port
+
+This build targets **Minecraft Java 1.20.4, Fabric Loader 0.16.14+ and Fabric API 0.97.3+1.20.4**, running on **Java 17 or newer**. Install the JAR from the Windows 1.20.4 archive. The 26.3 JAR cannot be used on 1.20.4. Existing music, configuration, queue and Windows credentials retain their paths; no login data is embedded in the mod.
+
+The rendering, mouse input, key bindings, title/Escape panels and artwork textures are adapted to the 1.20.4 APIs. Queue, Yandex Music/My Wave, experimental native Spotify, local music, YouTube audio, seek, volume, customization and RU/EN remain available. Previous 26.3 development lives on [the original branch](https://github.com/Oskarrrrrsssss/Mods/tree/codex/musicraft-playback).
+
+Build: **JDK 17, Rust/Cargo and Python 3**; Gradle 8.6 / Loom 1.6.12. Use `gradlew.bat build` or `bash ./gradlew build`. Actual-client verification: `bash ./gradlew runSmoke -Dinvu.smoke=true` (the verification run config sets the flag). This dedicated verification mod is excluded from the installable JAR. See [validation](VALIDATION.en.md) for exactly what was checked.
 
 ## Changes in 0.2.9
 
@@ -50,7 +58,7 @@ Spotify Development Mode limits each search request to ten results; playlist con
 
 On Windows both logins are saved separately with DPAPI encryption: `config/invumusicplayer-spotify-auth.dat` and `config/invumusicplayer-spotify-playback.dat`. Settings store Client ID, never credentials. **Disconnect** removes both logins. Spotify audio is neither exported to files nor cached on disk. The SHA-256-verified native engine is extracted from the JAR to `tools/invumusicplayer/spotify`; installing the finished mod does not require Rust. Spotify integration targets Windows x64; Linux x64 is used to verify the engine and UI in CI.
 
-Building from source requires **JDK 25, Rust/Cargo and Python 3**. Gradle builds and packages the engine automatically; dependencies are pinned in `native-spotify/Cargo.lock`. The initial build downloads Rust dependencies. Sources/limits: [librespot](https://github.com/librespot-org/librespot), [Spotify PKCE](https://developer.spotify.com/documentation/web-api/tutorials/code-pkce-flow), [Development Mode](https://developer.spotify.com/documentation/web-api/concepts/quota-modes).
+Building from source requires **JDK 17, Rust/Cargo and Python 3**. Gradle builds and packages the engine automatically; dependencies are pinned in `native-spotify/Cargo.lock`. The initial build downloads Rust dependencies. Sources/limits: [librespot](https://github.com/librespot-org/librespot), [Spotify PKCE](https://developer.spotify.com/documentation/web-api/tutorials/code-pkce-flow), [Development Mode](https://developer.spotify.com/documentation/web-api/concepts/quota-modes).
 
 
 ## Previous track fix (0.2.7)
@@ -103,8 +111,8 @@ Shuffle, repeat, like/dislike toggles and configurable hotkeys are retained. A s
 ## Installation
 
 1. Download the Windows artifact from a successful [GitHub Actions](https://github.com/Oskarrrrrsssss/Mods/actions/workflows/invumusicplayer.yml) run. Sign in to GitHub to access the private repository.
-2. Extract the ZIP. Put **invumusicplayer-0.2.9-alpha.jar** in the selected Minecraft instance's `mods` folder.
-3. Install Fabric Loader and Fabric API for **26.3**, and use Java 25.
+2. Extract the ZIP. Put **invumusicplayer-0.3.0-mc1.20.4-alpha.jar** in the selected Minecraft instance's `mods` folder.
+3. Install Fabric Loader and Fabric API for **26.3**, and use Java 17.
 4. Remove the previous Musicraft/invumusicplayer JAR from `mods` to avoid loading two copies. Settings, queue and authorization are retained.
 5. Select the music-note icon in the title-screen mini player or press **M** in a world.
 
@@ -159,7 +167,7 @@ yt-dlp and Deno versions are pinned; the FFmpeg LGPL build uses a verified SHA-2
 Helpers receive neither the Yandex token nor browser cookies.
 
 You can provide your own `yt-dlp.exe`, `deno.exe`, `ffmpeg.exe` and `ffprobe.exe` directly in `tools`: a complete set takes priority over auto-install. On Linux/macOS, install yt-dlp, Deno and FFmpeg in PATH or `tools`; automatic installation targets Windows x64.
-Sources: [yt-dlp](https://github.com/yt-dlp/yt-dlp), [Deno](https://github.com/denoland/deno), [FFmpeg](https://github.com/BtbN/FFmpeg-Builds).
+Sources: [yt-dlp](https://github.com/yt-dlp/yt-dlp), [Deno](https://github.com/denoland/deno), [FFmpeg](https://github.com/FFmpeg-Builds/FFmpeg-Builds).
 
 Private videos, sign-in/bot checks, live streams and regional restrictions are not bypassed. YouTube access failures show their category. Playback of a particular video depends on YouTube and network access.
 Audio loads fully before playback: up to **128 MiB** per YouTube track and **64 MiB** per Yandex track. YouTube temporary files are removed after download or cancellation.
@@ -185,15 +193,15 @@ The token is stored in `config/invumusicplayer-auth.dat`, encrypted with Windows
 
 ## Building and verification
 
-JDK 25, Rust/Cargo, Python 3 and internet access are required. In the `invumusicplayer` folder:
+JDK 17, Rust/Cargo, Python 3 and internet access are required. In the `invumusicplayer` folder:
 
 ```bat
 build-windows.cmd
 ```
 
-Alternatively, `gradlew.bat build`; on Linux, `bash ./gradlew build`. Output: `build/libs/invumusicplayer-0.2.9-alpha.jar`.
-Gradle Wrapper 9.7.1, Loom 1.18.4, Fabric Loader 0.19.5, Fabric API 0.162.0+26.3. Minecraft 26.3 uses unobfuscated names; Yarn is unnecessary.
-Tests: `gradlew.bat test`. Actual-client verification: `gradlew.bat runProductionClientGameTest`; the test mod is excluded from the installable JAR.
+Alternatively, `gradlew.bat build`; on Linux, `bash ./gradlew build`. Output: `build/libs/invumusicplayer-0.3.0-mc1.20.4-alpha.jar`.
+Gradle Wrapper 8.6, Loom 1.6.12, Fabric Loader 0.16.14, Fabric API 0.97.3+1.20.4. Official Mojang mappings are remapped to Fabric intermediary for the production JAR.
+Tests: `gradlew.bat test`. Actual-client verification: `gradlew.bat runSmoke`; the test mod is excluded from the installable JAR.
 Windows helper verification without downloading a video: `gradlew.bat verifyYouTubeTools`.
 Results and verification limits: [VALIDATION.en.md](VALIDATION.en.md). Dependencies: [THIRD_PARTY.en.md](THIRD_PARTY.en.md).
 If a problem remains, include the version and status error text; omit your token. The game log is `logs/latest.log`.

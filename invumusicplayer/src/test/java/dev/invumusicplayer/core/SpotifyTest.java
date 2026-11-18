@@ -36,7 +36,7 @@ final class SpotifyTest{
     }
     @Test void searchRespectsTheNewLimitAndParsesMetadataWithoutRemovedFields()throws Exception{
         try(SpotifyMusic api=api((method,path,bearer,body)->{assertEquals("GET",method);assertTrue(path.contains("limit=10"));assertTrue(path.contains("q=hello+world"));assertEquals("synthetic-spotify-access",bearer);return new SpotifyMusic.Response(200,"{\"tracks\":{\"items\":["+track(ID)+"],\"next\":null}}","");})){
-            Track result=api.search("hello world").getFirst();assertTrue(result.spotify());assertEquals("spotify:track:"+ID,result.id());assertEquals("Song",result.title());assertEquals("Artist",result.artist());assertEquals(123456,result.durationMillis());assertTrue(result.coverUrl().startsWith("https://i.scdn.co/"));
+            Track result=api.search("hello world").get(0);assertTrue(result.spotify());assertEquals("spotify:track:"+ID,result.id());assertEquals("Song",result.title());assertEquals("Artist",result.artist());assertEquals(123456,result.durationMillis());assertTrue(result.coverUrl().startsWith("https://i.scdn.co/"));
         }
     }
     @Test void likedPaginationReadsEveryPageAndSkipsUnavailableAndNullTracks()throws Exception{

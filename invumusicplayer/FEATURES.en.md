@@ -1,4 +1,4 @@
-# User requirements audit — 0.2.9
+# User requirements audit — 0.3.0 / 1.20.4
 
 [Русский](FEATURES.md) · **English**
 
@@ -6,7 +6,7 @@ This audit covers the resulting code and automated checks. Later requests supers
 
 | Request | Result and verification |
 |---|---|
-| Minecraft 26.3, Fabric, Windows; invumusicplayer name | Project/JAR renamed; Java 25 builds on Windows/Linux and an actual 26.3 client test. Client-only mod. |
+| Minecraft 1.20.4, Fabric, Windows; invumusicplayer name | Project/JAR renamed; Java 17 builds on Windows/Linux and an actual 26.3 client test. Client-only mod. |
 | Yandex Music playback, search and My Wave inside the mod | Token authentication, audio downloads, recommendations and feedback implemented. The user previously confirmed playback/Wave; changed network operations use HTTP fixtures, without a real account. |
 | Continuous Wave beyond five tracks, list updated on every switch | New batches load automatically; recent tracks are filtered. Current/upcoming list advances on switching without overwriting separately opened search/library lists. Queue/protocol tests. |
 | My Wave mood in the main interface | Dedicated icon in the title-menu mini player and full player. Mood, diversity and language; no wave tab in general settings. Native client checks. |

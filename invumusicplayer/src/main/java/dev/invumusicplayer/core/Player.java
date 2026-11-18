@@ -265,7 +265,7 @@ public final class Player implements AutoCloseable {
         Track selected=selectedQueue.get(index);if(selected.spotify())settings.musicService="spotify";else if(selected.remote()&&!selected.youtube())settings.musicService="yandex";
         originalQueue = List.copyOf(selectedQueue); queueIndex = index;
         if(settings.shuffle) {
-            List<Track> shuffled=new ArrayList<>(selectedQueue);Track chosen=shuffled.remove(index);shuffleChanged(shuffled);shuffled.addFirst(chosen);
+            List<Track> shuffled=new ArrayList<>(selectedQueue);Track chosen=shuffled.remove(index);shuffleChanged(shuffled);shuffled.add(0,chosen);
             queue=List.copyOf(shuffled);queueIndex=0;
         } else queue=originalQueue;
         wave = wave && !queue.get(queueIndex).batchId().isBlank(); ++waveSerial; upNext.remove(queue.get(queueIndex));
@@ -372,7 +372,7 @@ public final class Player implements AutoCloseable {
                     queue = List.copyOf(found); originalQueue=queue;queueIndex = 0;reorderUpcoming(settings.shuffle);
                     if (listRequest == listSerial) items = queue;
                     submitFeedback("radioStarted", null, 0, waveSerial);
-                    requestStartLocked(queue.getFirst(), true); persist();
+                    requestStartLocked(queue.get(0), true); persist();
                 }
             } catch (Exception e) { synchronized (this) { if (valid(request)) { loading = false; fail(e); } } }
         });
@@ -389,7 +389,7 @@ public final class Player implements AutoCloseable {
             if (queueIndex + 1 >= queue.size() && !settings.repeat) { suspend(); return; }
             if(queueIndex+1>=queue.size()&&settings.shuffle){
                 List<Track> nextCycle=new ArrayList<>(originalQueue);Collections.shuffle(nextCycle);
-                if(nextCycle.size()>1&&nextCycle.getFirst().equals(current))for(int i=1;i<nextCycle.size();i++)if(!nextCycle.get(i).equals(current)){Collections.swap(nextCycle,0,i);break;}
+                if(nextCycle.size()>1&&nextCycle.get(0).equals(current))for(int i=1;i<nextCycle.size();i++)if(!nextCycle.get(i).equals(current)){Collections.swap(nextCycle,0,i);break;}
                 queue=List.copyOf(nextCycle);queueIndex=0;
             }else queueIndex = (queueIndex + 1) % queue.size();
             requestStartLocked(queue.get(queueIndex), true);
@@ -398,7 +398,7 @@ public final class Player implements AutoCloseable {
         } else {
             long request = invalidateLocked(); currentStarted = false;
             status = Messages.text("invumusicplayer.status.wave_next");
-            String seed = queue.isEmpty() ? null : queue.getLast().id();
+            String seed = queue.isEmpty() ? null : queue.get(queue.size()-1).id();
             playbackJob = workers.submit(() -> {
                 try {
                     List<Track> found = remote.wave(seed);
@@ -407,7 +407,7 @@ public final class Player implements AutoCloseable {
                         if (found.isEmpty()) throw Messages.error("invumusicplayer.error.wave_next_empty");
                         queue = List.copyOf(found); originalQueue=queue;queueIndex = 0;reorderUpcoming(settings.shuffle);
                         if (waveListSerial == listSerial) items = queue;
-                        requestStartLocked(queue.getFirst(), true); persist();
+                        requestStartLocked(queue.get(0), true); persist();
                     }
                 } catch (Exception e) { synchronized (this) { if (valid(request)) { loading = false; fail(e); } } }
             });
@@ -486,7 +486,7 @@ public final class Player implements AutoCloseable {
         if(closed)return;settings.shuffle=!settings.shuffle;reorderUpcoming(settings.shuffle);List<Track> explicit=new ArrayList<>(upNext);if(settings.shuffle){originalExplicit=List.copyOf(explicit);shuffleChanged(explicit);}else explicit=restoreOrder(explicit,originalExplicit);upNext.clear();upNext.addAll(explicit);List<Track> retrace=new ArrayList<>(forward);if(settings.shuffle){originalForward=List.copyOf(retrace);shuffleChanged(retrace);}else retrace=restoreOrder(retrace,originalForward);forward.clear();forward.addAll(retrace);publishWaveList();saveSettings();persist();
     }
     private static List<Track> restoreOrder(List<Track> future,List<Track> original){Map<Track,Integer> remaining=new HashMap<>();for(Track t:future)remaining.merge(t,1,Integer::sum);List<Track> ordered=new ArrayList<>();for(Track t:original)if(remaining.getOrDefault(t,0)>0){ordered.add(t);remaining.merge(t,-1,Integer::sum);}for(Track t:future)if(remaining.getOrDefault(t,0)>0){ordered.add(t);remaining.merge(t,-1,Integer::sum);}return ordered;}
-    private static void shuffleChanged(List<Track> tracks){List<Track> before=List.copyOf(tracks);Collections.shuffle(tracks);if(tracks.equals(before))for(int i=1;i<tracks.size();i++)if(!tracks.get(i).equals(tracks.getFirst())){Collections.swap(tracks,0,i);break;}}
+    private static void shuffleChanged(List<Track> tracks){List<Track> before=List.copyOf(tracks);Collections.shuffle(tracks);if(tracks.equals(before))for(int i=1;i<tracks.size();i++)if(!tracks.get(i).equals(tracks.get(0))){Collections.swap(tracks,0,i);break;}}
     private void reorderUpcoming(boolean shuffled) {
         int start=Math.max(0,queueIndex+1);if(start>=queue.size())return;
         List<Track> future=new ArrayList<>(queue.subList(start,queue.size()));
@@ -569,7 +569,7 @@ public final class Player implements AutoCloseable {
                 }
                 synchronized(this) {
                     if(!validList(request))return;
-                    items=List.copyOf(found); if(youtube)enqueue(found.getFirst());
+                    items=List.copyOf(found); if(youtube)enqueue(found.get(0));
                     status=Messages.text("invumusicplayer.status.search_count", found.size());error=Messages.EMPTY;
                 }
             } catch(Exception e) { synchronized(this) { if(validList(request))fail(e); } }

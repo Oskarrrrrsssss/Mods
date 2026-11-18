@@ -294,5 +294,6 @@
   "invumusicplayer.slider.equalizer_height": "Equalizer height: %s%%",
   "invumusicplayer.player.album_background": "Album background",
   "invumusicplayer.settings.album_background": "Album background: %s",
-  "invumusicplayer.settings.artwork_animation": "Artwork motion: %s"
+  "invumusicplayer.settings.artwork_animation": "Artwork motion: %s",
+  "key.categories.invumusicplayer": "InvuMusicPlayer"
 }

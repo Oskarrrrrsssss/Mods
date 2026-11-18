@@ -1,4 +1,4 @@
-# invumusicplayer — Minecraft Java 26.3 / Fabric / Windows
+# invumusicplayer — Minecraft Java 1.20.4 / Fabric / Windows
 
 **Русский** · [English](README.en.md)
 
@@ -7,6 +7,14 @@
 Интерфейс использует язык Minecraft: русский или английский.
 
 
+
+## Порт на Minecraft 1.20.4
+
+Сборка рассчитана на **Minecraft Java 1.20.4, Fabric Loader 0.16.14+ и Fabric API 0.97.3+1.20.4**, с **Java 17 или новее**. Установи JAR из Windows-архива для 1.20.4. JAR для 26.3 не подходит к 1.20.4. Папки музыки, настроек, очереди и Windows-авторизации сохранены; данные входа в мод не включены.
+
+Отрисовка, мышь, горячие клавиши, панели главного/Escape меню и текстуры обложек перенесены на API 1.20.4. Очередь, Яндекс Музыка/Моя волна, экспериментальный встроенный Spotify, локальная музыка, звук YouTube, перемотка, громкость, оформление и RU/EN сохранены. Разработка 26.3 остаётся в [прежней ветке](https://github.com/Oskarrrrrsssss/Mods/tree/codex/musicraft-playback).
+
+Сборка: **JDK 17, Rust/Cargo и Python 3**; Gradle 8.6 / Loom 1.6.12. Команда `gradlew.bat build` или `bash ./gradlew build`. Проверка настоящего клиента — `bash ./gradlew runSmoke`; отдельный проверочный мод не входит в установочный JAR. Точный состав проверки — в [отчёте](VALIDATION.md).
 
 ## Изменения 0.2.9
 
@@ -50,7 +58,7 @@
 
 На Windows данные двух входов сохраняются раздельно, зашифрованные DPAPI: `config/invumusicplayer-spotify-auth.dat` и `config/invumusicplayer-spotify-playback.dat`. Client ID сохраняется в настройках; секреты туда не пишутся. **Отключить** убирает оба входа. Звук Spotify не экспортируется в файлы и не кэшируется на диске. Проверенный по SHA-256 движок извлекается из JAR в `tools/invumusicplayer/spotify`; Rust для установки готового мода не нужен. Spotify-интеграция рассчитана на Windows x64; Linux x64 используется для проверки движка и интерфейса в CI.
 
-Для сборки из исходников нужны **JDK 25, Rust/Cargo и Python 3**. Gradle автоматически собирает и упаковывает нативный движок; версии зависимостей зафиксированы в `native-spotify/Cargo.lock`. Первичная сборка требует скачивания Rust-зависимостей. Источники и ограничения: [librespot](https://github.com/librespot-org/librespot), [Spotify PKCE](https://developer.spotify.com/documentation/web-api/tutorials/code-pkce-flow), [Development Mode](https://developer.spotify.com/documentation/web-api/concepts/quota-modes).
+Для сборки из исходников нужны **JDK 17, Rust/Cargo и Python 3**. Gradle автоматически собирает и упаковывает нативный движок; версии зависимостей зафиксированы в `native-spotify/Cargo.lock`. Первичная сборка требует скачивания Rust-зависимостей. Источники и ограничения: [librespot](https://github.com/librespot-org/librespot), [Spotify PKCE](https://developer.spotify.com/documentation/web-api/tutorials/code-pkce-flow), [Development Mode](https://developer.spotify.com/documentation/web-api/concepts/quota-modes).
 
 
 ## Исправление предыдущего трека (0.2.7)
@@ -103,8 +111,8 @@ FFT измеряет декодированный звук **до примене
 ## Установка
 
 1. Скачай Windows-артефакт из успешного запуска [GitHub Actions](https://github.com/Oskarrrrrsssss/Mods/actions/workflows/invumusicplayer.yml). Для приватного репозитория нужно войти в GitHub.
-2. Извлеки ZIP. Помести **invumusicplayer-0.2.9-alpha.jar** в `mods` нужного экземпляра Minecraft.
-3. Установи Fabric Loader и Fabric API для **26.3**, используй Java 25.
+2. Извлеки ZIP. Помести **invumusicplayer-0.3.0-mc1.20.4-alpha.jar** в `mods` нужного экземпляра Minecraft.
+3. Установи Fabric Loader и Fabric API для **26.3**, используй Java 17.
 4. Удали предыдущий JAR Musicraft/invumusicplayer из `mods`, чтобы не было двух копий мода. Настройки, очередь и авторизация сохраняются.
 5. Нажми значок ноты в мини-плеере главного меню или **M** в мире.
 
@@ -159,7 +167,7 @@ yt-dlp и Deno имеют закреплённые версии; для сбор
 Инструменты не получают токен Яндекса или cookies браузера.
 
 Можно положить собственные `yt-dlp.exe`, `deno.exe`, `ffmpeg.exe` и `ffprobe.exe` прямо в `tools`: полный набор используется вместо автоматической установки. На Linux/macOS установи yt-dlp, Deno и FFmpeg в PATH либо `tools`; автоустановка рассчитана на Windows x64.
-Источники: [yt-dlp](https://github.com/yt-dlp/yt-dlp), [Deno](https://github.com/denoland/deno), [FFmpeg](https://github.com/BtbN/FFmpeg-Builds).
+Источники: [yt-dlp](https://github.com/yt-dlp/yt-dlp), [Deno](https://github.com/denoland/deno), [FFmpeg](https://github.com/FFmpeg-Builds/FFmpeg-Builds).
 
 Закрытые видео, требование входа/проверки бота, трансляции и ограничения региона не обходятся. Если YouTube запрещает запрос, показывается причина. Работа с конкретным видео зависит от YouTube и сети.
 Звук полностью загружается перед воспроизведением: до **128 МиБ** на YouTube-трек, до **64 МиБ** на трек Яндекса. Временные файлы YouTube удаляются после загрузки или отмены.
@@ -185,15 +193,15 @@ music/
 
 ## Сборка и проверка
 
-Нужны JDK 25, Rust/Cargo, Python 3 и интернет. В папке `invumusicplayer`:
+Нужны JDK 17, Rust/Cargo, Python 3 и интернет. В папке `invumusicplayer`:
 
 ```bat
 build-windows.cmd
 ```
 
-Либо `gradlew.bat build`; на Linux — `bash ./gradlew build`. Результат — `build/libs/invumusicplayer-0.2.9-alpha.jar`.
-Gradle Wrapper 9.7.1, Loom 1.18.4, Fabric Loader 0.19.5, Fabric API 0.162.0+26.3. Minecraft 26.3 использует необфусцированные имена, Yarn не нужен.
-Тесты: `gradlew.bat test`. Проверка настоящего клиента: `gradlew.bat runProductionClientGameTest`; тестовый мод не входит в установочный JAR.
+Либо `gradlew.bat build`; на Linux — `bash ./gradlew build`. Результат — `build/libs/invumusicplayer-0.3.0-mc1.20.4-alpha.jar`.
+Gradle Wrapper 8.6, Loom 1.6.12, Fabric Loader 0.16.14, Fabric API 0.97.3+1.20.4. Используются официальные Mojang mappings с последующим remap в intermediary для Fabric.
+Тесты: `gradlew.bat test`. Проверка настоящего клиента: `gradlew.bat runSmoke`; тестовый мод не входит в установочный JAR.
 Проверка Windows-инструментов без скачивания видео: `gradlew.bat verifyYouTubeTools`.
 Результаты и границы проверки — [VALIDATION.md](VALIDATION.md), зависимости — [THIRD_PARTY.md](THIRD_PARTY.md).
 Если проблема остаётся, пришли версию и текст ошибки из статуса; не отправляй токен. Лог игры — `logs/latest.log`.

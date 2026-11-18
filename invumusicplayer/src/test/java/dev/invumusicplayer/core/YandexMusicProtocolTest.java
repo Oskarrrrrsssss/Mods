@@ -66,7 +66,7 @@ final class YandexMusicProtocolTest {
     @Test void desktopFileInfoSignatureClientAndFullAudioMatchUpstream() throws Exception {
         Script script = new Script(json(fileInfo("raw", "mp3", false, "https://strm.yandex.net/song")), response(200, "audio"));
         assertArrayEquals("audio".getBytes(StandardCharsets.UTF_8), script.client().audio(remote("4784420:100500")));
-        HttpRequest api = script.requests.getFirst(); assertEquals("/get-file-info", api.uri().getPath());
+        HttpRequest api = script.requests.get(0); assertEquals("/get-file-info", api.uri().getPath());
         assertEquals(Map.of("ts", "1668687184", "trackId", "4784420:100500", "quality", "hq", "codecs", "mp3",
             "transports", "raw", "sign", "a746V+fc/+shkNujDVgTfQ1QHHSWzMdiAOtQxEs3Q+M"), query(api));
         assertEquals("YandexMusicDesktopAppWindows/5.95.0", api.headers().firstValue("X-Yandex-Music-Client").orElseThrow());
@@ -127,13 +127,13 @@ final class YandexMusicProtocolTest {
     @Test void myWaveCreatesSessionAndConsumesSessionBatchesWithIssuedTrackQueue() throws Exception {
         Script script = new Script(json(sequence("session-one", "batch-one", "1", "2", "2")), json(sequence(null, "batch-two", "2", "3")), json("{}"));
         YandexMusic client = script.client(); List<Track> first = client.wave(null); assertEquals(List.of("1", "2"), first.stream().map(Track::id).toList());
-        assertEquals("/rotor/session/new", script.requests.getFirst().uri().getPath());
-        JsonObject create = posted(script.requests.getFirst()); assertEquals("user:onyourwave", create.getAsJsonArray("seeds").get(0).getAsString());
-        assertTrue(create.get("includeTracksInResponse").getAsBoolean()); assertEquals("POST", script.requests.getFirst().method());
+        assertEquals("/rotor/session/new", script.requests.get(0).uri().getPath());
+        JsonObject create = posted(script.requests.get(0)); assertEquals("user:onyourwave", create.getAsJsonArray("seeds").get(0).getAsString());
+        assertTrue(create.get("includeTracksInResponse").getAsBoolean()); assertEquals("POST", script.requests.get(0).method());
         assertEquals(List.of("3"), client.wave("2").stream().map(Track::id).toList());
         assertEquals("/rotor/session/session-one/tracks", script.requests.get(1).uri().getPath());
         assertEquals("[\"1\",\"2\"]", posted(script.requests.get(1)).getAsJsonArray("queue").toString());
-        client.feedback("skip", first.getFirst(), 2450);
+        client.feedback("skip", first.get(0), 2450);
         JsonObject feedback = posted(script.requests.get(2)); assertEquals("batch-one", feedback.get("batchId").getAsString());
         assertEquals("skip", feedback.getAsJsonObject("event").get("type").getAsString());
         assertEquals(2.45, feedback.getAsJsonObject("event").get("totalPlayedSeconds").getAsDouble());
@@ -141,7 +141,7 @@ final class YandexMusicProtocolTest {
     }
     @Test void oldBatchFeedbackUsesItsOriginalSessionAfterNewWave() throws Exception {
         Script script = new Script(json(sequence("one", "batch-one", "1")), json(sequence("two", "batch-two", "2")), json("{}"), json("{}"));
-        YandexMusic client = script.client(); Track old = client.wave(null).getFirst(); client.wave(null);
+        YandexMusic client = script.client(); Track old = client.wave(null).get(0); client.wave(null);
         client.feedback("trackFinished", old, 100_000); client.feedback("radioStarted", null, 0);
         assertEquals("/rotor/session/one/feedback", script.requests.get(2).uri().getPath());
         assertEquals("batch-one", posted(script.requests.get(2)).get("batchId").getAsString());
@@ -152,7 +152,7 @@ final class YandexMusicProtocolTest {
     }
     @Test void unknownWaveSessionIsRenewedWithKnownQueue() throws Exception {
         Script script = new Script(json(sequence("one", "b1", "1", "2")), json("{\"unknownSession\":true}"), json(sequence("renewed", "b2", "3")));
-        YandexMusic client = script.client(); client.wave(null); assertEquals("3", client.wave("2").getFirst().id());
+        YandexMusic client = script.client(); client.wave(null); assertEquals("3", client.wave("2").get(0).id());
         assertEquals("/rotor/session/new", script.requests.get(2).uri().getPath());
         assertEquals("[\"1\",\"2\"]", posted(script.requests.get(2)).getAsJsonArray("queue").toString());
     }
@@ -168,13 +168,13 @@ final class YandexMusicProtocolTest {
         ExecutorService worker = Executors.newSingleThreadExecutor();
         try {
             Future<List<Track>> stale = worker.submit(() -> client.wave(null)); assertTrue(firstEntered.await(2, TimeUnit.SECONDS));
-            assertEquals("2", client.wave(null).getFirst().id()); release.countDown();
+            assertEquals("2", client.wave(null).get(0).id()); release.countDown();
             ExecutionException error = assertThrows(ExecutionException.class, () -> stale.get(2, TimeUnit.SECONDS)); assertInstanceOf(InterruptedIOException.class, error.getCause());
             client.wave("2"); assertEquals("/rotor/session/current/tracks", requests.get(2).uri().getPath());
         } finally { release.countDown(); worker.shutdownNow(); }
     }
     @Test void resetWaveClearsPendingFeedbackRouting() throws Exception {
-        Script script = new Script(json(sequence("one", "b1", "1"))); YandexMusic client = script.client(); Track old = client.wave(null).getFirst();
+        Script script = new Script(json(sequence("one", "b1", "1"))); YandexMusic client = script.client(); Track old = client.wave(null).get(0);
         client.resetWave(); client.feedback("skip", old, 1); assertEquals(1, script.requests.size());
     }
     @Test void verifiedAccountNeedsPositiveUid() throws Exception {
@@ -186,8 +186,8 @@ final class YandexMusicProtocolTest {
         Script script = new Script(json("{\"tracks\":{\"results\":[{\"id\":\"1\",\"available\":false},"
             + "{\"id\":\"2\",\"available\":false,\"availableForPremiumUsers\":true,\"title\":\"Song\",\"artists\":[{\"name\":\"Artist\"}],\"coverUri\":\"avatars.yandex.net/a/%%\"},{\"title\":\"no id\"}]}}"));
         List<Track> result = script.client().search("test / text"); assertEquals(1, result.size());
-        assertEquals("Artist", result.getFirst().artist()); assertEquals("https://avatars.yandex.net/a/200x200", result.getFirst().coverUrl());
-        assertEquals("test / text", query(script.requests.getFirst()).get("text"));
+        assertEquals("Artist", result.get(0).artist()); assertEquals("https://avatars.yandex.net/a/200x200", result.get(0).coverUrl());
+        assertEquals("test / text", query(script.requests.get(0)).get("text"));
     }
     @Test void assetRedirectKeepsAuthorizationAbsentAndRejectsOtherOrigins() throws Exception {
         YandexMusic.Response redirect = new YandexMusic.Response(302, HttpHeaders.of(Map.of("Location", List.of("/new")), (a,b) -> true), new byte[0]);
@@ -219,9 +219,9 @@ final class YandexMusicProtocolTest {
     @Test void artworkFallsBackToAlbumAndFullTrackMetadata() throws Exception {
         Script script=new Script(json("[{\"id\":\"1\",\"albums\":[{\"coverUri\":\"avatars.yandex.net/get-music/%%\"}]}]"),response(200,"image"));
         assertEquals("image",new String(script.client().cover(remote("1")),StandardCharsets.UTF_8));
-        assertEquals("/tracks",script.requests.getFirst().uri().getPath());
-        assertEquals("https://avatars.yandex.net/get-music/200x200",script.requests.getLast().uri().toString());
-        assertTrue(script.requests.getLast().headers().firstValue("Authorization").isEmpty());
+        assertEquals("/tracks",script.requests.get(0).uri().getPath());
+        assertEquals("https://avatars.yandex.net/get-music/200x200",script.requests.get(script.requests.size()-1).uri().toString());
+        assertTrue(script.requests.get(script.requests.size()-1).headers().firstValue("Authorization").isEmpty());
     }
     @Test void likesUseAccountUidAndFormBodyWhileWaveSettingsUseJson() throws Exception {
         Script script=new Script(json("{\"account\":{\"uid\":42}}"),json("{\"revision\":2}"),json("\"ok\""));
@@ -235,19 +235,19 @@ final class YandexMusicProtocolTest {
         Script script=new Script(response(200,"jpeg"));
         Track old=new Track("1","t","a",100,null,null,"https://avatars.yandex.net/get-music/album/256x256","");
         assertEquals(4,script.client().cover(old).length);
-        assertEquals("https://avatars.yandex.net/get-music/album/200x200",script.requests.getFirst().uri().toString());
-        assertTrue(script.requests.getFirst().headers().firstValue("Authorization").isEmpty());
+        assertEquals("https://avatars.yandex.net/get-music/album/200x200",script.requests.get(0).uri().toString());
+        assertTrue(script.requests.get(0).headers().firstValue("Authorization").isEmpty());
     }
     @Test void staleCoverRefreshesMetadataAndNullApiErrorIsAccepted() throws Exception {
         Script script=new Script(response(404,""),response(200,"{\"error\":null,\"result\":[{\"id\":\"1\",\"albums\":[{\"coverUri\":\"avatars.yandex.net/new/%%\"}]}]}"),response(200,"jpeg"));
         Track old=new Track("1","t","a",100,null,null,"https://avatars.yandex.net/old/200x200","");
         assertEquals(4,script.client().cover(old).length);
-        assertEquals("https://avatars.yandex.net/new/200x200",script.requests.getLast().uri().toString());
+        assertEquals("https://avatars.yandex.net/new/200x200",script.requests.get(script.requests.size()-1).uri().toString());
         assertTrue(Arrays.asList(body(script.requests.get(1)).split("&")).contains("track-ids=1"));
     }
     @Test void playlistDeleteRequiresAccountOwnerAndAcknowledgedPost() throws Exception {
         Script script=new Script(json("{\"account\":{\"uid\":123}}"),json("\"ok\""));
-        script.client().deletePlaylist("123","1000");assertEquals("POST",script.requests.getLast().method());assertEquals("/users/123/playlists/1000/delete",script.requests.getLast().uri().getPath());
+        script.client().deletePlaylist("123","1000");assertEquals("POST",script.requests.get(script.requests.size()-1).method());assertEquals("/users/123/playlists/1000/delete",script.requests.get(script.requests.size()-1).uri().getPath());
         Script foreign=new Script(json("{\"account\":{\"uid\":123}}"));
         assertThrows(IOException.class,()->foreign.client().deletePlaylist("999","1000"));assertEquals(1,foreign.requests.size());
         Script rejected=new Script(json("{\"account\":{\"uid\":123}}"),json("\"failed\""));

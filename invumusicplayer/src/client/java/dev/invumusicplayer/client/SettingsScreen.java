@@ -1,7 +1,7 @@
 package dev.invumusicplayer.client;
 
 import dev.invumusicplayer.core.Settings;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 
@@ -18,10 +18,10 @@ public final class SettingsScreen extends Screen {
         for(int i=0;i<tabs.length;i++){int selected=i;var b=new ModernButton(x+i*105,32,100,20,Component.translatable("invumusicplayer.tabs."+tabs[i]),v->{tab=selected;rebuildWidgets();});b.selected(()->tab==selected);addRenderableWidget(b);}
         if(tab==0){
             toggle("invumusicplayer.settings.repeat",x+160,y,s.repeat,()->s.repeat=!s.repeat);
-            button("invumusicplayer.settings.hotkeys",x,y,150,()->minecraft.gui.setScreen(new net.minecraft.client.gui.screens.options.controls.KeyBindsScreen(this,minecraft.options)));
+            button("invumusicplayer.settings.hotkeys",x,y,150,()->minecraft.setScreen(new net.minecraft.client.gui.screens.controls.KeyBindsScreen(this,minecraft.options)));
             button("invumusicplayer.cover.retry",x,y+60,150,()->InvuMusicPlayerClient.player.retryArtwork());
             toggle("invumusicplayer.settings.shuffle",x,y+30,s.shuffle,()->InvuMusicPlayerClient.player.toggleShuffle());
-            button("invumusicplayer.service.choose",x+160,y+30,150,()->minecraft.gui.setScreen(AccountScreen.open(this)));
+            button("invumusicplayer.service.choose",x+160,y+30,150,()->minecraft.setScreen(AccountScreen.open(this)));
         }else if(tab==1){
             toggle("invumusicplayer.settings.cover_colors",x,y,s.menuCoverColors,()->s.menuCoverColors=!s.menuCoverColors);
             toggle("invumusicplayer.settings.covers",x+160,y,s.covers,()->s.covers=!s.covers);
@@ -45,7 +45,7 @@ public final class SettingsScreen extends Screen {
         }
         button("invumusicplayer.settings.back",x+80,height-30,150,this::onClose);
     }
-    @Override public void extractRenderState(GuiGraphicsExtractor g,int mx,int my,float delta){g.fill(0,0,width,height,0xf00c1220);g.text(font,title.getString(),width/2-155,13,0xffedf2fb,false);super.extractRenderState(g,mx,my,delta);}
-    @Override public void onClose(){s.normalize();InvuMusicPlayerClient.player.saveSettings();minecraft.gui.setScreen(parent);}
+    @Override public void render(GuiGraphics g,int mx,int my,float delta){g.fill(0,0,width,height,0xf00c1220);g.drawString(font,title.getString(),width/2-155,13,0xffedf2fb,false);super.render(g,mx,my,delta);}
+    @Override public void onClose(){s.normalize();InvuMusicPlayerClient.player.saveSettings();minecraft.setScreen(parent);}
     @Override public boolean isPauseScreen(){return parent!=null && parent.isPauseScreen();}
 }

@@ -1,7 +1,7 @@
 package dev.invumusicplayer.client;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.network.chat.Component;
 
@@ -19,16 +19,16 @@ final class PlayerMenuButton extends Button {
             if(icon==Icon.PAUSE)refreshPlaybackMessage(button);
         }, DEFAULT_NARRATION); this.icon=icon; this.label=label;this.scale=scale;
     }
-    static void rounded(GuiGraphicsExtractor g,int x,int y,int w,int h,int color) {
+    static void rounded(GuiGraphics g,int x,int y,int w,int h,int color) {
         if(w<6||h<6){g.fill(x,y,x+w,y+h,color);return;}
         g.fill(x+3,y,x+w-3,y+1,color);g.fill(x+1,y+1,x+w-1,y+3,color);
         g.fill(x,y+3,x+w,y+h-3,color);
         g.fill(x+1,y+h-3,x+w-1,y+h-1,color);g.fill(x+3,y+h-1,x+w-3,y+h,color);
     }
-    @Override public void extractContents(GuiGraphicsExtractor g,int mx,int my,float delta) {
+    @Override public void renderWidget(GuiGraphics g,int mx,int my,float delta) {
         var player=InvuMusicPlayerClient.player;int accent=UiTheme.accent();
         int px=0,py=0,pw=Math.round(getWidth()/scale),ph=20;
-        g.pose().pushMatrix();g.pose().translate((float)getX(),(float)getY());g.pose().scale(scale);
+        g.pose().pushPose();g.pose().translate(getX(),getY(),0);g.pose().scale(scale,scale,1);
         boolean highlighted=isHoveredOrFocused(), selected=isSelected();
         active=switch(icon){case WAVE->!player.spotifySelected();case LIKE->player.current()!=null&&!player.current().youtube();case DISLIKE->player.current()!=null&&!player.current().youtube()&&!player.current().spotify();default->true;};
         int base=UiTheme.control();int background=0xff000000|tint(base,highlighted||selected?32:16);
@@ -57,8 +57,8 @@ final class PlayerMenuButton extends Button {
         if(icon==Icon.SHUFFLE){setTooltip(net.minecraft.client.gui.components.Tooltip.create(Component.translatable("invumusicplayer.player.shuffle_state",UiText.toggle(player.settings.shuffle))));if(selected){g.fill(pw-7,3,pw-3,4,0xff000000|accent);g.fill(pw-6,2,pw-4,5,0xff000000|accent);}}
         if(icon==Icon.BACKGROUND)setTooltip(net.minecraft.client.gui.components.Tooltip.create(Component.translatable("invumusicplayer.settings.album_background",UiText.toggle(player.settings.albumBackground))));
         if(icon==Icon.CLOCK)setTooltip(net.minecraft.client.gui.components.Tooltip.create(Component.translatable("invumusicplayer.settings.time",UiText.toggle(player.settings.showTime))));
-        if(label){var font=Minecraft.getInstance().font;g.text(font,font.plainSubstrByWidth(getMessage().getString(),Math.max(0,pw-26)),px+21,py+6,0xff000000|player.settings.textColor,false);}
-        g.pose().popMatrix();
+        if(label){var font=Minecraft.getInstance().font;g.drawString(font,font.plainSubstrByWidth(getMessage().getString(),Math.max(0,pw-26)),px+21,py+6,0xff000000|player.settings.textColor,false);}
+        g.pose().popPose();
     }
     private static int tint(int color,int amount){return (Math.min(255,((color>>16)&255)+amount)<<16)|(Math.min(255,((color>>8)&255)+amount)<<8)|Math.min(255,(color&255)+amount);}
     boolean isSelected(){var p=InvuMusicPlayerClient.player;return icon==Icon.LIKE?p.rating()==1:icon==Icon.DISLIKE?p.rating()==-1:icon==Icon.BACKGROUND?p.settings.albumBackground:icon==Icon.CLOCK?p.settings.showTime:icon==Icon.SHUFFLE&&p.settings.shuffle;}
@@ -68,7 +68,7 @@ final class PlayerMenuButton extends Button {
         Component message=Component.translatable(InvuMusicPlayerClient.player.playing()?"invumusicplayer.player.pause":"invumusicplayer.player.play");
         if(!button.getMessage().equals(message)){button.setMessage(message);button.setTooltip(net.minecraft.client.gui.components.Tooltip.create(message));}
     }
-    private static void triangle(GuiGraphicsExtractor g,int x,int y,int c,boolean reverse) {
+    private static void triangle(GuiGraphics g,int x,int y,int c,boolean reverse) {
         for(int i=0;i<5;i++){int at=reverse?x+4-i:x+i;g.fill(at,y+i,at+1,y+10-i,c);}
     }
 }

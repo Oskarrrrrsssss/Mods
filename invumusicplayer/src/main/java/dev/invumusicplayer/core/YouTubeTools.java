@@ -44,13 +44,13 @@ public final class YouTubeTools {
             extract(deno, staging, Set.of("deno.exe")); Files.delete(deno);
             progress.accept(Messages.text("invumusicplayer.youtube.tools", "FFmpeg", 3, 3));
             Path ffmpeg = staging.resolve("ffmpeg.zip");
-            // BtbN's latest tag rotates. Verify the asset digest from its official release metadata.
+            // The official FFmpeg-Builds latest tag rotates. Verify the asset digest from its official release metadata.
             download(ffmpegRelease(), ffmpeg);
             extract(ffmpeg, staging, Set.of("ffmpeg.exe", "ffprobe.exe")); Files.delete(ffmpeg);
             Files.writeString(staging.resolve("NOTICE.txt"), "YouTube helpers / Инструменты YouTube\n"
                 + "yt-dlp: https://github.com/yt-dlp/yt-dlp (Unlicense; bundled executable components have their own licenses)\n"
                 + "Deno: https://github.com/denoland/deno (MIT)\n"
-                + "FFmpeg LGPL build: https://github.com/BtbN/FFmpeg-Builds (sources and build scripts available there)\n"
+                + "FFmpeg LGPL build: https://github.com/FFmpeg-Builds/FFmpeg-Builds (sources and build scripts available there)\n"
                 + "No Yandex token or browser cookies are passed / Токен Яндекса и cookies браузера не передаются.\n");
             if (!complete(staging, suffix)) throw Messages.error("invumusicplayer.error.youtube_tools");
             Files.createDirectories(target);
@@ -68,7 +68,7 @@ public final class YouTubeTools {
         });
     }
     private static Release ffmpegRelease() throws Exception {
-        try (InputStream in = get(URI.create("https://api.github.com/repos/BtbN/FFmpeg-Builds/releases/latest"))) {
+        try (InputStream in = get(URI.create("https://api.github.com/repos/FFmpeg-Builds/FFmpeg-Builds/releases/latest"))) {
             JsonObject release = JsonParser.parseString(new String(YandexMusic.bounded(in, 2_000_000), java.nio.charset.StandardCharsets.UTF_8)).getAsJsonObject();
             for (JsonElement e : release.getAsJsonArray("assets")) {
                 JsonObject asset = e.getAsJsonObject();
@@ -76,7 +76,7 @@ public final class YouTubeTools {
                     String sha = asset.get("digest").getAsString();
                     if (!sha.matches("sha256:[a-f0-9]{64}")) break;
                     String url = asset.get("browser_download_url").getAsString();
-                    if (!url.startsWith("https://github.com/BtbN/FFmpeg-Builds/releases/download/")) break;
+                    if (!url.startsWith("https://github.com/FFmpeg-Builds/FFmpeg-Builds/releases/download/")) break;
                     return new Release(url, sha.substring(7));
                 }
             }
@@ -102,7 +102,7 @@ public final class YouTubeTools {
                 || host==null || !(host.equals("github.com") || host.equals("api.github.com") || host.equals("release-assets.githubusercontent.com")
                     || host.equals("objects.githubusercontent.com"))) throw Messages.error("invumusicplayer.error.youtube_install");
             HttpRequest request = HttpRequest.newBuilder(uri).timeout(Duration.ofMinutes(5))
-                .header("User-Agent", "InvuMusicPlayer/0.2.1").GET().build();
+                .header("User-Agent", "InvuMusicPlayer/0.3.0").GET().build();
             CompletableFuture<HttpResponse<InputStream>> pending = HTTP.sendAsync(request, HttpResponse.BodyHandlers.ofInputStream());
             HttpResponse<InputStream> response;
             try { response = pending.get(5, TimeUnit.MINUTES); }

@@ -8,10 +8,10 @@ are preserved; this documentation does not translate or replace them.
 
 | Component | Version | License / source |
 |---|---|---|
-| Fabric Loader | 0.19.5 | Apache-2.0; https://github.com/FabricMC/fabric-loader |
-| Fabric API | 0.162.0+26.3 | Apache-2.0; https://github.com/FabricMC/fabric-api |
+| Fabric Loader | 0.16.14 | Apache-2.0; https://github.com/FabricMC/fabric-loader |
+| Fabric API | 0.97.3+1.20.4 | Apache-2.0; https://github.com/FabricMC/fabric-api |
 | Fabric Loom | 1.18.4 | MIT; https://github.com/FabricMC/fabric-loom |
-| Gradle Wrapper | 9.7.1 | Apache-2.0; https://github.com/gradle/gradle |
+| Gradle Wrapper | 8.6 | Apache-2.0; https://github.com/gradle/gradle |
 | Gson | provided by Minecraft | Apache-2.0; https://github.com/google/gson |
 | javasound-mp3 | 1.9.8 | LGPL-2.0; https://github.com/Tianscar/javasound-mp3 |
 | javasound-vorbis | 2.1.0 | LGPL-2.0 and Xiph BSD; https://github.com/Tianscar/javasound-vorbis |
@@ -33,7 +33,7 @@ No third-party music, artwork, lyrics, reference mod files, or account data are 
 
 ## Separately downloaded YouTube helpers
 
-On Windows x64 the mod prepares official yt-dlp (Unlicense; executable components have separate licenses), Deno (MIT), and LGPL FFmpeg/ffprobe from BtbN/FFmpeg-Builds. Binaries are not bundled inside the JAR. Sources, license terms and build scripts are available at https://github.com/yt-dlp/yt-dlp, https://github.com/denoland/deno and https://github.com/BtbN/FFmpeg-Builds. Information is saved alongside helpers in NOTICE.txt.
+On Windows x64 the mod prepares official yt-dlp (Unlicense; executable components have separate licenses), Deno (MIT), and LGPL FFmpeg/ffprobe from FFmpeg-Builds/FFmpeg-Builds. Binaries are not bundled inside the JAR. Sources, license terms and build scripts are available at https://github.com/yt-dlp/yt-dlp, https://github.com/denoland/deno and https://github.com/FFmpeg-Builds/FFmpeg-Builds. Information is saved alongside helpers in NOTICE.txt.
 
 ## Bundled Spotify engine
 
